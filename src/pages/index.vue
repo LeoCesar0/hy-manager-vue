@@ -7,7 +7,7 @@
     <div class="home-page">
       <h1>Home Page</h1>
       <NuxtLink to="/dashboard">
-        <UiButton>Dashboard</UiButton>
+        <UiButton type="button">Dashboard</UiButton>
       </NuxtLink>
     </div>
   </NuxtLayout>

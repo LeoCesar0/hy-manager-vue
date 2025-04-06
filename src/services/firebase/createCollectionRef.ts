@@ -1,6 +1,5 @@
 import { collection, doc } from "firebase/firestore";
 import { getServerPath } from "./getServerPath";
-import { firebaseDB } from "./config";
 import type { FirebaseCollection } from "./collections";
 
 export const createCollectionRef = ({
@@ -8,6 +7,7 @@ export const createCollectionRef = ({
 }: {
   collectionName: FirebaseCollection;
 }) => {
+  const { firebaseDB } = useFirebase();
   const path = getServerPath();
 
   const ref = collection(firebaseDB, `env/${path}/${collectionName}`);

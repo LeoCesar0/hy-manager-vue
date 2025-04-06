@@ -3,9 +3,11 @@
 </script>
 
 <template>
-  <h1>HOME LAYOUT</h1>
-  <div class="">
-    <slot />
+  <div class="home-layout">
+    <h1>HOME LAYOUT</h1>
+    <div class="">
+      <slot />
+    </div>
   </div>
 </template>
 

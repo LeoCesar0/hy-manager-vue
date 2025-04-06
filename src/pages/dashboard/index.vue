@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import { firebaseCreate } from "../../services/firebase/firebaseCreate";
+import { useFirebase } from "~/composables/useFirebase";
+
 type IProps = {};
 const props = withDefaults(defineProps<IProps>(), {});
 
+const { create } = useFirebase();
+
 const test = async () => {
-  const data = await firebaseCreate({
-    collection: "bankAccounts",
-    data: {
-      name: "test",
-      id: "123",
-    },
-  });
-  console.log("❗ data -->", data);
+  try {
+    const data = await create({
+      collection: "bankAccounts",
+      data: {
+        name: "test",
+        id: "123",
+      },
+    });
+    console.log("❗ data -->", data);
+  } catch (error) {
+    console.error("Error creating bank account:", error);
+  }
 };
 </script>
 
@@ -19,7 +26,7 @@ const test = async () => {
   <NuxtLayout name="dashboard">
     <div class="dashboard-page">
       <h1>Dashboard</h1>
-      <UiButton @click="() => test()">Test</UiButton>
+      <UiButton @click="() => test()">Test Firebase</UiButton>
       <!-- Add your dashboard content here -->
     </div>
   </NuxtLayout>

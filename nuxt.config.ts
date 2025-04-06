@@ -35,7 +35,6 @@ export default defineNuxtConfig({
     "@static": resolve(__dirname, "./src/static"),
   },
   shadcn: {
-    // prefix: "Shad",
     prefix: "",
     componentDir: "@/components/ui",
   },
@@ -47,19 +46,19 @@ export default defineNuxtConfig({
   ],
   runtimeConfig: {
     public: {
-      frontendApiUrl: process.env.NUXT_PUBLIC_FRONTEND_API_URL,
-      backendApiUrl: process.env.NUXT_PUBLIC_BACKEND_API_URL,
-      firebaseApiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY,
-      firebaseAppId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID,
-      dockerComposeUsed: process.env.NUXT_PUBLIC_DOCKER_COMPOSE_USED,
-      env: process.env.NUXT_PUBLIC_ENVIRONMENT,
-      nodeEnv: process.env.NODE_ENV,
       builtAt: new Date().toISOString(),
-      appVersion: "2.4.1-beta",
+      appVersion: "1.0.0-beta",
+      firebaseApiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY,
+      firebaseAuthDomain: process.env.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      firebaseProjectId: process.env.NUXT_PUBLIC_FIREBASE_PROJECT_ID,
+      firebaseStorageBucket: process.env.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      firebaseMessagingSenderId:
+        process.env.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      firebaseAppId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID,
+      firebaseMeasurementId: process.env.NUXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
     },
   },
   app: {
-    pageTransition: { name: "page", mode: "out-in" },
     baseURL: "/",
     head: {
       link: [
