@@ -1,7 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 import { getDataById } from "./getDataById";
-import { FirebaseCollection } from "./collections";
 import { firebaseUpsertData } from "./firebaseUpsertData";
+import type { FirebaseCollection } from "./collections";
 
 type IFirebaseUpdate<T> = {
   collection: FirebaseCollection;

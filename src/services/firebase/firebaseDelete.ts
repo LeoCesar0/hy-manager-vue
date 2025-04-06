@@ -1,6 +1,6 @@
 import { deleteDoc } from "firebase/firestore";
 import { createDocRef } from "./createDocRef";
-import { FirebaseCollection } from "~/services/firebase/collections";
+import type { FirebaseCollection } from "./collections";
 
 type IFirebaseDelete = {
   collection: FirebaseCollection;

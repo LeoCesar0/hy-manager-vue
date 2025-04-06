@@ -1,9 +1,10 @@
-export enum FirebaseCollection {
-  users = "users",
-  bankAccounts = "bankAccounts",
-  transactions = "transactions",
-  transactionReports = "transactionReports",
-  bankCreditors = "bankCreditors",
-}
+import { z } from "zod";
 
-export const firebaseCollections = Object.values(FirebaseCollection);
+export const zFirebaseCollection = z.enum([
+  "users",
+  "bankAccounts",
+  "transactions",
+  "creditors",
+]);
+
+export type FirebaseCollection = z.infer<typeof zFirebaseCollection>;

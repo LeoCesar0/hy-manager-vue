@@ -1,7 +1,7 @@
 import { getDocs, query, where } from "firebase/firestore";
-import { FirebaseCollection } from "./collections";
 import { createCollectionRef } from "./createCollectionRef";
 import type { FirebaseFilterFor } from "./@type";
+import type { FirebaseCollection } from "./collections";
 
 type IFIrebaseGetWhere<T> = {
   collection: FirebaseCollection;

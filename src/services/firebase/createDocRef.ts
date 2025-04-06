@@ -1,7 +1,7 @@
 import { doc } from "firebase/firestore";
 import { getServerPath } from "./getServerPath";
-import { FirebaseCollection } from "~/services/firebase/collections";
 import { firebaseDB } from "./config";
+import type { FirebaseCollection } from "./collections";
 
 export const createDocRef = ({
   collection,

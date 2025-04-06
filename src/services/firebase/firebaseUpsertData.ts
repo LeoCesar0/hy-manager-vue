@@ -1,6 +1,6 @@
 import { setDoc } from "firebase/firestore";
 import { createDocRef } from "./createDocRef";
-import { FirebaseCollection } from "./collections";
+import type { FirebaseCollection } from "./collections";
 
 export const firebaseUpsertData = (
   collectionName: FirebaseCollection,

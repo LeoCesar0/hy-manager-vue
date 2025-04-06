@@ -8,8 +8,8 @@ import {
 } from "firebase/firestore";
 import type { Pagination, PaginationResult } from "~/@types/pagination";
 import { createCollectionRef } from "./createCollectionRef";
-import { FirebaseCollection } from "./collections";
 import type { FirebaseFilterFor } from "./@type";
+import type { FirebaseCollection } from "./collections";
 
 type IProps<T> = {
   collection: FirebaseCollection;

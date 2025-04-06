@@ -1,8 +1,8 @@
 import { v4 as uuid } from "uuid";
 import { firebaseUpsertData } from "./firebaseUpsertData";
 import { getDataById } from "./getDataById";
-import { FirebaseCollection } from "./collections";
 import type { AnyObject } from "~/@types/anyObject";
+import type { FirebaseCollection } from "./collections";
 
 type IFirebaseCreate = {
   collection: FirebaseCollection;

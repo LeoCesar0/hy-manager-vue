@@ -1,4 +1,4 @@
-import { FirebaseCollection } from "./collections";
+import type { FirebaseCollection } from "./collections";
 import { getDataById } from "./getDataById";
 
 type IFirebaseGet = {
