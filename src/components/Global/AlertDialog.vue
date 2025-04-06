@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { formatHtmlText } from "~/helpers/html/formatHtmlText";
 import { cn } from "~/lib/utils";
 
 const store = useAlertDialog();
@@ -11,7 +10,7 @@ watch(
   () => dialogOptions.value?.message,
   async (message) => {
     if (message) {
-      descriptionHtml.value = await formatHtmlText(message);
+      descriptionHtml.value = message;
     } else {
       descriptionHtml.value = "";
     }

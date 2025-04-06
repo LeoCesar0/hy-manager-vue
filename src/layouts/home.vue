@@ -3,9 +3,10 @@
 </script>
 
 <template>
-  <h1>DASHBOARD LAYOUT</h1>
-
-  <slot />
+  <h1>HOME LAYOUT</h1>
+  <div class="">
+    <slot />
+  </div>
 </template>
 
 <style scoped lang="scss"></style>

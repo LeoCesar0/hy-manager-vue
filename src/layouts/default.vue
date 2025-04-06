@@ -1,8 +1,8 @@
-<script setup lang="ts">
-type IProps = {};
-const props = withDefaults(defineProps<IProps>(), {});
-</script>
+<script setup lang="ts"></script>
 
 <template>
-  <h1>DEFAULT LAYOUT</h1>
+  <div class="min-h-screen flex flex-col relative">
+    <slot />
+    <GlobalAlertDialog />
+  </div>
 </template>

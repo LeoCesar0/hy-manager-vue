@@ -1,13 +1,9 @@
-<script setup>
-// Main app component
+<script setup lang="ts">
+
 </script>
 
 <template>
-  <div>
+  <NuxtLayout>
     <NuxtPage />
-  </div>
+  </NuxtLayout>
 </template>
-
-<style>
-/* Global styles */
-</style>
