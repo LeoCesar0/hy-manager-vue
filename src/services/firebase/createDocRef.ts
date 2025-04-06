@@ -9,7 +9,7 @@ export const createDocRef = ({
   collection: FirebaseCollection;
   id: string;
 }) => {
-  const { firebaseDB } = useFirebase();
+  const { firebaseDB } = useFirebaseStore();
   const path = getServerPath();
 
   const ref = doc(firebaseDB, `env/${path}/${collection}/${id}`);

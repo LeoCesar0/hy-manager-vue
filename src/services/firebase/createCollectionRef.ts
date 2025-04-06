@@ -7,7 +7,7 @@ export const createCollectionRef = ({
 }: {
   collectionName: FirebaseCollection;
 }) => {
-  const { firebaseDB } = useFirebase();
+  const { firebaseDB } = useFirebaseStore();
   const path = getServerPath();
 
   const ref = collection(firebaseDB, `env/${path}/${collectionName}`);

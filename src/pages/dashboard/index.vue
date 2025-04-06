@@ -1,18 +1,16 @@
 <script setup lang="ts">
-import { useFirebase } from "~/composables/useFirebase";
-
 type IProps = {};
 const props = withDefaults(defineProps<IProps>(), {});
 
-const { create } = useFirebase();
+const { create } = useFirebaseStore();
 
 const test = async () => {
   try {
     const data = await create({
       collection: "bankAccounts",
       data: {
-        name: "test",
-        id: "123",
+        name: "test 2",
+        id: "123123",
       },
     });
     console.log("❗ data -->", data);

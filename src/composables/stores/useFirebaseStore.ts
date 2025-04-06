@@ -11,7 +11,7 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { makeStoreKey } from "~/helpers/makeStoreKey";
 
-export const useFirebase = defineStore(makeStoreKey("firebase"), () => {
+export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
   let firebaseApp: FirebaseApp;
 
   const config = useRuntimeConfig();
