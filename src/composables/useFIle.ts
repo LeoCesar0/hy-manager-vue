@@ -2,61 +2,113 @@ import { ref } from "vue";
 import { getDownloadURL, ref as storageRef } from "firebase/storage";
 import type { IFile, IFileBase } from "~/@schemas/models/file";
 import { Timestamp } from "firebase/firestore";
+import type { IUser } from "~/@schemas/models/user";
+import { slugify } from "~/helpers/slugify";
+import type { AppResponse } from "~/@schemas/app";
+import { generateId } from "~/helpers/generateId";
+import { handleApiError } from "~/handlers/handleApiError";
 
-type IGetFileByIdProps = {
+export type IGetFileByIdProps = {
   fileId: string;
   path: string;
 };
 
-type IUploadFileProps = {
+export type IUploadFileProps = {
   file: File;
   path: string;
   userId: string;
 };
 
 export const useFile = () => {
-  const { firebaseStorage, create } = useFirebaseStore();
+  const { firebaseStorage, create, get } = useFirebaseStore();
   const loading = ref(false);
-  const error = ref<string | null>(null);
 
-  const { user } = useUserStore();
+  const store = useUserStore();
+  const { currentUser } = storeToRefs(store);
+  const { toast } = useToast();
 
-  const getFileRef = ({}: {
-    user:IUser
-  }) => {
-
-  }
-
-  const getFileById = async ({
+  const makeFilePath = ({
+    user,
+    fileName,
     fileId,
+  }: {
+    user: IUser;
+    fileName: string;
+    fileId: string;
+  }) => {
+    if (!user.id) {
+      throw new Error("Error creating file path: user id doesn't exist");
+    }
+    return `user-${user.id}/${slugify(fileName)}-${fileId}`;
+  };
+  const getStorageRef = ({ path }: { path: string }) => {
+    return storageRef(firebaseStorage, path);
+  };
+
+  const getDownloadUrl = async ({
     path,
   }: IGetFileByIdProps): Promise<string> => {
     try {
       loading.value = true;
-      error.value = null;
 
-      const fileRef = storageRef(firebaseStorage, `${path}/${fileId}`);
+      const fileRef = getStorageRef({ path });
       const url = await getDownloadURL(fileRef);
 
       return url;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Failed to get file";
       throw err;
     } finally {
       loading.value = false;
     }
   };
+  const getFileById = async ({
+    fileId,
+  }: IGetFileByIdProps): Promise<AppResponse<IFile>> => {
+    try {
+      loading.value = true;
+
+      const file = await get<IFile>({
+        collection: "files",
+        id: fileId,
+      });
+
+      const response: AppResponse<IFile> = {
+        data: file,
+        error: null,
+      };
+      loading.value = false;
+
+      return response;
+    } catch (err) {
+      loading.value = false;
+      const response = handleApiError({ err: err });
+      const message = response.error.message;
+      if (message) {
+        toast.error(message);
+      }
+      return response;
+    }
+  };
 
   const uploadFile = async ({
     file,
-    path,
-    userId,
-  }: IUploadFileProps): Promise<IFile> => {
+  }: IUploadFileProps): Promise<AppResponse<IFile>> => {
     try {
       loading.value = true;
-      error.value = null;
+      if (!currentUser.value) {
+        throw new Error("User not found");
+      }
+      const fileId = generateId();
 
-      const fileRef = storageRef(firebaseStorage, `${path}/${file.name}`);
+      const userId = currentUser.value.id;
+
+      const filePath = makeFilePath({
+        user: currentUser.value,
+        fileName: file.name,
+        fileId: fileId,
+      });
+
+      const fileRef = getStorageRef({ path: filePath });
 
       // Create file metadata
       const fileData: IFileBase = {
@@ -65,38 +117,37 @@ export const useFile = () => {
         type: file.type,
         user: userId,
         url: "", // Will be updated after upload
-        path: `${path}/${file.name}`,
+        path: filePath,
       };
+      const url = await getDownloadUrl({ fileId: file.name, path: filePath });
+      fileData.url = url;
 
       // Create document in Firestore
-      await create({
+      const createdFile = await create<IFile>({
         collection: "files",
         data: fileData,
       });
 
-      // Get download URL
-      const url = await getFileById({ fileId: file.name, path });
-
-      // Update file document with URL
-      await create({
-        collection: "files",
-        data: { ...fileData, url },
-      });
-
-      return { ...fileData, url };
-    } catch (err) {
-      error.value =
-        err instanceof Error ? err.message : "Failed to upload file";
-      throw err;
-    } finally {
+      const response: AppResponse<IFile> = {
+        data: createdFile,
+        error: null,
+      };
       loading.value = false;
+      return response;
+    } catch (err) {
+      loading.value = false;
+      const response = handleApiError({ err: err });
+      const message = response.error.message;
+      if (message) {
+        toast.error(message);
+      }
+      return response;
     }
   };
 
   return {
     loading,
-    error,
-    getFileById,
+    getFileById: getDownloadUrl,
     uploadFile,
   };
 };

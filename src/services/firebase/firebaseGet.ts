@@ -9,9 +9,13 @@ type IFirebaseGet = {
 export const firebaseGet = async <T>({
   collection: collectionName,
   id,
-}: IFirebaseGet): Promise<T | undefined> => {
+}: IFirebaseGet): Promise<T> => {
   const snapShot = await getDataById(collectionName, id);
-  const data = snapShot.data() as T | undefined;
+  const data = snapShot.data() as T;
+
+  if (!data) {
+    throw new Error("Data not found");
+  }
 
   return data;
 };

@@ -19,45 +19,10 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
-const { toast } = useToast();
-
-const router = useRouter();
-const firebaseStore = useFirebaseStore();
-const googleProvider = new GoogleAuthProvider();
-
 const email = ref("");
 const password = ref("");
-const loading = ref(false);
 
-const handleEmailSignIn = async () => {
-  try {
-    loading.value = true;
-    await signInWithEmailAndPassword(
-      firebaseStore.firebaseAuth,
-      email.value,
-      password.value
-    );
-    toast.success("Successfully signed in!");
-    router.push("/");
-  } catch (error: any) {
-    toast.error(error.message || "Failed to sign in");
-  } finally {
-    loading.value = false;
-  }
-};
-
-const handleGoogleSignIn = async () => {
-  try {
-    loading.value = true;
-    await signInWithPopup(firebaseStore.firebaseAuth, googleProvider);
-    toast.success("Successfully signed in with Google!");
-    router.push("/");
-  } catch (error: any) {
-    toast.error(error.message || "Failed to sign in with Google");
-  } finally {
-    loading.value = false;
-  }
-};
+const { handleEmailSignIn, handleGoogleSignIn, loading } = useUserStore();
 </script>
 
 <template>
@@ -88,7 +53,15 @@ const handleGoogleSignIn = async () => {
             v-model="password"
           />
         </div>
-        <Button class="w-full" :disabled="loading" @click="handleEmailSignIn">
+        <Button
+          class="w-full"
+          :disabled="loading"
+          @click="
+            () => {
+              handleEmailSignIn(email, password);
+            }
+          "
+        >
           Sign In with Email
         </Button>
         <div class="relative">
@@ -105,7 +78,11 @@ const handleGoogleSignIn = async () => {
           variant="outline"
           class="w-full"
           :disabled="loading"
-          @click="handleGoogleSignIn"
+          @click="
+            () => {
+              handleGoogleSignIn();
+            }
+          "
         >
           <img
             src="https://www.google.com/favicon.ico"

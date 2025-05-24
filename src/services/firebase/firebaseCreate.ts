@@ -12,7 +12,7 @@ type IFirebaseCreate = {
 export const firebaseCreate = async <T extends { id: string }>({
   collection: collectionName,
   data,
-}: IFirebaseCreate): Promise<T | undefined> => {
+}: IFirebaseCreate): Promise<T> => {
   const id = data.id || uuid();
   const newData = {
     ...data,
@@ -22,7 +22,11 @@ export const firebaseCreate = async <T extends { id: string }>({
   };
   await firebaseUpsertData(collectionName, newData, id);
   const snapShot = await getDataById(collectionName, id);
-  const updatedData = snapShot.data() as T | undefined;
+  const createdData = snapShot.data() as T;
 
-  return updatedData;
+  if (!createdData) {
+    throw new Error("Error creating data");
+  }
+
+  return createdData;
 };

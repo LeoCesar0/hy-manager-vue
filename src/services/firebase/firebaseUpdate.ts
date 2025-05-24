@@ -24,6 +24,11 @@ export const firebaseUpdate = async <T>({
 
   await firebaseUpsertData(collectionName, newData, id);
   const snapShot = await getDataById(collectionName, id);
-  const updatedData = snapShot.data() as T | undefined;
+  const updatedData = snapShot.data() as T;
+
+  if (!updatedData) {
+    throw new Error("Error updating data");
+  }
+
   return updatedData;
 };
