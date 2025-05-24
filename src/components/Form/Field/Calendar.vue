@@ -3,8 +3,8 @@ import { DateFormatter } from "@internationalized/date";
 import { CalendarIcon } from "@radix-icons/vue";
 import { cn } from "@lib/utils";
 import { useForwardPropsEmits } from "radix-vue";
-import { parseToDate } from "@common/helpers/parseToDate";
 import type { VCalendarProps } from "~/components/ui/v-calendar/Calendar.vue";
+import { parseToDate } from "~/helpers/parseToDate";
 
 type Props = {
   disabled?: boolean;

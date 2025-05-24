@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import { cn } from "~/lib/utils";
 
-type Props = {
+export type AvatarProps = {
   alt: string;
   src?: string | undefined | null;
   fallBackLabel?: string;
-  size?: "sm" | "lg" | "base" | null | undefined;
+  size?: "sm" | "lg" | "xl" | "base" | null | undefined;
   variant?: "accent" | "muted";
   class?: string;
+  hoverable?: boolean;
 };
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<AvatarProps>(), {
   variant: "muted",
 });
+const fallBack = computed(() => props.fallBackLabel || props.alt || "");
 </script>
 
 <template>
@@ -20,18 +22,19 @@ const props = withDefaults(defineProps<Props>(), {
     :class="
       cn(props.class || '', {
         'bg-muted': variant === 'muted',
+        'hover:cursor-pointer hover:shadow-lg transition-all duration-300': hoverable,
       })
     "
     :size="size"
   >
-    <UiAvatarImage :alt="alt" :src="src || ''" />
+    <UiAvatarImage :alt="alt" :src="src || ''" class="object-cover" />
     <UiAvatarFallback
-      v-if="fallBackLabel"
-      class="text-lg bg-transparent"
+      v-if="fallBack"
+      class="bg-transparent"
       :class="{
         'text-muted-foreground': variant === 'muted',
       }"
-      >{{ fallBackLabel.charAt(0).toUpperCase() }}</UiAvatarFallback
+      >{{ fallBack.charAt(0).toUpperCase() }}</UiAvatarFallback
     >
   </UiAvatar>
 </template>
