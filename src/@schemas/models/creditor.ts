@@ -9,3 +9,5 @@ export const zCreditor = z
     userId: zStringNotEmpty,
   })
   .merge(zCommonDoc);
+
+export type ICreditor = z.infer<typeof zCreditor>;

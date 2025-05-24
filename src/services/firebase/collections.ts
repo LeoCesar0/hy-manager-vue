@@ -5,6 +5,7 @@ export const zFirebaseCollection = z.enum([
   "bankAccounts",
   "transactions",
   "creditors",
+  "files",
 ]);
 
 export type FirebaseCollection = z.infer<typeof zFirebaseCollection>;

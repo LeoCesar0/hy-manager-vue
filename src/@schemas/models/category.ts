@@ -10,3 +10,5 @@ export const zCategory = z
     userId: zStringNotEmpty,
   })
   .merge(zCommonDoc);
+
+export type ICategory = z.infer<typeof zCategory>;

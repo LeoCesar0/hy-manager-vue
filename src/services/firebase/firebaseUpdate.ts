@@ -14,13 +14,15 @@ export const firebaseUpdate = async <T>({
   data,
   id,
 }: IFirebaseUpdate<T>) => {
-  const now = new Date();
+  const newData = {
+    ...data,
+    updatedAt: Timestamp.now(),
+  };
 
-  if (data?.id) delete data.id;
-  if (data?.createdAt) delete data.createdAt;
-  data.updatedAt = Timestamp.fromDate(now);
+  if (newData?.id) delete newData.id;
+  if (newData?.createdAt) delete newData.createdAt;
 
-  await firebaseUpsertData(collectionName, data, id);
+  await firebaseUpsertData(collectionName, newData, id);
   const snapShot = await getDataById(collectionName, id);
   const updatedData = snapShot.data() as T | undefined;
   return updatedData;
