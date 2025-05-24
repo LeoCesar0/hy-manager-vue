@@ -1,5 +1,5 @@
-import { type AppResponse } from "@common/schemas/app";
-import { handleUnexpectedError } from "~/handlers/handleUnexpectedError";
+import type { AppResponse } from "~/@schemas/app";
+import { handleUnexpectedError } from '~/handlers/handleUnexpectedError';
 
 export type ToastPromiseOptions<T> = {
   promise: Promise<AppResponse<T>>;
