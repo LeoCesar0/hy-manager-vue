@@ -18,3 +18,5 @@ export const zFile = zFileBase.extend(zCommonDoc.shape);
 export type IFileBase = z.infer<typeof zFileBase>;
 export type IFile = z.infer<typeof zFile>;
 export type IFileMin = z.infer<typeof zFileMin>;
+export type ICreateFile = z.infer<typeof zFileBase>;
+export type IUpdateFile = z.infer<typeof zFileBase>;

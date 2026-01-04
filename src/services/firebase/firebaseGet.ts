@@ -6,12 +6,12 @@ type IFirebaseGet = {
   id: string;
 };
 
-export const firebaseGet = async <T>({
+export const firebaseGet = async <R>({
   collection: collectionName,
   id,
-}: IFirebaseGet): Promise<T> => {
+}: IFirebaseGet): Promise<R> => {
   const snapShot = await getDataById(collectionName, id);
-  const data = snapShot.data() as T;
+  const data = snapShot.data() as R;
 
   if (!data) {
     throw new Error("Data not found");

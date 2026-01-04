@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import { getDownloadURL, ref as storageRef } from "firebase/storage";
-import type { IFile, IFileBase } from "~/@schemas/models/file";
+import type { ICreateFile, IFile, IFileBase } from "~/@schemas/models/file";
 import { Timestamp } from "firebase/firestore";
 import type { IUser } from "~/@schemas/models/user";
 import { slugify } from "~/helpers/slugify";
@@ -20,7 +20,7 @@ export type IUploadFileProps = {
 };
 
 export const useFile = () => {
-  const { firebaseStorage, firebaseCreate, firebaseGet } = useFirebaseStore();
+  const { firebaseStorage, modelCreate, modelGet } = useFirebaseStore();
   const loading = ref(false);
 
   const store = useUserStore();
@@ -61,34 +61,34 @@ export const useFile = () => {
       loading.value = false;
     }
   };
-  const getFileById = async ({
-    fileId,
-  }: IGetFileByIdProps): Promise<AppResponse<IFile>> => {
-    try {
-      loading.value = true;
+  // const getFileById = async ({
+  //   fileId,
+  // }: IGetFileByIdProps): Promise<AppResponse<IFile>> => {
+  //   try {
+  //     loading.value = true;
 
-      const file = await firebaseGet<IFile>({
-        collection: "files",
-        id: fileId,
-      });
+  //     const file = await modelGet<IFile>({
+  //       collection: "files",
+  //       id: fileId,
+  //     });
 
-      const response: AppResponse<IFile> = {
-        data: file,
-        error: null,
-      };
-      loading.value = false;
+  //     const response: AppResponse<IFile> = {
+  //       data: file,
+  //       error: null,
+  //     };
+  //     loading.value = false;
 
-      return response;
-    } catch (err) {
-      loading.value = false;
-      const response = handleApiError({ err: err });
-      const message = response.error.message;
-      if (message) {
-        toast.error(message);
-      }
-      return response;
-    }
-  };
+  //     return response;
+  //   } catch (err) {
+  //     loading.value = false;
+  //     const response = handleApiError({ err: err });
+  //     const message = response.error.message;
+  //     if (message) {
+  //       toast.error(message);
+  //     }
+  //     return response;
+  //   }
+  // };
 
   const uploadFile = async ({
     file,
@@ -109,7 +109,7 @@ export const useFile = () => {
       });
 
       // Create file metadata
-      const fileData: IFileBase = {
+      const fileData: ICreateFile = {
         name: file.name,
         size: file.size,
         type: file.type,
@@ -121,15 +121,11 @@ export const useFile = () => {
       fileData.url = url;
 
       // Create document in Firestore
-      const createdFile = await firebaseCreate<IFile>({
+      const response = await modelCreate<ICreateFile, IFile>({
         collection: "files",
         data: fileData,
       });
 
-      const response: AppResponse<IFile> = {
-        data: createdFile,
-        error: null,
-      };
       loading.value = false;
       return response;
     } catch (err) {
@@ -160,7 +156,7 @@ export const useFile = () => {
           fileId: fileId,
         });
 
-        const fileData: IFileBase = {
+        const fileData: ICreateFile = {
           name: file.name,
           size: file.size,
           type: file.type,
@@ -172,15 +168,17 @@ export const useFile = () => {
         const url = await getDownloadUrl({ fileId: file.name, path: filePath });
         fileData.url = url;
 
-        const createdFile = await firebaseCreate<IFile>({
+        const createdFile = await modelCreate<ICreateFile, IFile>({
           collection: "files",
           data: fileData,
         });
 
-        return createdFile;
+        return createdFile.data;
       });
 
-      const uploadedFiles = await Promise.all(uploadPromises);
+      const uploadedFiles = (await Promise.all(uploadPromises)).filter(
+        Boolean
+      ) as IFile[];
 
       const response: AppResponse<IFile[]> = {
         data: uploadedFiles,
@@ -206,20 +204,18 @@ export const useFile = () => {
       loading.value = true;
 
       const filePromises = fileIds.map(async (fileId) => {
-        return await firebaseGet<IFile>({
+        return await modelGet<IFile>({
           collection: "files",
           id: fileId,
-        });
+        }).then((res) => res.data);
       });
 
-      const files = await Promise.all(filePromises);
+      const files = (await Promise.all(filePromises)).filter(
+        Boolean
+      ) as IFile[];
 
-      const response: AppResponse<IFile[]> = {
-        data: files,
-        error: null,
-      };
       loading.value = false;
-      return response;
+      return { data: files, error: null };
     } catch (err) {
       loading.value = false;
       const response = handleApiError({ err: err });

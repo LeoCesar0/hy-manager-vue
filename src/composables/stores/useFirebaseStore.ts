@@ -1,6 +1,8 @@
 import { firebaseCreate } from "~/services/firebase/firebaseCreate";
+import { firebaseCreateMany } from "~/services/firebase/firebaseCreateMany";
 import { firebaseGet } from "~/services/firebase/firebaseGet";
 import { firebaseUpdate } from "~/services/firebase/firebaseUpdate";
+import { firebaseUpdateMany } from "~/services/firebase/firebaseUpdateMany";
 import { firebaseDelete } from "~/services/firebase/firebaseDelete";
 import { firebaseList } from "~/services/firebase/firebaseList";
 import { firebaseGetWhere } from "~/services/firebase/firebaseGetWhere";
@@ -27,6 +29,8 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
     appId: config.public.firebaseAppId,
     measurementId: config.public.firebaseMeasurementId,
   };
+
+  console.log(`❗ firebaseConfig -->`, firebaseConfig);
 
   if (!getApps().length) {
     firebaseApp = initializeApp(firebaseConfig);
@@ -57,11 +61,30 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
     }
   };
 
-  const wrappedFirebaseGet = async <T>(
-    ...args: Parameters<typeof firebaseGet<T>>
-  ): Promise<AppResponse<T>> => {
+  const wrappedFirebaseCreateMany = async <T extends AnyObject, R = T>(
+    ...args: Parameters<typeof firebaseCreateMany<T, R>>
+  ): Promise<AppResponse<R[]>> => {
     try {
-      const response = await firebaseGet<T>(...args);
+      const response = await firebaseCreateMany<T, R>(...args);
+      return { data: response, error: null };
+    } catch (error: any) {
+      console.log(`❌ Error in firebaseCreateMany -->`, error);
+      return {
+        data: null,
+        error: {
+          _isAppError: true,
+          message: error.message || "An unexpected error occurred",
+          _message: error.message || "",
+        },
+      };
+    }
+  };
+
+  const wrappedFirebaseGet = async <R>(
+    ...args: Parameters<typeof firebaseGet<R>>
+  ): Promise<AppResponse<R>> => {
+    try {
+      const response = await firebaseGet<R>(...args);
       return { data: response, error: null };
     } catch (error: any) {
       console.log(`❌ Error in firebaseGet -->`, error);
@@ -76,14 +99,33 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
     }
   };
 
-  const wrappedFirebaseUpdate = async <T>(
-    ...args: Parameters<typeof firebaseUpdate<T>>
-  ): Promise<AppResponse<T>> => {
+  const wrappedFirebaseUpdate = async <T extends AnyObject, R = T>(
+    ...args: Parameters<typeof firebaseUpdate<T, R>>
+  ): Promise<AppResponse<R>> => {
     try {
-      const response = await firebaseUpdate<T>(...args);
+      const response = await firebaseUpdate<T, R>(...args);
       return { data: response, error: null };
     } catch (error: any) {
       console.log(`❌ Error in firebaseUpdate -->`, error);
+      return {
+        data: null,
+        error: {
+          _isAppError: true,
+          message: error.message || "An unexpected error occurred",
+          _message: error.message || "",
+        },
+      };
+    }
+  };
+
+  const wrappedFirebaseUpdateMany = async <T extends AnyObject, R = T>(
+    ...args: Parameters<typeof firebaseUpdateMany<T, R>>
+  ): Promise<AppResponse<{ id: string; data: R }[]>> => {
+    try {
+      const response = await firebaseUpdateMany<T, R>(...args);
+      return { data: response, error: null };
+    } catch (error: any) {
+      console.log(`❌ Error in firebaseUpdateMany -->`, error);
       return {
         data: null,
         error: {
@@ -114,11 +156,11 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
     }
   };
 
-  const wrappedFirebaseList = async <T>(
-    ...args: Parameters<typeof firebaseList<T>>
-  ): Promise<AppResponse<T[]>> => {
+  const wrappedFirebaseList = async <R>(
+    ...args: Parameters<typeof firebaseList<R>>
+  ): Promise<AppResponse<R[]>> => {
     try {
-      const response = await firebaseList<T>(...args);
+      const response = await firebaseList<R>(...args);
       return { data: response, error: null };
     } catch (error: any) {
       console.log(`❌ Error in firebaseList -->`, error);
@@ -133,11 +175,11 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
     }
   };
 
-  const wrappedFirebaseGetWhere = async <T>(
-    ...args: Parameters<typeof firebaseGetWhere<T>>
-  ): Promise<AppResponse<T | undefined>> => {
+  const wrappedFirebaseGetWhere = async <R>(
+    ...args: Parameters<typeof firebaseGetWhere<R>>
+  ): Promise<AppResponse<R | undefined>> => {
     try {
-      const response = await firebaseGetWhere<T>(...args);
+      const response = await firebaseGetWhere<R>(...args);
       return { data: response, error: null };
     } catch (error: any) {
       console.log(`❌ Error in firebaseGetWhere -->`, error);
@@ -152,13 +194,13 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
     }
   };
 
-  const wrappedFirebasePaginatedList = async <T>(
-    ...args: Parameters<typeof firebasePaginatedList<T>>
+  const wrappedFirebasePaginatedList = async <R>(
+    ...args: Parameters<typeof firebasePaginatedList<R>>
   ): Promise<
-    AppResponse<Awaited<ReturnType<typeof firebasePaginatedList<T>>>>
+    AppResponse<Awaited<ReturnType<typeof firebasePaginatedList<R>>>>
   > => {
     try {
-      const response = await firebasePaginatedList<T>(...args);
+      const response = await firebasePaginatedList<R>(...args);
       return { data: response, error: null };
     } catch (error: any) {
       console.log(`❌ Error in firebasePaginatedList -->`, error);
@@ -184,12 +226,14 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
     firebaseStorage: firebaseStorage,
 
     // CRUD operations
-    firebaseCreate: wrappedFirebaseCreate,
-    firebaseGet: wrappedFirebaseGet,
-    firebaseUpdate: wrappedFirebaseUpdate,
-    firebaseDelete: wrappedFirebaseDelete,
-    firebaseList: wrappedFirebaseList,
-    firebaseGetWhere: wrappedFirebaseGetWhere,
-    firebasePaginatedList: wrappedFirebasePaginatedList,
+    modelCreate: wrappedFirebaseCreate,
+    modelCreateMany: wrappedFirebaseCreateMany,
+    modelGet: wrappedFirebaseGet,
+    modelUpdate: wrappedFirebaseUpdate,
+    modelUpdateMany: wrappedFirebaseUpdateMany,
+    modelDelete: wrappedFirebaseDelete,
+    modelList: wrappedFirebaseList,
+    modelGetWhere: wrappedFirebaseGetWhere,
+    modelPaginatedList: wrappedFirebasePaginatedList,
   };
 });

@@ -7,15 +7,15 @@ import type {
 type IProps = {};
 const props = withDefaults(defineProps<IProps>(), {});
 
-const { firebaseCreate } = useFirebaseStore();
+const { modelCreate, modelList, modelPaginatedList } = useFirebaseStore();
 
 const test = async () => {
   console.log("❗❗❗ test");
-  const result = await firebaseCreate<ICreateBankAccount, IBankAccount>({
+  const result = await modelCreate<ICreateBankAccount, IBankAccount>({
     collection: "bankAccounts",
     data: {
-      name: "test 4",
-      id: "4",
+      name: "test 5",
+      id: "5",
     },
   });
 
@@ -26,6 +26,23 @@ const test = async () => {
 
   console.log("✅ Bank account created -->", result.data);
 };
+const items = ref<any>(undefined);
+
+onMounted(async () => {
+  const result = await modelPaginatedList<IBankAccount>({
+    collection: "bankAccounts",
+    pagination: {
+      page: 1,
+      limit: 10,
+      orderBy: {
+        field: "createdAt",
+        direction: "desc",
+      },
+    },
+    filters: [],
+  });
+  items.value = result.data;
+});
 </script>
 
 <template>
@@ -34,6 +51,9 @@ const test = async () => {
       <h1>Dashboard</h1>
       <UiButton @click="() => test()">Test Firebase</UiButton>
       <!-- Add your dashboard content here -->
+      <pre>
+        {{ items }}
+      </pre>
     </div>
   </NuxtLayout>
 </template>

@@ -4,15 +4,15 @@ import { createDocRef } from "./createDocRef";
 import type { AnyObject } from "~/@types/anyObject";
 import { COLLECTION_SCHEMA, type FirebaseCollection } from "./collections";
 
-type IFirebaseCreateMany = {
+type IFirebaseCreateMany<T extends AnyObject> = {
   collection: FirebaseCollection;
-  data: AnyObject[];
+  data: T[];
 };
 
-export const firebaseCreateMany = async <T extends { id: string }>({
+export const firebaseCreateMany = async <T extends AnyObject, R = T>({
   collection: collectionName,
   data,
-}: IFirebaseCreateMany): Promise<T[]> => {
+}: IFirebaseCreateMany<T>): Promise<R[]> => {
   const { firebaseDB } = useFirebaseStore();
 
   if (!data || data.length === 0) {
@@ -20,7 +20,7 @@ export const firebaseCreateMany = async <T extends { id: string }>({
   }
 
   const batch = writeBatch(firebaseDB);
-  const documentsData: T[] = [];
+  const documentsData: R[] = [];
 
   const schema = COLLECTION_SCHEMA[collectionName];
 
@@ -39,7 +39,7 @@ export const firebaseCreateMany = async <T extends { id: string }>({
     });
 
     batch.set(docRef, newData);
-    documentsData.push(newData as unknown as T);
+    documentsData.push(newData as unknown as R);
   }
 
   await batch.commit();

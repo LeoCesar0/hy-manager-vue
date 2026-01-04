@@ -1,22 +1,23 @@
 import { writeBatch, Timestamp } from "firebase/firestore";
 import { createDocRef } from "./createDocRef";
 import { COLLECTION_SCHEMA, type FirebaseCollection } from "./collections";
+import type { AnyObject } from "~/@types/anyObject";
 
-type UpdateItem<T> = {
+type UpdateItem<T extends AnyObject> = {
   id: string;
   data: Partial<T> &
     Partial<{ id: string; createdAt: Timestamp; updatedAt: Timestamp }>;
 };
 
-type IFirebaseUpdateMany<T> = {
+type IFirebaseUpdateMany<T extends AnyObject> = {
   collection: FirebaseCollection;
   items: UpdateItem<T>[];
 };
 
-export const firebaseUpdateMany = async <T extends { id: string }>({
+export const firebaseUpdateMany = async <T extends AnyObject, R = T>({
   collection: collectionName,
   items,
-}: IFirebaseUpdateMany<T>): Promise<{ id: string; data: any }[]> => {
+}: IFirebaseUpdateMany<T>): Promise<{ id: string; data: R }[]> => {
   const { firebaseDB } = useFirebaseStore();
 
   if (!items || items.length === 0) {
@@ -24,7 +25,7 @@ export const firebaseUpdateMany = async <T extends { id: string }>({
   }
 
   const batch = writeBatch(firebaseDB);
-  const updatedItems: { id: string; data: any }[] = [];
+  const updatedItems: { id: string; data: R }[] = [];
   const schema = COLLECTION_SCHEMA[collectionName];
 
   for (const item of items) {
@@ -43,7 +44,7 @@ export const firebaseUpdateMany = async <T extends { id: string }>({
     });
 
     batch.update(docRef, newData);
-    updatedItems.push({ id, data: newData });
+    updatedItems.push({ id, data: newData as R });
   }
 
   await batch.commit();

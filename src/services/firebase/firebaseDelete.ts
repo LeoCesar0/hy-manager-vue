@@ -9,7 +9,7 @@ type IFirebaseDelete = {
 export const firebaseDelete = async ({
   collection: collectionName,
   id,
-}: IFirebaseDelete) => {
+}: IFirebaseDelete): Promise<void> => {
   const docRef = createDocRef({
     collection: collectionName,
     id: id,

@@ -9,14 +9,14 @@ import { createCollectionRef } from "./createCollectionRef";
 import type { FirebaseFilterFor } from "./@type";
 import type { FirebaseCollection } from "./collections";
 
-type IFirebaseList<T> = {
+type IFirebaseList<R> = {
   collection: FirebaseCollection;
-  filters?: FirebaseFilterFor<T>[];
+  filters?: FirebaseFilterFor<R>[];
 };
-export const firebaseList = async <T>({
+export const firebaseList = async <R>({
   collection: collectionName,
   filters = [],
-}: IFirebaseList<T>): Promise<T[]> => {
+}: IFirebaseList<R>): Promise<R[]> => {
   const ref = createCollectionRef({ collectionName });
 
   filters = filters.reduce((acc, entry) => {
@@ -36,9 +36,9 @@ export const firebaseList = async <T>({
   let firebaseQuery = query(ref, ...whereList);
 
   const snapShot = await getDocs(firebaseQuery);
-  const list: T[] = [];
+  const list: R[] = [];
   snapShot.forEach((doc) => {
-    list.push(doc.data() as T);
+    list.push(doc.data() as R);
   });
   return list;
 };

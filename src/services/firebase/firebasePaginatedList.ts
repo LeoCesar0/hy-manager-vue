@@ -11,16 +11,16 @@ import { createCollectionRef } from "./createCollectionRef";
 import type { FirebaseFilterFor } from "./@type";
 import type { FirebaseCollection } from "./collections";
 
-type IProps<T> = {
+type IProps<R> = {
   collection: FirebaseCollection;
-  filters?: FirebaseFilterFor<T>[];
+  filters?: FirebaseFilterFor<R>[];
   pagination: IPaginationBody;
 };
-export const firebasePaginatedList = async <T>({
+export const firebasePaginatedList = async <R>({
   collection: collectionName,
   filters = [],
   pagination,
-}: IProps<T>): Promise<IPaginationResult<T>> => {
+}: IProps<R>): Promise<IPaginationResult<R>> => {
   const ref = createCollectionRef({ collectionName });
   let whereList = filters.map(({ field, operator = "==", value }) =>
     where(field as string, operator, value)
@@ -53,7 +53,9 @@ export const firebasePaginatedList = async <T>({
   );
 
   snapShot = await getDocs(firebaseQuery);
-  let list: T[] = snapShot.docs.map((doc) => doc.data() as T);
+  let list: R[] = snapShot.docs.map((doc) => doc.data() as R);
+
+  console.log(`❗ full list -->`, list);
 
   const count = list.length;
   const totalPages = Math.ceil(count / pagination.limit);
