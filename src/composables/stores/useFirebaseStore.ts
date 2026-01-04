@@ -30,8 +30,6 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
     measurementId: config.public.firebaseMeasurementId,
   };
 
-  console.log(`❗ firebaseConfig -->`, firebaseConfig);
-
   if (!getApps().length) {
     firebaseApp = initializeApp(firebaseConfig);
   } else {
