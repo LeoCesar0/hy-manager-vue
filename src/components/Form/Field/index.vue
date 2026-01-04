@@ -3,16 +3,11 @@ import { Field } from "vee-validate";
 import { type ISelectOption } from "@/@schemas/select";
 import { vAutoAnimate } from "@formkit/auto-animate";
 import { cn } from "@lib/utils";
-import type { VCalendarProps } from "~/components/ui/v-calendar/Calendar.vue";
 import {
   NumberField,
   NumberFieldContent,
-  NumberFieldDecrement,
-  NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
-import type { NumberFieldRootProps } from "radix-vue";
-import { beautifyObjectName } from "~/helpers/shadcnui-utils/auto-form";
 import { EyeIcon } from "lucide-vue-next";
 import FileUploaderMultiple from "~/components/Form/Field/FileUploaderMultiple.vue";
 import type { IFileUploaderProps } from "~/components/Form/Field/FileUploaderMultiple.vue";
@@ -20,9 +15,11 @@ import ImageUploader from "~/components/Form/Field/ImageUploader.vue";
 import type { IImageUploaderProps } from "~/components/Form/Field/ImageUploader.vue";
 import InputWithOptions from "~/components/Form/Field/InputWithOptions.vue";
 import MultipleSelect from "./MultipleSelect.vue";
-import type { IDatepickerProps } from "~/components/Datepicker/index.vue";
 import CardSelect from "~/components/Form/Field/CardSelect.vue";
 import type { ICardSelectOption } from "~/components/Form/Field/CardSelectItem.vue";
+import type { NumberFieldRootProps } from "reka-ui";
+import type { IDatepickerProps } from "~/components/Datepicker/index.vue";
+import { beautifyObjectName } from "~/helpers/shadcnui-utils/auto-form";
 
 export type IFieldInputVariant =
   | "input"
@@ -33,8 +30,6 @@ export type IFieldInputVariant =
   | "select"
   | "multiple-select"
   | "card-select"
-  | "date" // select with calendar
-  | "calendar" // calendar with no select
   | "datepicker"
   | "textarea"
   | "slider"
@@ -56,7 +51,6 @@ type Props = {
   selectOptions?: ISelectOption<any>[];
   cardSelectOptions?: ICardSelectOption[];
   disabled?: boolean;
-  calendarProps?: VCalendarProps;
   datepickerProps?: IDatepickerProps;
   fileUploaderProps?: IFileUploaderProps;
   imageUploaderProps?: IImageUploaderProps;
@@ -107,9 +101,12 @@ const showPass = ref(false);
         "
       >
         <div :class="cn('flex items-center gap-2', labelContainerClass)">
-          <UiFormLabel v-if="shownLabel" :disabled="disabled" :required="meta.required">{{
-            shownLabel
-          }}</UiFormLabel>
+          <UiFormLabel
+            v-if="shownLabel"
+            :disabled="disabled"
+            :required="meta.required"
+            >{{ shownLabel }}</UiFormLabel
+          >
           <slot name="field-label-right" />
           <template v-if="inputVariant === 'slider'">
             <!-- show value -->
@@ -285,30 +282,7 @@ const showPass = ref(false);
                 ...(props.inputProps ?? {}),
               }"
             />
-            <!-- DATE -->
-            <div v-if="inputVariant === 'date'">
-              <FormFieldCalendar
-                class="!mt-0"
-                v-bind="{
-                  ...componentField,
-                  disabled,
-                  ...(props.inputProps ?? {}),
-                  ...(props.calendarProps ?? {}),
-                }"
-              />
-            </div>
-            <!-- CALENDAR -->
-            <div v-if="inputVariant === 'calendar'">
-              <UiVCalendar
-                class="!mt-0"
-                v-bind="{
-                  ...componentField,
-                  disabled,
-                  ...(props.inputProps ?? {}),
-                  ...(props.calendarProps ?? {}),
-                }"
-              />
-            </div>
+
             <!-- datepicker -->
             <div v-if="inputVariant === 'datepicker'">
               <Datepicker

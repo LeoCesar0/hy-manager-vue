@@ -33,7 +33,7 @@ const props = withDefaults(defineProps<IProps>(), {
 });
 
 // Changed from string to IFileMin
-const { value, meta, errorMessage, handleChange } = useField<Nullish<IFileMin>>(
+const { value, meta, errorMessage, handleChange } = useField<Nullish<IFile>>(
   props.name
 );
 const fileInputRef = ref<HTMLInputElement | null>(null);
@@ -57,9 +57,9 @@ const handleFileSelection = (event: Event) => {
 
   // Get the first file since this is a single image uploader
   const file = input.files[0];
-  selectedFile.value = file;
+  selectedFile.value = file ?? null;
 
-  if (props.onFileSelected) {
+  if (props.onFileSelected && file) {
     props.onFileSelected(file);
   }
 
@@ -79,21 +79,14 @@ const uploadSelectedFile = async () => {
     if (response.data && !response.error && response.data.length > 0) {
       const uploadedFileData = response.data[0];
 
-      if (props.onFileUploaded) {
+      if (props.onFileUploaded && uploadedFileData) {
         props.onFileUploaded(uploadedFileData);
       }
 
       // Store the uploaded file
 
-      const fileMin: IFileMin = {
-        name: uploadedFileData.name,
-        size: uploadedFileData.size,
-        type: uploadedFileData.type,
-        url: uploadedFileData.s3Url,
-      };
-
       // Update the form field value with IFileMin object
-      handleChange(fileMin);
+      handleChange(uploadedFileData);
 
       // Clear selected file
       selectedFile.value = null;

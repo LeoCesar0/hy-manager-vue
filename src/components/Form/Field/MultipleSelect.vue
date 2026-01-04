@@ -5,7 +5,7 @@ import { computed } from "vue";
 import { cn } from "@/lib/utils";
 import type { SelectRootEmits, SelectRootProps } from "reka-ui";
 import { SelectRoot, useForwardPropsEmits } from "reka-ui";
-import type { Nullish } from "@common/type/helpers";
+import type { Nullish } from "~/@types/helpers";
 
 type Props = {
   options: ISelectOption[];
@@ -40,8 +40,8 @@ const isSelected = (value: any) => {
 </script>
 
 <template>
-  <RekaSelect v-bind="forwarded" multiple>
-    <RekaSelectTrigger
+  <UiSelect v-bind="forwarded" multiple>
+    <UiSelectTrigger
       class="w-full"
       :class="
         cn({
@@ -49,14 +49,14 @@ const isSelected = (value: any) => {
         })
       "
     >
-      <RekaSelectValue class="truncate">
+      <UiSelectValue class="truncate">
         {{ selectedLabels || placeholder }}
-      </RekaSelectValue>
-    </RekaSelectTrigger>
+      </UiSelectValue>
+    </UiSelectTrigger>
 
-    <RekaSelectContent>
-      <RekaSelectGroup>
-        <RekaSelectItem
+    <UiSelectContent>
+      <UiSelectGroup>
+        <UiSelectItem
           v-for="option in options"
           :key="option.value"
           :value="option.value"
@@ -68,17 +68,14 @@ const isSelected = (value: any) => {
               :checked="isSelected(option.value)"
               :disabled="disabled"
             />
-            <template v-if="option.metadata?.status">
-              <GoalIndicator :status="option.metadata.status" />
-            </template>
             <slot name="option-icon" :option="option" />
             <!-- @update:checked="() => toggleOption(option.value)" -->
             <span class="flex-1 truncate">{{ option.label }}</span>
           </div>
-        </RekaSelectItem>
-      </RekaSelectGroup>
-    </RekaSelectContent>
-  </RekaSelect>
+        </UiSelectItem>
+      </UiSelectGroup>
+    </UiSelectContent>
+  </UiSelect>
 </template>
 
 <style lang="scss" scoped>

@@ -108,14 +108,12 @@ export const useFile = () => {
         fileId: fileId,
       });
 
-      const fileRef = getStorageRef({ path: filePath });
-
       // Create file metadata
       const fileData: IFileBase = {
         name: file.name,
         size: file.size,
         type: file.type,
-        user: userId,
+        userId: userId,
         url: "", // Will be updated after upload
         path: filePath,
       };
@@ -162,13 +160,11 @@ export const useFile = () => {
           fileId: fileId,
         });
 
-        const fileRef = getStorageRef({ path: filePath });
-
         const fileData: IFileBase = {
           name: file.name,
           size: file.size,
           type: file.type,
-          user: userId,
+          userId: userId,
           url: "",
           path: filePath,
         };

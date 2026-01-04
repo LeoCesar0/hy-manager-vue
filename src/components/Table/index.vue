@@ -122,7 +122,7 @@ const table = computed(() => {
             class="capitalize"
             :checked="column.getIsVisible()"
             @update:checked="
-              (value) => {
+              (value: boolean) => {
                 column.toggleVisibility(!!value);
               }
             "
