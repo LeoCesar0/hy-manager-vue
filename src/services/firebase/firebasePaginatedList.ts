@@ -55,8 +55,6 @@ export const firebasePaginatedList = async <R>({
   snapShot = await getDocs(firebaseQuery);
   let list: R[] = snapShot.docs.map((doc) => doc.data() as R);
 
-  console.log(`❗ full list -->`, list);
-
   const count = list.length;
   const totalPages = Math.ceil(count / pagination.limit);
 

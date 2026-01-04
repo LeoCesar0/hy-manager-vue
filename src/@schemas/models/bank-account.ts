@@ -5,6 +5,7 @@ import { zStringNotEmpty } from "../primitives/stringNotEmpty";
 export const zBankAccountBase = z.object({
   id: z.string().optional(), // optional for create
   name: z.string(),
+  userId: zStringNotEmpty,
 });
 
 export const zBankAccount = zBankAccountBase.extend(zCommonDoc.shape);

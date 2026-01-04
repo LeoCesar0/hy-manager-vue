@@ -20,14 +20,9 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
       }
       
-      // Bank Accounts - must add userId to schema first!
       match /bankAccounts/{accountId} {
-        // For now, require authentication
-        allow read, write: if isSignedIn();
-        
-        // After adding userId field, use:
-        // allow read, write: if isSignedIn() && 
-        //                       resource.data.userId == request.auth.uid;
+        allow read, write: if isSignedIn() && 
+                              resource.data.userId == request.auth.uid;
       }
       
       // Transactions - users can only access their own

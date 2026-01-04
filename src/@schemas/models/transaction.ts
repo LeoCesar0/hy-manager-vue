@@ -14,6 +14,7 @@ export const zTransactionBase = z.object({
   categoryId: zStringNotEmpty.nullish(),
   creditorId: zStringNotEmpty.nullish(),
   userId: zStringNotEmpty,
+  bankAccountId: zStringNotEmpty,
 });
 
 export const zTransaction = zTransactionBase.extend(zCommonDoc.shape);
