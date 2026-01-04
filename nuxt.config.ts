@@ -1,5 +1,6 @@
 import { resolve } from "path";
 import { defineNuxtConfig } from "nuxt/config";
+import tailwindcss from "@tailwindcss/vite";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -24,6 +25,21 @@ export default defineNuxtConfig({
         },
       },
     },
+    plugins: [tailwindcss()],
+  },
+  shadcn: {
+    /**
+     * Prefix for all the imported component.
+     * @default "Ui"
+     */
+    prefix: "",
+    /**
+     * Directory that the component lives in.
+     * Will respect the Nuxt aliases.
+     * @link https://nuxt.com/docs/api/nuxt-config#alias
+     * @default "@/components/ui"
+     */
+    componentDir: "@/components/ui",
   },
   typescript: {
     typeCheck: true,
@@ -33,10 +49,6 @@ export default defineNuxtConfig({
     "@helpers": resolve(__dirname, "./src/helpers"),
     "@components": resolve(__dirname, "./src/components"),
     "@static": resolve(__dirname, "./src/static"),
-  },
-  shadcn: {
-    prefix: "",
-    componentDir: "@/components/ui",
   },
   components: [
     {

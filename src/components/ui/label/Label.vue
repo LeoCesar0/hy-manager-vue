@@ -1,70 +1,26 @@
 <script setup lang="ts">
-import { type HTMLAttributes, computed } from "vue";
-import { Label, type LabelProps } from "radix-vue";
-import { cn } from "@/lib/utils";
-import { InfoIcon } from "lucide-vue-next";
+import type { LabelProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { reactiveOmit } from "@vueuse/core"
+import { Label } from "reka-ui"
+import { cn } from "@/lib/utils"
 
-const props = defineProps<
-  LabelProps & {
-    class?: HTMLAttributes["class"];
-    required?: boolean;
-    labelInfo?: string;
-  }
->();
+const props = defineProps<LabelProps & { class?: HTMLAttributes["class"] }>()
 
-const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props;
-
-  return delegated;
-});
+const delegatedProps = reactiveOmit(props, "class")
 </script>
 
-<!-- <template>
-  <span :class="cn('flex items-center gap-3', props.class)">
-    <Label
-      v-bind="delegatedProps"
-      :class="
-        cn(
-          'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
-        )
-      "
-    >
-      <slot />{{ required ? " *" : "" }}
-    </Label>
-    <UiTooltipProvider v-if="labelInfo">
-      <UiTooltip>
-        <UiTooltipTrigger>
-          <InfoIcon class="h-4 w-4" />
-        </UiTooltipTrigger>
-        <UiTooltipContent>
-          <p class="text-xs">{{ labelInfo }}</p>
-        </UiTooltipContent>
-      </UiTooltip>
-    </UiTooltipProvider>
-  </span>
-</template> -->
-
 <template>
-  <span :class="cn('flex items-center gap-1', props.class)">
-    <Label
-      v-bind="delegatedProps"
-      :class="
-        cn(
-          'text-sm text-muted-foreground font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
-        )
-      "
-    >
-      <slot />{{ required ? " *" : "" }}
-    </Label>
-    <UiTooltipProvider v-if="labelInfo">
-      <UiTooltip>
-        <UiTooltipTrigger>
-          <InfoIcon class="h-4 w-4" />
-        </UiTooltipTrigger>
-        <UiTooltipContent>
-          <p class="text-xs">{{ labelInfo }}</p>
-        </UiTooltipContent>
-      </UiTooltip>
-    </UiTooltipProvider>
-  </span>
+  <Label
+    data-slot="label"
+    v-bind="delegatedProps"
+    :class="
+      cn(
+        'flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
+        props.class,
+      )
+    "
+  >
+    <slot />
+  </Label>
 </template>

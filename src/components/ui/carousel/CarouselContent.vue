@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useCarousel } from './useCarousel'
-import type { WithClassAsProps } from './interface'
-import { cn } from '@/lib/utils'
+import type { WithClassAsProps } from "./interface"
+import { cn } from "@/lib/utils"
+import { useCarousel } from "./useCarousel"
 
 defineOptions({
   inheritAttrs: false,
@@ -13,7 +13,11 @@ const { carouselRef, orientation } = useCarousel()
 </script>
 
 <template>
-  <div ref="carouselRef" class="overflow-hidden">
+  <div
+    ref="carouselRef"
+    data-slot="carousel-content"
+    class="overflow-hidden"
+  >
     <div
       :class="
         cn(
