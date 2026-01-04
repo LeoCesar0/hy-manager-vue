@@ -3,6 +3,7 @@ import { zCommonDoc } from "./@common";
 import { zStringNotEmpty } from "../primitives/stringNotEmpty";
 
 export const zFileBase = z.object({
+  id: z.string().optional(), // optional for create
   name: z.string(),
   size: z.coerce.number().nullish(),
   type: z.string(),

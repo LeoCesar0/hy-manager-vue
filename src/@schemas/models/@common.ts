@@ -8,3 +8,5 @@ export const zCommonDoc = z.object({
   updatedAt: zTimestamp,
   deleted: z.boolean().nullish(),
 });
+
+export type ICommonDoc = z.infer<typeof zCommonDoc>;

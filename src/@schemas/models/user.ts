@@ -3,6 +3,7 @@ import { zStringNotEmpty } from "../primitives/stringNotEmpty";
 import { zCommonDoc } from "./@common";
 
 export const zUserBase = z.object({
+  id: z.string().optional(), // optional for create
   name: zStringNotEmpty,
   email: z.email(),
   imageUrl: z.string().nullish(),
@@ -13,6 +14,5 @@ export const zUser = zUserBase.extend(zCommonDoc.shape);
 export type IUser = z.infer<typeof zUser>;
 
 export type IUserBase = z.infer<typeof zUserBase>;
-
-export type ICreateUser = z.infer<typeof zUser>;
-export type IUpdateUser = z.infer<typeof zUser>;
+export type ICreateUser = z.infer<typeof zUserBase>;
+export type IUpdateUser = z.infer<typeof zUserBase>;

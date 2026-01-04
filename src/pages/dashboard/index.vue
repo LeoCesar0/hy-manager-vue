@@ -1,22 +1,30 @@
 <script setup lang="ts">
+import type {
+  IBankAccount,
+  ICreateBankAccount,
+} from "~/@schemas/models/bank-account";
+
 type IProps = {};
 const props = withDefaults(defineProps<IProps>(), {});
 
 const { firebaseCreate } = useFirebaseStore();
 
 const test = async () => {
-  try {
-    const data = await firebaseCreate({
-      collection: "bankAccounts",
-      data: {
-        name: "test 2",
-        id: "123123",
-      },
-    });
-    console.log("❗ data -->", data);
-  } catch (error) {
-    console.error("Error creating bank account:", error);
+  console.log("❗❗❗ test");
+  const result = await firebaseCreate<ICreateBankAccount, IBankAccount>({
+    collection: "bankAccounts",
+    data: {
+      name: "test 4",
+      id: "4",
+    },
+  });
+
+  if (result.error) {
+    console.log(`❌ Error creating bank account -->`, result.error.message);
+    return;
   }
+
+  console.log("✅ Bank account created -->", result.data);
 };
 </script>
 
