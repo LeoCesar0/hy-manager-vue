@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { zStringNotEmpty } from "../primitives/stringNotEmpty";
-import { zCommonDoc } from "./common";
+import { zCommonDoc } from "./@common";
 
 export const zCreditorBase = z.object({
   name: z.string(),
@@ -8,7 +8,7 @@ export const zCreditorBase = z.object({
   userId: zStringNotEmpty,
 });
 
-export const zCreditor = zCreditorBase.merge(zCommonDoc);
+export const zCreditor = zCreditorBase.extend(zCommonDoc.shape);
 
 export type ICreditorBase = z.infer<typeof zCreditorBase>;
 export type ICreditor = z.infer<typeof zCreditor>;

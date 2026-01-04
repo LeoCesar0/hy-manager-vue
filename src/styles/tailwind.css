@@ -1,32 +1,7 @@
-@import "tailwindcss";
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
+@import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
-
-button:not([disabled]) {
-  cursor: pointer;
-}
-
-button[disabled],
-input[disabled] {
-  cursor: not-allowed;
-}
-
-*::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-*::-webkit-scrollbar-track {
-  border-radius: 8px;
-  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-  @apply bg-muted;
-}
-
-*::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  @apply bg-muted-foreground;
-}
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -142,4 +117,33 @@ input[disabled] {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+body {
+  font-family: "Inter", sans-serif;
+}
+
+button:not([disabled]) {
+  cursor: pointer;
+}
+
+button[disabled],
+input[disabled] {
+  cursor: not-allowed;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  border-radius: 8px;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  @apply bg-muted;
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  @apply bg-muted-foreground;
 }

@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { zStringNotEmpty } from "../primitives/stringNotEmpty";
-import { zCommonDoc } from "./common";
-import { zFlexDate } from "../primitives/zFlexDate";
+import { zCommonDoc } from "./@common";
 import { zTimestamp } from "../firebase";
 
 const zTransactionType = z.enum(["deposit", "expense"]);
@@ -16,7 +15,7 @@ export const zTransactionBase = z.object({
   userId: zStringNotEmpty,
 });
 
-export const zTransaction = zTransactionBase.merge(zCommonDoc);
+export const zTransaction = zTransactionBase.extend(zCommonDoc.shape);
 
 export type ITransactionBase = z.infer<typeof zTransactionBase>;
 export type ITransaction = z.infer<typeof zTransaction>;

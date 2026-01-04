@@ -1,19 +1,18 @@
 <script setup lang="ts">
 import {
   Pagination,
+  PaginationContent,
   PaginationEllipsis,
   PaginationFirst,
+  PaginationItem,
   PaginationLast,
-  PaginationList,
-  PaginationListItem,
   PaginationNext,
-  PaginationPrev,
+  PaginationPrevious,
 } from "@/components/ui/pagination";
-import type { IPaginationBody } from "@common/schemas/pagination";
-import type { IPaginationResult } from "@common/schemas/pagination";
+import type { IPaginationBody, IPaginationResult } from "~/@types/pagination";
 
 type Props = {
-  paginationBody: IPaginationBody<any>;
+  paginationBody: IPaginationBody;
   paginationResult: IPaginationResult<any>;
   isLoading?: boolean;
 };
@@ -25,36 +24,27 @@ const props = defineProps<Props>();
   <Pagination
     v-model:page="paginationBody.page"
     :items-per-page="paginationBody.limit || 10"
-    :total="paginationResult.totalItems"
+    :total="paginationResult.count"
     :sibling-count="1"
     show-edges
     :default-page="1"
-    :is-loading="isLoading"
   >
-    <PaginationList v-slot="{ items }" class="flex items-center gap-1">
+    <PaginationContent v-slot="{ items }" class="flex items-center gap-1">
       <PaginationFirst />
-      <PaginationPrev />
+      <PaginationPrevious />
       <template v-for="(item, index) in items">
-        <PaginationListItem
+        <PaginationItem
           v-if="item.type === 'page'"
           :key="index"
           :value="item.value"
-          as-child
+          :is-active="item.value === paginationBody.page"
         >
-          <UiButton
-            class="w-10 h-10 p-0"
-            :variant="
-              item.value === paginationBody.page ? 'default' : 'outline'
-            "
-            :disabled="isLoading"
-          >
-            {{ item.value }}
-          </UiButton>
-        </PaginationListItem>
+          {{ item.value }}
+        </PaginationItem>
         <PaginationEllipsis v-else :key="item.type" :index="index" />
       </template>
       <PaginationNext />
       <PaginationLast />
-    </PaginationList>
+    </PaginationContent>
   </Pagination>
 </template>

@@ -2,11 +2,11 @@
 type IProps = {};
 const props = withDefaults(defineProps<IProps>(), {});
 
-const { create } = useFirebaseStore();
+const { firebaseCreate } = useFirebaseStore();
 
 const test = async () => {
   try {
-    const data = await create({
+    const data = await firebaseCreate({
       collection: "bankAccounts",
       data: {
         name: "test 2",

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // Index page component
 </script>
 

@@ -1,14 +1,14 @@
 import { z } from "zod";
 import { zStringNotEmpty } from "../primitives/stringNotEmpty";
-import { zCommonDoc } from "./common";
+import { zCommonDoc } from "./@common";
 
 export const zUserBase = z.object({
   name: zStringNotEmpty,
-  email: z.string().email(),
+  email: z.email(),
   imageUrl: z.string().nullish(),
 });
 
-export const zUser = zUserBase.merge(zCommonDoc);
+export const zUser = zUserBase.extend(zCommonDoc.shape);
 
 export type IUser = z.infer<typeof zUser>;
 

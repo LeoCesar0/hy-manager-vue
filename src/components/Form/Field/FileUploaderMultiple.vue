@@ -2,8 +2,8 @@
 import { useField, type ComponentFieldBindingObject } from "vee-validate";
 import { XIcon, UploadIcon, FileIcon } from "lucide-vue-next";
 import { cn } from "~/lib/utils";
-import type { Nullish } from "@common/type/helpers";
-import type { IFile } from "@common/schemas/file";
+import type { IFile } from "~/@schemas/models/file";
+import type { Nullish } from "~/@types/helpers";
 
 export type IFileUploaderProps = {
   showPreview?: boolean;
@@ -101,9 +101,7 @@ const uploadSelectedFiles = async () => {
   try {
     isLoadingFiles.value = true;
 
-    const response = await uploadFiles(selectedFiles.value, {
-      uploadToOpenAI: props.uploadToOpenAI,
-    });
+    const response = await uploadFiles(selectedFiles.value);
 
     if (response.data && !response.error) {
       if (props.onFilesUploaded) {
@@ -114,7 +112,7 @@ const uploadSelectedFiles = async () => {
       uploadedFiles.value = [...uploadedFiles.value, ...response.data];
 
       // Update the form field value with file IDs
-      const fileIds = uploadedFiles.value.map((file) => file._id);
+      const fileIds = uploadedFiles.value.map((file) => file.id);
 
       handleChange(fileIds);
     }
@@ -142,7 +140,7 @@ const removeFile = (index: number) => {
   uploadedFiles.value = updatedFiles;
 
   // Update the form field value with remaining file IDs
-  const fileIds = uploadedFiles.value.map((file) => file._id);
+  const fileIds = uploadedFiles.value.map((file) => file.id);
 
   // Ensure fileIds is empty array instead of undefined or null if no files
   handleChange(fileIds.length > 0 ? fileIds : []);
@@ -199,7 +197,7 @@ const acceptedFileTypesAsString = computed(() => {
     <div v-if="uploadedFiles.length && showPreview" class="space-y-2 mt-2">
       <div
         v-for="(file, index) in uploadedFiles"
-        :key="file._id"
+        :key="file.id"
         class="flex items-center justify-between p-2 rounded-md bg-muted/10"
       >
         <div class="flex items-center">

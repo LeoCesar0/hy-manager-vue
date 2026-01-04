@@ -8,23 +8,19 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   srcDir: "src/",
   ssr: true,
-  css: [
-    "@/styles/globals.scss",
-    "@/styles/utils.scss",
-    "@/styles/components.scss",
-  ],
-  modules: ["@nuxtjs/tailwindcss", "shadcn-nuxt", "@pinia/nuxt"],
+  css: ["@/styles/tailwind.css", "@/styles/components.scss"],
+  modules: ["shadcn-nuxt", "@pinia/nuxt"],
   imports: {
     dirs: ["composables/*.ts", "composables/**/*.ts"],
   },
   vite: {
-    css: {
-      preprocessorOptions: {
-        scss: {
-          api: "modern-compiler", // or "modern"
-        },
-      },
-    },
+    // css: {
+    //   preprocessorOptions: {
+    //     scss: {
+    //       api: "modern-compiler", // or "modern"
+    //     },
+    //   },
+    // },
     plugins: [tailwindcss()],
   },
   shadcn: {
@@ -32,7 +28,7 @@ export default defineNuxtConfig({
      * Prefix for all the imported component.
      * @default "Ui"
      */
-    prefix: "",
+    prefix: "Ui",
     /**
      * Directory that the component lives in.
      * Will respect the Nuxt aliases.

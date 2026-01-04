@@ -2,7 +2,7 @@ import { v4 as uuid } from "uuid";
 import { firebaseUpsertData } from "./firebaseUpsertData";
 import { getDataById } from "./getDataById";
 import type { AnyObject } from "~/@types/anyObject";
-import type { FirebaseCollection } from "./collections";
+import { COLLECTION_SCHEMA, type FirebaseCollection } from "./collections";
 import { Timestamp } from "firebase/firestore";
 
 type IFirebaseCreate = {
@@ -14,12 +14,13 @@ export const firebaseCreate = async <T extends { id: string }>({
   data,
 }: IFirebaseCreate): Promise<T> => {
   const id = data.id || uuid();
-  const newData = {
+  const schema = COLLECTION_SCHEMA[collectionName];
+  const newData = schema.parse({
     ...data,
     id,
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
-  };
+  });
   await firebaseUpsertData(collectionName, newData, id);
   const snapShot = await getDataById(collectionName, id);
   const createdData = snapShot.data() as T;

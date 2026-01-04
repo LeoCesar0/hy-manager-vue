@@ -10,7 +10,7 @@ type IFIrebaseGetWhere<T> = {
 export const firebaseGetWhere = async <T>({
   collection: collectionName,
   filters,
-}: IFIrebaseGetWhere<T>): Promise<T> => {
+}: IFIrebaseGetWhere<T>): Promise<T | undefined> => {
   const ref = createCollectionRef({ collectionName });
 
   filters = filters.reduce((acc, entry) => {
@@ -32,7 +32,7 @@ export const firebaseGetWhere = async <T>({
   const firebaseQuery = query(ref, ...whereList);
 
   snapShot = await getDocs(firebaseQuery);
-  const item: T = snapShot.docs[0].data() as T;
+  const item: T | undefined = snapShot.docs[0]?.data() as T | undefined
 
   return item;
 };

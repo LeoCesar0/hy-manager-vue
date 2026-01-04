@@ -1,4 +1,10 @@
-import { getDocs, query, where } from "firebase/firestore";
+import {
+  getDocs,
+  query,
+  QuerySnapshot,
+  where,
+  type DocumentData,
+} from "firebase/firestore";
 import { createCollectionRef } from "./createCollectionRef";
 import type { FirebaseFilterFor } from "./@type";
 import type { FirebaseCollection } from "./collections";
@@ -27,11 +33,9 @@ export const firebaseList = async <T>({
     where(field as string, operator, value)
   );
 
-  let snapShot;
-
   let firebaseQuery = query(ref, ...whereList);
 
-  snapShot = await getDocs(firebaseQuery);
+  const snapShot = await getDocs(firebaseQuery);
   const list: T[] = [];
   snapShot.forEach((doc) => {
     list.push(doc.data() as T);

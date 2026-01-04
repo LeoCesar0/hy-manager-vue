@@ -25,7 +25,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -35,13 +34,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { valueUpdater } from "@/lib/utils";
-import type { IPaginationBody } from "@common/schemas/pagination";
-import type { IPaginationResult } from "@common/schemas/pagination";
+import type { IPaginationBody, IPaginationResult } from "~/@types/pagination";
 
 // Define props to accept data and columns
 type IProps = {
   columns: ColumnDef<T>[];
-  paginationBody: IPaginationBody<T>;
+  paginationBody: IPaginationBody;
   paginationResult: IPaginationResult<T> | null | undefined;
   isLoading?: boolean;
 };
@@ -52,9 +50,9 @@ const data = computed(() => {
   return props.paginationResult?.list || [];
 });
 
-const hasSearch = computed(() => {
-  return typeof props.paginationBody.searchQuery === "string";
-});
+// const hasSearch = computed(() => {
+//   return typeof props.paginationBody.searchQuery === "string";
+// });
 
 const sorting = ref<SortingState>([]);
 const columnFilters = ref<ColumnFiltersState>([]);
@@ -107,18 +105,6 @@ const table = computed(() => {
       <div
         class="filters-container grid grid-cols-1 w-full flex-1 sm:flex flex-wrap sm:flex-row sm:flex-nowrap gap-2"
       >
-        <!-- FILTERS -->
-        <template v-if="hasSearch">
-          <div class="flex flex-col">
-            <UiLabel class="mb-2"> Search </UiLabel>
-            <Input
-              class="w-full"
-              placeholder="Search..."
-              v-model="(paginationBody.searchQuery as string)"
-              label="Search"
-            />
-          </div>
-        </template>
         <slot name="filters" />
       </div>
       <DropdownMenu>
@@ -191,7 +177,7 @@ const table = computed(() => {
 
     <div class="flex items-center justify-end space-x-2 py-4">
       <div class="flex-1 text-sm text-muted-foreground">
-        <p>{{ paginationResult?.totalItems || 0 }} results</p>
+        <p>{{ paginationResult?.count || 0 }} results</p>
         <slot name="footer-left" />
       </div>
       <div>

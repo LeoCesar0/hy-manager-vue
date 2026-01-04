@@ -1,4 +1,4 @@
-export type Pagination = {
+export type IPaginationBody = {
   page: number;
   limit: number;
   orderBy?: {
@@ -6,7 +6,7 @@ export type Pagination = {
     direction: "asc" | "desc";
   };
 };
-export type PaginationResult<T> = {
+export type IPaginationResult<T> = {
   count: number;
   pages: number;
   list: T[];

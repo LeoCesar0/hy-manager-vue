@@ -1,12 +1,5 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useRouter } from "vue-router";
-import {
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-} from "firebase/auth";
-import { useFirebaseStore } from "~/composables/stores/useFirebaseStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {

@@ -6,7 +6,7 @@ import {
   Query,
   type DocumentData,
 } from "firebase/firestore";
-import type { Pagination, PaginationResult } from "~/@types/pagination";
+import type { IPaginationBody, IPaginationResult } from "~/@types/pagination";
 import { createCollectionRef } from "./createCollectionRef";
 import type { FirebaseFilterFor } from "./@type";
 import type { FirebaseCollection } from "./collections";
@@ -14,13 +14,13 @@ import type { FirebaseCollection } from "./collections";
 type IProps<T> = {
   collection: FirebaseCollection;
   filters?: FirebaseFilterFor<T>[];
-  pagination: Pagination;
+  pagination: IPaginationBody;
 };
 export const firebasePaginatedList = async <T>({
   collection: collectionName,
   filters = [],
   pagination,
-}: IProps<T>): Promise<PaginationResult<T>> => {
+}: IProps<T>): Promise<IPaginationResult<T>> => {
   const ref = createCollectionRef({ collectionName });
   let whereList = filters.map(({ field, operator = "==", value }) =>
     where(field as string, operator, value)

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zCommonDoc } from "./common";
+import { zCommonDoc } from "./@common";
 
 export const zFileBase = z.object({
   name: z.string(),
@@ -11,7 +11,7 @@ export const zFileBase = z.object({
 });
 
 export const zFileMin = zFileBase;
-export const zFile = zFileBase.merge(zCommonDoc);
+export const zFile = zFileBase.extend(zCommonDoc.shape);
 
 export type IFileBase = z.infer<typeof zFileBase>;
 export type IFile = z.infer<typeof zFile>;

@@ -29,7 +29,7 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
   if (!getApps().length) {
     firebaseApp = initializeApp(firebaseConfig);
   } else {
-    firebaseApp = getApps()[0];
+    firebaseApp = getApps()[0] as FirebaseApp;
   }
 
   const firebaseAuth = getAuth(firebaseApp);
@@ -47,12 +47,12 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
     firebaseStorage: firebaseStorage,
 
     // CRUD operations
-    create: firebaseCreate,
-    get: firebaseGet,
-    update: firebaseUpdate,
-    delete: firebaseDelete,
-    list: firebaseList,
-    getWhere: firebaseGetWhere,
-    getPaginatedList: firebasePaginatedList,
+    firebaseCreate,
+    firebaseGet,
+    firebaseUpdate,
+    firebaseDelete,
+    firebaseList,
+    firebaseGetWhere,
+    firebasePaginatedList,
   };
 });

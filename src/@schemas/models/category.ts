@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zCommonDoc } from "./common";
+import { zCommonDoc } from "./@common";
 import { zStringNotEmpty } from "../primitives/stringNotEmpty";
 
 export const zCategoryBase = z.object({
@@ -9,7 +9,7 @@ export const zCategoryBase = z.object({
   userId: zStringNotEmpty,
 });
 
-export const zCategory = zCategoryBase.merge(zCommonDoc);
+export const zCategory = zCategoryBase.extend(zCommonDoc.shape);
 
 export type ICategoryBase = z.infer<typeof zCategoryBase>;
 export type ICategory = z.infer<typeof zCategory>;

@@ -1,7 +1,8 @@
 import { Timestamp } from "firebase/firestore";
 import { getDataById } from "./getDataById";
 import { firebaseUpsertData } from "./firebaseUpsertData";
-import type { FirebaseCollection } from "./collections";
+import { COLLECTION_SCHEMA, type FirebaseCollection } from "./collections";
+import { zUser } from "~/@schemas/models/user";
 
 type IFirebaseUpdate<T> = {
   collection: FirebaseCollection;
@@ -14,10 +15,11 @@ export const firebaseUpdate = async <T>({
   data,
   id,
 }: IFirebaseUpdate<T>) => {
-  const newData = {
+  const schema = COLLECTION_SCHEMA[collectionName];
+  const newData = schema.partial().parse({
     ...data,
     updatedAt: Timestamp.now(),
-  };
+  });
 
   if (newData?.id) delete newData.id;
   if (newData?.createdAt) delete newData.createdAt;

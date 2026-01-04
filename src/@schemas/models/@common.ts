@@ -6,5 +6,5 @@ export const zCommonDoc = z.object({
   id: zStringNotEmpty,
   createdAt: zTimestamp,
   updatedAt: zTimestamp,
-  disabled: z.boolean().nullish().default(false),
+  deleted: z.boolean().nullish(),
 });
