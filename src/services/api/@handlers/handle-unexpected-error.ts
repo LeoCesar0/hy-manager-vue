@@ -82,6 +82,7 @@ export const handleUnexpectedError = ({
       message: errorMessage ?? error?.message ?? "Unexpected error",
       _message: error?.message,
       _data: error,
+      code: error.cause || "",
     },
   };
 

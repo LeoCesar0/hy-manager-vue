@@ -9,7 +9,7 @@ import type { ICreateUser, IUser } from "~/@schemas/models/user";
 import { firebaseCreate } from "~/services/firebase/firebaseCreate";
 import { getDefaultCreateToastOptions } from "~/helpers/toast/get-default-create-toast-options";
 import { firebaseGet } from "~/services/firebase/firebaseGet";
-import { getDefaultGetToastOptions } from "~/helpers/toast/get-default-get-toast-options copy 2";
+import { getDefaultGetToastOptions } from "~/helpers/toast/get-default-get-toast-options";
 
 type Item = IUser;
 

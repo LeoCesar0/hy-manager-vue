@@ -3,7 +3,7 @@ import type {
   IBankAccount,
   ICreateBankAccount,
 } from "~/@schemas/models/bank-account";
-import { getMyBankAccounts } from "~/services/api/bank-accounts/get-my-bank-accounts";
+import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
 
 type IProps = {};
 const props = withDefaults(defineProps<IProps>(), {});
@@ -36,8 +36,9 @@ const test = async () => {
 const items = ref<any>(undefined);
 
 onMounted(async () => {
-  const result = await getMyBankAccounts({
-    userId: "123",
+  console.log(`❗ currentUser.value -->`, currentUser.value);
+  const result = await getBankAccounts({
+    userId: currentUser.value?.id ?? "",
   });
   console.log(`❗ result -->`, result);
   items.value = result.data;

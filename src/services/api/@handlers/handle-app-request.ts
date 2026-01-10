@@ -2,6 +2,7 @@ import type { AppResponse, AppResponseError } from "~/@schemas/app";
 import type { ToastOptions } from "~/@types/toast";
 import { handleApiError } from "./handle-api-errors";
 import type { Id as LoadingId } from "vue3-toastify";
+import { FORCE_DISPLAY_ERROR_CAUSE } from "~/services/app/display-error";
 
 export type IHandleAppRequestProps<T> = {
   toastOptions?: ToastOptions;
@@ -30,10 +31,14 @@ export const handleAppRequest = async <T>(
       await onError(res);
       await nextTick();
     }
-    const errMessage =
+    let errMessage =
       typeof toastOptions?.error === "object"
         ? toastOptions.error.message
         : res.error.message;
+
+    if (res.error.code === FORCE_DISPLAY_ERROR_CAUSE) {
+      errMessage = res.error.message;
+    }
 
     if (toastLoadingId) {
       toast.update(toastLoadingId, {

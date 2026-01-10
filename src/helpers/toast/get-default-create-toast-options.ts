@@ -10,13 +10,13 @@ export const getDefaultCreateToastOptions = ({
 }: IProps): ToastOptions => {
   return {
     loading: {
-      message: `Creating ${itemName}...`,
+      message: `Creating ${itemName.toLowerCase()}...`,
     },
     success: {
       message: `${beautifyObjectName(itemName)} created successfully!`,
     },
     error: {
-      message: `Failed to create ${itemName}`,
+      message: `Failed to create ${itemName.toLowerCase()}`,
     },
   };
 };

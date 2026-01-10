@@ -10,13 +10,13 @@ export const getDefaultUpdateToastOptions = ({
 }: IProps): ToastOptions => {
   return {
     loading: {
-      message: `Updating ${itemName}...`,
+      message: `Updating ${itemName.toLowerCase()}...`,
     },
     success: {
       message: `${beautifyObjectName(itemName)} updated successfully!`,
     },
     error: {
-      message: `Failed to update ${itemName}`,
+      message: `Failed to update ${itemName.toLowerCase()}`,
     },
   };
 };
