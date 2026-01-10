@@ -14,7 +14,6 @@ export const firebaseCreate = async <T extends AnyObject, R = T>({
   collection: collectionName,
   data,
 }: IFirebaseCreate<T>): Promise<R> => {
-  console.log("❗❗❗ firebaseCreate");
   const id = data.id || uuid();
   const schema = COLLECTION_SCHEMA[collectionName];
   const commonData: ICommonDoc = {
@@ -26,6 +25,7 @@ export const firebaseCreate = async <T extends AnyObject, R = T>({
     ...data,
     ...commonData,
   });
+  console.log(`❗ newData -->`, newData);
   await firebaseUpsertData(collectionName, newData, id);
   const snapShot = await getDataById(collectionName, id);
   const createdData = snapShot.data() as R;

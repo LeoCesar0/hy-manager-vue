@@ -8,15 +8,21 @@ import { getMyBankAccounts } from "~/services/api/bank-accounts/get-my-bank-acco
 type IProps = {};
 const props = withDefaults(defineProps<IProps>(), {});
 
+const userStore = useUserStore();
+const { currentUser } = storeToRefs(userStore);
+
 const { modelCreate, modelList, modelPaginatedList } = useFirebaseStore();
 
 const test = async () => {
-  console.log("❗❗❗ test");
+  if (!currentUser.value) {
+    console.log(`❗ NO USER FOUND -->`);
+    return;
+  }
   const result = await modelCreate<ICreateBankAccount, IBankAccount>({
     collection: "bankAccounts",
     data: {
       name: "test 6",
-      userId: "123",
+      userId: currentUser.value.id,
     },
   });
 

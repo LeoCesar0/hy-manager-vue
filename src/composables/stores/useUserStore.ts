@@ -12,6 +12,17 @@ export const useUserStore = defineStore(makeStoreKey("user"), () => {
 
   const router = useRouter();
   const firebaseStore = useFirebaseStore();
+  const { currentFirebaseUser } = storeToRefs(firebaseStore);
+
+  watch(
+    currentFirebaseUser,
+    (currentFirebaseUser) => {
+      console.log(`❗ currentFirebaseUser -->`, currentFirebaseUser);
+    },
+    {
+      immediate: true,
+    }
+  );
 
   const loading = ref(false);
 

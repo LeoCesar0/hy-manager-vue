@@ -8,7 +8,7 @@ import { firebaseList } from "~/services/firebase/firebaseList";
 import { firebaseGetWhere } from "~/services/firebase/firebaseGetWhere";
 import { firebasePaginatedList } from "~/services/firebase/firebasePaginatedList";
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, type User } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { makeStoreKey } from "~/helpers/makeStoreKey";
@@ -40,6 +40,7 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
   const firebaseAuth = getAuth(firebaseApp);
   const firebaseDB = getFirestore(firebaseApp);
   const firebaseStorage = getStorage(firebaseApp);
+  const currentFirebaseUser = ref<User | null>(null);
 
   const wrappedFirebaseCreate = async <T extends AnyObject, R = T>(
     ...args: Parameters<typeof firebaseCreate<T, R>>
@@ -116,6 +117,7 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
   };
 
   return {
+    currentFirebaseUser,
     firebaseAuth: firebaseAuth,
     firebaseDB: firebaseDB,
     firebaseStorage: firebaseStorage,

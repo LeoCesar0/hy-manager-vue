@@ -5,10 +5,11 @@ import {
 } from "../@handlers/handle-app-request";
 import type { IBankAccount } from "~/@schemas/models/bank-account";
 import type { IPaginationBody, IPaginationResult } from "~/@types/pagination";
+import { getDefaultGetToastOptions } from "~/helpers/toast/get-default-get-toast-options copy 2";
 
 type Item = IBankAccount;
 
-export type IGetMyBankAccounts = {
+export type IAPIGetMyBankAccounts = {
   userId: string;
   pagination?: IPaginationBody;
   options?: IHandleAppRequestProps<IPaginationResult<Item>>;
@@ -18,7 +19,7 @@ export const getMyBankAccounts = async ({
   userId,
   pagination,
   options,
-}: IGetMyBankAccounts) => {
+}: IAPIGetMyBankAccounts) => {
   const response = await handleAppRequest(
     async () => {
       return await firebasePaginatedList<Item>({
@@ -37,6 +38,7 @@ export const getMyBankAccounts = async ({
       });
     },
     {
+      toastOptions: getDefaultGetToastOptions({ itemName: "Bank Account" }),
       ...options,
     }
   );
