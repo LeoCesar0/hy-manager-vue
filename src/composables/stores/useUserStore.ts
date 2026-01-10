@@ -14,16 +14,6 @@ export const useUserStore = defineStore(makeStoreKey("user"), () => {
   const firebaseStore = useFirebaseStore();
   const { currentFirebaseUser } = storeToRefs(firebaseStore);
 
-  watch(
-    currentFirebaseUser,
-    (currentFirebaseUser) => {
-      console.log(`❗ currentFirebaseUser -->`, currentFirebaseUser);
-    },
-    {
-      immediate: true,
-    }
-  );
-
   const loading = ref(false);
 
   const handleEmailSignIn = async (email: string, password: string) => {
