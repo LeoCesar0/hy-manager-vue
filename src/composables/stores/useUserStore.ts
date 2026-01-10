@@ -5,7 +5,7 @@ import {
 } from "firebase/auth";
 import type { IUser } from "~/@schemas/models/user";
 import { makeStoreKey } from "~/helpers/makeStoreKey";
-import { handleAppRequest } from "~/handlers/handleAppRequest";
+import { handleAppRequest } from "~/services/api/@handlers/handle-app-request";
 
 export const useUserStore = defineStore(makeStoreKey("user"), () => {
   const currentUser = ref<IUser | null>(null);
@@ -17,11 +17,8 @@ export const useUserStore = defineStore(makeStoreKey("user"), () => {
 
   const handleEmailSignIn = async (email: string, password: string) => {
     await handleAppRequest(
-      () => signInWithEmailAndPassword(
-        firebaseStore.firebaseAuth,
-        email,
-        password
-      ),
+      () =>
+        signInWithEmailAndPassword(firebaseStore.firebaseAuth, email, password),
       {
         loadingRefs: [loading],
         toastOptions: {
@@ -38,10 +35,8 @@ export const useUserStore = defineStore(makeStoreKey("user"), () => {
 
   const handleGoogleSignIn = async () => {
     await handleAppRequest(
-      () => signInWithPopup(
-        firebaseStore.firebaseAuth,
-        new GoogleAuthProvider()
-      ),
+      () =>
+        signInWithPopup(firebaseStore.firebaseAuth, new GoogleAuthProvider()),
       {
         loadingRefs: [loading],
         toastOptions: {

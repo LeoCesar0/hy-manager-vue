@@ -3,6 +3,7 @@ import type {
   IBankAccount,
   ICreateBankAccount,
 } from "~/@schemas/models/bank-account";
+import { getMyBankAccounts } from "~/services/api/bank-accounts/get-my-bank-accounts";
 
 type IProps = {};
 const props = withDefaults(defineProps<IProps>(), {});
@@ -14,8 +15,8 @@ const test = async () => {
   const result = await modelCreate<ICreateBankAccount, IBankAccount>({
     collection: "bankAccounts",
     data: {
-      name:'test 6',
-      userId:'123',
+      name: "test 6",
+      userId: "123",
     },
   });
 
@@ -29,18 +30,10 @@ const test = async () => {
 const items = ref<any>(undefined);
 
 onMounted(async () => {
-  const result = await modelPaginatedList<IBankAccount>({
-    collection: "bankAccounts",
-    pagination: {
-      page: 1,
-      limit: 10,
-      orderBy: {
-        field: "createdAt",
-        direction: "desc",
-      },
-    },
-    filters: [],
+  const result = await getMyBankAccounts({
+    userId: "123",
   });
+  console.log(`❗ result -->`, result);
   items.value = result.data;
 });
 </script>

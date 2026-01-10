@@ -6,7 +6,7 @@ import type { IUser } from "~/@schemas/models/user";
 import { slugify } from "~/helpers/slugify";
 import type { AppResponse } from "~/@schemas/app";
 import { generateId } from "~/helpers/generateId";
-import { handleApiError } from "~/handlers/handleApiError";
+import { handleApiError } from "~/services/api/@handlers/handle-api-errors";
 
 export type IGetFileByIdProps = {
   fileId: string;

@@ -1,5 +1,5 @@
 import { isApiError } from "~/helpers/isApiError";
-import { handleUnexpectedError } from "./handleUnexpectedError";
+import { handleUnexpectedError } from "./handle-unexpected-error";
 import type { AppResponseError } from "~/@schemas/app";
 
 export const handleApiError = ({

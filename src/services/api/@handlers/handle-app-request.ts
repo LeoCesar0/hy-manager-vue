@@ -1,6 +1,6 @@
 import type { AppResponse, AppResponseError } from "~/@schemas/app";
 import type { ToastOptions } from "~/@types/toast";
-import { handleApiError } from "./handleApiError";
+import { handleApiError } from "./handle-api-errors";
 import type { Id as LoadingId } from "vue3-toastify";
 
 export type IHandleAppRequestProps<T> = {
