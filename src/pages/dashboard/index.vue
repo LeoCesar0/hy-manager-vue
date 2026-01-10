@@ -14,8 +14,8 @@ const test = async () => {
   const result = await modelCreate<ICreateBankAccount, IBankAccount>({
     collection: "bankAccounts",
     data: {
-      name: "test 5",
-      id: "5",
+      name:'test 6',
+      userId:'123',
     },
   });
 

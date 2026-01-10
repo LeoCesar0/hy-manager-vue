@@ -2,7 +2,13 @@ import { isApiError } from "~/helpers/isApiError";
 import { handleUnexpectedError } from "./handleUnexpectedError";
 import type { AppResponseError } from "~/@schemas/app";
 
-export const handleApiError = ({ err }: { err: any }): AppResponseError => {
+export const handleApiError = ({
+  err,
+  defaultErrorMessage,
+}: {
+  err: any;
+  defaultErrorMessage?: string;
+}): AppResponseError => {
   if (err?.response && err?.response._data) {
     err = err.response._data;
   }
@@ -13,13 +19,14 @@ export const handleApiError = ({ err }: { err: any }): AppResponseError => {
       err = err.data;
     }
   }
-  // console.error("❗ handleApi Error -->", err);
 
   const isAPiError = isApiError(err);
 
   if (!isAPiError) {
-    console.log("❗❗ Unexpected error in handleApiError");
-    return handleUnexpectedError({ error: err });
+    return handleUnexpectedError({
+      error: err,
+      errorMessage: defaultErrorMessage,
+    });
   }
 
   let resError: AppResponseError = { ...err };

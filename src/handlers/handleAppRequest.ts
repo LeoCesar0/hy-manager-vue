@@ -6,27 +6,35 @@ import type { Id as LoadingId } from "vue3-toastify";
 export type IHandleAppRequestProps<T> = {
   toastOptions?: ToastOptions;
   loadingRefs?: Ref<boolean>[];
-  onSuccess?: (data: AppResponse<T>) => Promise<any>;
-  onError?: (data: AppResponseError) => Promise<any>;
+  onSuccess?: (data: T) => Promise<any> | void;
+  onError?: (error: AppResponseError) => Promise<any> | void;
+  defaultErrorMessage?: string;
 };
 
 export const handleAppRequest = async <T>(
-  request: () => Promise<T>,
-  { loadingRefs, onSuccess, onError, toastOptions }: IHandleAppRequestProps<T>
-) => {
+  request: () => Promise<AppResponse<T>> | Promise<T>,
+  {
+    loadingRefs,
+    onSuccess,
+    onError,
+    toastOptions,
+    defaultErrorMessage,
+  }: IHandleAppRequestProps<T> = {}
+): Promise<AppResponse<T>> => {
   const { toast } = useToast();
 
   let toastLoadingId: null | LoadingId = null;
 
-  const handleError = async (err: AppResponseError) => {
+  const handleError = async (res: AppResponseError) => {
     if (onError) {
-      await onError(err);
+      await onError(res);
       await nextTick();
     }
     const errMessage =
       typeof toastOptions?.error === "object"
         ? toastOptions.error.message
-        : err.error.message;
+        : res.error.message;
+
     if (toastLoadingId) {
       toast.update(toastLoadingId, {
         render: errMessage,
@@ -34,9 +42,31 @@ export const handleAppRequest = async <T>(
         isLoading: false,
         autoClose: 5000,
       });
-    }
-    if (!toastLoadingId && toastOptions?.error) {
+    } else if (toastOptions?.error) {
       toast.error(errMessage);
+    }
+  };
+
+  const handleSuccess = async (data: T) => {
+    if (onSuccess) {
+      await onSuccess(data);
+      await nextTick();
+    }
+
+    const successMessage =
+      typeof toastOptions?.success === "object"
+        ? toastOptions.success.message
+        : "Success";
+
+    if (toastLoadingId && toastOptions?.success) {
+      toast.update(toastLoadingId, {
+        render: successMessage,
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    } else if (toastOptions?.success) {
+      toast.success(successMessage);
     }
   };
 
@@ -52,17 +82,47 @@ export const handleAppRequest = async <T>(
           : toastOptions.loading.message;
       toastLoadingId = toast.loading(loadingMes);
     }
+
     const response = await request();
+
+    let normalizedResponse: AppResponse<T>;
+
+    if (
+      response &&
+      typeof response === "object" &&
+      "error" in response &&
+      "data" in response
+    ) {
+      normalizedResponse = response as AppResponse<T>;
+    } else {
+      normalizedResponse = {
+        data: response as T,
+        error: null,
+      };
+    }
+
     loadingRefs?.forEach((loadingRef) => {
       loadingRef.value = false;
     });
-    return response;
+
+    if (normalizedResponse.error) {
+      await handleError(normalizedResponse as AppResponseError);
+      return normalizedResponse;
+    }
+
+    await handleSuccess(normalizedResponse.data);
+
+    if (toastLoadingId && !toastOptions?.success) {
+      toast.remove(toastLoadingId);
+    }
+
+    return normalizedResponse;
   } catch (err) {
     loadingRefs?.forEach((loadingRef) => {
       loadingRef.value = false;
     });
-    const response = handleApiError({ err: err });
-    handleError(response);
-    return response;
+    const errorResponse = handleApiError({ err, defaultErrorMessage });
+    await handleError(errorResponse);
+    return errorResponse;
   }
 };

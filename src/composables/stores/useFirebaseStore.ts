@@ -14,6 +14,7 @@ import { getStorage } from "firebase/storage";
 import { makeStoreKey } from "~/helpers/makeStoreKey";
 import type { AppResponse } from "~/@schemas/app";
 import type { AnyObject } from "~/@types/anyObject";
+import { handleAppRequest } from "~/handlers/handleAppRequest";
 
 export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
   let firebaseApp: FirebaseApp;
@@ -43,153 +44,65 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
   const wrappedFirebaseCreate = async <T extends AnyObject, R = T>(
     ...args: Parameters<typeof firebaseCreate<T, R>>
   ): Promise<AppResponse<R>> => {
-    try {
-      const response = await firebaseCreate<T, R>(...args);
-      return { data: response, error: null };
-    } catch (error: any) {
-      console.log(`❌ Error in firebaseCreate -->`, error);
-      return {
-        data: null,
-        error: {
-          _isAppError: true,
-          message: error.message || "An unexpected error occurred",
-          _message: error.message || "",
-        },
-      };
-    }
+    return handleAppRequest(() => firebaseCreate<T, R>(...args), {
+      defaultErrorMessage: "Failed to create item",
+    });
   };
 
   const wrappedFirebaseCreateMany = async <T extends AnyObject, R = T>(
     ...args: Parameters<typeof firebaseCreateMany<T, R>>
   ): Promise<AppResponse<R[]>> => {
-    try {
-      const response = await firebaseCreateMany<T, R>(...args);
-      return { data: response, error: null };
-    } catch (error: any) {
-      console.log(`❌ Error in firebaseCreateMany -->`, error);
-      return {
-        data: null,
-        error: {
-          _isAppError: true,
-          message: error.message || "An unexpected error occurred",
-          _message: error.message || "",
-        },
-      };
-    }
+    return handleAppRequest(() => firebaseCreateMany<T, R>(...args), {
+      defaultErrorMessage: "Failed to create items",
+    });
   };
 
   const wrappedFirebaseGet = async <R>(
     ...args: Parameters<typeof firebaseGet<R>>
   ): Promise<AppResponse<R>> => {
-    try {
-      const response = await firebaseGet<R>(...args);
-      return { data: response, error: null };
-    } catch (error: any) {
-      console.log(`❌ Error in firebaseGet -->`, error);
-      return {
-        data: null,
-        error: {
-          _isAppError: true,
-          message: error.message || "An unexpected error occurred",
-          _message: error.message || "",
-        },
-      };
-    }
+    return handleAppRequest(() => firebaseGet<R>(...args), {
+      defaultErrorMessage: "Failed to fetch item",
+    });
   };
 
   const wrappedFirebaseUpdate = async <T extends AnyObject, R = T>(
     ...args: Parameters<typeof firebaseUpdate<T, R>>
   ): Promise<AppResponse<R>> => {
-    try {
-      const response = await firebaseUpdate<T, R>(...args);
-      return { data: response, error: null };
-    } catch (error: any) {
-      console.log(`❌ Error in firebaseUpdate -->`, error);
-      return {
-        data: null,
-        error: {
-          _isAppError: true,
-          message: error.message || "An unexpected error occurred",
-          _message: error.message || "",
-        },
-      };
-    }
+    return handleAppRequest(() => firebaseUpdate<T, R>(...args), {
+      defaultErrorMessage: "Failed to update item",
+    });
   };
 
   const wrappedFirebaseUpdateMany = async <T extends AnyObject, R = T>(
     ...args: Parameters<typeof firebaseUpdateMany<T, R>>
   ): Promise<AppResponse<{ id: string; data: R }[]>> => {
-    try {
-      const response = await firebaseUpdateMany<T, R>(...args);
-      return { data: response, error: null };
-    } catch (error: any) {
-      console.log(`❌ Error in firebaseUpdateMany -->`, error);
-      return {
-        data: null,
-        error: {
-          _isAppError: true,
-          message: error.message || "An unexpected error occurred",
-          _message: error.message || "",
-        },
-      };
-    }
+    return handleAppRequest(() => firebaseUpdateMany<T, R>(...args), {
+      defaultErrorMessage: "Failed to update items",
+    });
   };
 
   const wrappedFirebaseDelete = async (
     ...args: Parameters<typeof firebaseDelete>
   ): Promise<AppResponse<void>> => {
-    try {
-      const response = await firebaseDelete(...args);
-      return { data: response, error: null };
-    } catch (error: any) {
-      console.log(`❌ Error in firebaseDelete -->`, error);
-      return {
-        data: null,
-        error: {
-          _isAppError: true,
-          message: error.message || "An unexpected error occurred",
-          _message: error.message || "",
-        },
-      };
-    }
+    return handleAppRequest(() => firebaseDelete(...args), {
+      defaultErrorMessage: "Failed to delete item",
+    });
   };
 
   const wrappedFirebaseList = async <R>(
     ...args: Parameters<typeof firebaseList<R>>
   ): Promise<AppResponse<R[]>> => {
-    try {
-      const response = await firebaseList<R>(...args);
-      return { data: response, error: null };
-    } catch (error: any) {
-      console.log(`❌ Error in firebaseList -->`, error);
-      return {
-        data: null,
-        error: {
-          _isAppError: true,
-          message: error.message || "An unexpected error occurred",
-          _message: error.message || "",
-        },
-      };
-    }
+    return handleAppRequest(() => firebaseList<R>(...args), {
+      defaultErrorMessage: "Failed to fetch list",
+    });
   };
 
   const wrappedFirebaseGetWhere = async <R>(
     ...args: Parameters<typeof firebaseGetWhere<R>>
   ): Promise<AppResponse<R | undefined>> => {
-    try {
-      const response = await firebaseGetWhere<R>(...args);
-      return { data: response, error: null };
-    } catch (error: any) {
-      console.log(`❌ Error in firebaseGetWhere -->`, error);
-      return {
-        data: null,
-        error: {
-          _isAppError: true,
-          message: error.message || "An unexpected error occurred",
-          _message: error.message || "",
-        },
-      };
-    }
+    return handleAppRequest(() => firebaseGetWhere<R>(...args), {
+      defaultErrorMessage: "Failed to fetch item",
+    });
   };
 
   const wrappedFirebasePaginatedList = async <R>(
@@ -197,33 +110,15 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
   ): Promise<
     AppResponse<Awaited<ReturnType<typeof firebasePaginatedList<R>>>>
   > => {
-    try {
-      const response = await firebasePaginatedList<R>(...args);
-      return { data: response, error: null };
-    } catch (error: any) {
-      console.log(`❌ Error in firebasePaginatedList -->`, error);
-      return {
-        data: null,
-        error: {
-          _isAppError: true,
-          message: error.message || "An unexpected error occurred",
-          _message: error.message || "",
-        },
-      };
-    }
+    return handleAppRequest(() => firebasePaginatedList<R>(...args), {
+      defaultErrorMessage: "Failed to fetch paginated list",
+    });
   };
 
   return {
-    // Auth
     firebaseAuth: firebaseAuth,
-
-    // Firestore
     firebaseDB: firebaseDB,
-
-    // Storage
     firebaseStorage: firebaseStorage,
-
-    // CRUD operations
     modelCreate: wrappedFirebaseCreate,
     modelCreateMany: wrappedFirebaseCreateMany,
     modelGet: wrappedFirebaseGet,
