@@ -1,59 +1,100 @@
 <script setup lang="ts">
-import type {
-  IBankAccount,
-  ICreateBankAccount,
-} from "~/@schemas/models/bank-account";
-import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
+import type { ITransaction } from "~/@schemas/models/transaction";
+import type { ICategory } from "~/@schemas/models/category";
+import type { ICreditor } from "~/@schemas/models/creditor";
+import { getTransactions } from "~/services/api/transactions/get-transactions";
+import { getCategories } from "~/services/api/categories/get-categories";
+import { getCreditors } from "~/services/api/creditors/get-creditors";
+import { calculateTotals } from "~/services/analytics/calculate-totals";
+import { groupByCategory } from "~/services/analytics/group-by-category";
+import { groupByCreditor } from "~/services/analytics/group-by-creditor";
+import { groupByDate } from "~/services/analytics/group-by-date";
+import Overview from "~/components/Dashboard/Overview.vue";
+import ExpensesByCategory from "~/components/Dashboard/ExpensesByCategory.vue";
+import IncomeVsExpenses from "~/components/Dashboard/IncomeVsExpenses.vue";
+import RecentTransactions from "~/components/Dashboard/RecentTransactions.vue";
+import TopCreditors from "~/components/Dashboard/TopCreditors.vue";
+import MonthlyComparison from "~/components/Dashboard/MonthlyComparison.vue";
+import { UiButton } from "~/components/ui/button";
 
-type IProps = {};
-const props = withDefaults(defineProps<IProps>(), {});
+definePageMeta({
+  layout: "dashboard",
+});
 
 const userStore = useUserStore();
 const { currentUser } = storeToRefs(userStore);
 
-const { modelCreate, modelList, modelPaginatedList } = useFirebaseStore();
+const transactions = ref<ITransaction[]>([]);
+const categories = ref<ICategory[]>([]);
+const creditors = ref<ICreditor[]>([]);
+const loading = ref(false);
 
-const test = async () => {
-  if (!currentUser.value) {
-    console.log(`❗ NO USER FOUND -->`);
-    return;
-  }
-  const result = await modelCreate<ICreateBankAccount, IBankAccount>({
-    collection: "bankAccounts",
-    data: {
-      name: "test 6",
-      userId: currentUser.value.id,
-    },
-  });
+const totals = computed(() => calculateTotals(transactions.value));
+const expensesByCategory = computed(() => {
+  const expenses = transactions.value.filter((t) => t.type === "expense");
+  return groupByCategory(expenses, categories.value);
+});
+const topCreditors = computed(() => groupByCreditor(transactions.value, creditors.value));
+const monthlyData = computed(() => groupByDate(transactions.value, "monthly"));
 
-  if (result.error) {
-    console.log(`❌ Error creating bank account -->`, result.error.message);
-    return;
-  }
+const loadData = async () => {
+  if (!currentUser.value) return;
 
-  console.log("✅ Bank account created -->", result.data);
+  loading.value = true;
+
+  const [transactionsResult, categoriesResult, creditorsResult] = await Promise.all([
+    getTransactions({ userId: currentUser.value.id }),
+    getCategories({ userId: currentUser.value.id }),
+    getCreditors({ userId: currentUser.value.id }),
+  ]);
+
+  if (transactionsResult.data) transactions.value = transactionsResult.data;
+  if (categoriesResult.data) categories.value = categoriesResult.data;
+  if (creditorsResult.data) creditors.value = creditorsResult.data;
+
+  loading.value = false;
 };
-const items = ref<any>(undefined);
 
-onMounted(async () => {
-  console.log(`❗ currentUser.value -->`, currentUser.value);
-  const result = await getBankAccounts({
-    userId: currentUser.value?.id ?? "",
-  });
-  console.log(`❗ result -->`, result);
-  items.value = result.data;
+onMounted(() => {
+  loadData();
 });
 </script>
 
 <template>
-  <NuxtLayout name="dashboard">
-    <div class="dashboard-page">
-      <h1>Dashboard</h1>
-      <UiButton @click="() => test()">Test Firebase</UiButton>
-      <!-- Add your dashboard content here -->
-      <pre>
-        {{ items }}
-      </pre>
+  <div class="space-y-6">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold">Dashboard</h1>
+        <p class="text-muted-foreground">Overview of your finances</p>
+      </div>
+      <UiButton @click="navigateTo('/dashboard/transactions/new')">
+        Add Transaction
+      </UiButton>
     </div>
-  </NuxtLayout>
+
+    <div v-if="loading" class="text-center py-8">
+      <p>Loading...</p>
+    </div>
+
+    <div v-else class="space-y-6">
+      <Overview
+        :income="totals.income"
+        :expenses="totals.expenses"
+        :balance="totals.balance"
+      />
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ExpensesByCategory :data="expensesByCategory" />
+        <IncomeVsExpenses :data="monthlyData" />
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RecentTransactions :transactions="transactions" />
+        <div class="space-y-6">
+          <TopCreditors :data="topCreditors" />
+          <MonthlyComparison :data="monthlyData" />
+        </div>
+      </div>
+    </div>
+  </div>
 </template>

@@ -85,7 +85,10 @@ const { handleEmailSignIn, handleGoogleSignIn, loading } = useUserStore();
           Sign in with Google
         </Button>
       </CardContent>
-      <CardFooter class="flex justify-center">
+      <CardFooter class="flex flex-col gap-2">
+        <router-link to="/forgot-password" class="text-sm text-primary hover:underline">
+          Forgot password?
+        </router-link>
         <p class="text-sm text-muted-foreground">
           Don't have an account?
           <router-link to="/sign-up" class="text-primary hover:underline">
