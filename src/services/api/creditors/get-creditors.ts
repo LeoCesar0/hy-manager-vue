@@ -12,7 +12,7 @@ export const getCreditors = async ({
 
   return await firebaseStore.modelList<ICreditor>({
     collection: "creditors",
-    where: [
+    filters: [
       {
         field: "userId",
         operator: "==",

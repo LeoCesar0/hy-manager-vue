@@ -11,7 +11,7 @@ import { getCreditors } from "~/services/api/creditors/get-creditors";
 import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
 import TransactionRow from "~/components/Transactions/TransactionRow.vue";
 import TransactionFilters from "~/components/Transactions/TransactionFilters.vue";
-import { UiButton } from "~/components/ui/button";
+import { Button } from "~/components/ui/button";
 import { useAlertDialog } from "~/composables/ui/useAlertDialog";
 
 definePageMeta({
@@ -72,9 +72,9 @@ const loadMetadata = async () => {
     getBankAccounts({ userId: currentUser.value.id }),
   ]);
 
-  if (categoriesResult.data) categories.value = categoriesResult.data;
-  if (creditorsResult.data) creditors.value = creditorsResult.data;
-  if (bankAccountsResult.data) bankAccounts.value = bankAccountsResult.data;
+  if (categoriesResult.data) categories.value = categoriesResult.data.list;
+  if (creditorsResult.data) creditors.value = creditorsResult.data.list;
+  if (bankAccountsResult.data) bankAccounts.value = bankAccountsResult.data.list;
 };
 
 const getCategoryName = (transaction: ITransaction) => {
@@ -142,9 +142,9 @@ onMounted(() => {
         <h1 class="text-3xl font-bold">Transactions</h1>
         <p class="text-muted-foreground">View and manage your transactions</p>
       </div>
-      <UiButton @click="navigateTo('/dashboard/transactions/new')">
+      <Button @click="navigateTo('/dashboard/transactions/new')">
         Add Transaction
-      </UiButton>
+      </Button>
     </div>
 
     <TransactionFilters
@@ -161,9 +161,9 @@ onMounted(() => {
 
     <div v-else-if="transactions.length === 0" class="text-center py-8">
       <p class="text-muted-foreground">No transactions found.</p>
-      <UiButton class="mt-4" @click="navigateTo('/dashboard/transactions/new')">
+      <Button class="mt-4" @click="navigateTo('/dashboard/transactions/new')">
         Add Your First Transaction
-      </UiButton>
+      </Button>
     </div>
 
     <div v-else class="border rounded-lg overflow-hidden">

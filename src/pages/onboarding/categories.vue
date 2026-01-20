@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { createCategory } from "~/services/api/categories/create-category";
 import {
-  UiCard,
-  UiCardContent,
-  UiCardDescription,
-  UiCardHeader,
-  UiCardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "~/components/ui/card";
-import { UiButton } from "~/components/ui/button";
-import { UiBadge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { Badge } from "~/components/ui/badge";
 import ProgressIndicator from "~/components/Onboarding/ProgressIndicator.vue";
 
 const router = useRouter();
@@ -57,12 +57,14 @@ const handleSubmit = async () => {
   loading.value = true;
 
   for (const category of selectedCats) {
-    await createCategory({
-      name: category.name,
-      icon: category.icon,
-      color: category.color,
-      userId: currentUser.value.id,
-    });
+    if (category) {
+      await createCategory({
+        name: category.name,
+        icon: category.icon,
+        color: category.color,
+        userId: currentUser.value.id,
+      });
+    }
   }
 
   loading.value = false;
@@ -76,21 +78,21 @@ const handleSkip = () => {
 
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-    <UiCard class="w-full max-w-3xl">
-      <UiCardHeader>
+    <Card class="w-full max-w-3xl">
+      <CardHeader>
         <ProgressIndicator :current-step="3" :total-steps="3" />
-        <UiCardTitle class="text-2xl text-center mt-4">
+        <CardTitle class="text-2xl text-center mt-4">
           Choose Your Categories
-        </UiCardTitle>
-        <UiCardDescription class="text-center">
+        </CardTitle>
+        <CardDescription class="text-center">
           Select categories to help organize your transactions
-        </UiCardDescription>
-      </UiCardHeader>
-      <UiCardContent class="space-y-6">
+        </CardDescription>
+      </CardHeader>
+      <CardContent class="space-y-6">
         <div>
           <h3 class="font-semibold mb-3 text-green-700">Income Categories</h3>
           <div class="flex gap-2 flex-wrap">
-            <UiBadge
+            <Badge
               v-for="(category, index) in defaultCategories.filter((c) => c.type === 'income')"
               :key="index"
               class="cursor-pointer text-base py-2 px-4 transition-all"
@@ -107,14 +109,14 @@ const handleSkip = () => {
             >
               <span class="mr-2">{{ category.icon }}</span>
               {{ category.name }}
-            </UiBadge>
+            </Badge>
           </div>
         </div>
 
         <div>
           <h3 class="font-semibold mb-3 text-red-700">Expense Categories</h3>
           <div class="flex gap-2 flex-wrap">
-            <UiBadge
+            <Badge
               v-for="(category, index) in defaultCategories.filter((c) => c.type === 'expense')"
               :key="index"
               class="cursor-pointer text-base py-2 px-4 transition-all"
@@ -131,19 +133,19 @@ const handleSkip = () => {
             >
               <span class="mr-2">{{ category.icon }}</span>
               {{ category.name }}
-            </UiBadge>
+            </Badge>
           </div>
         </div>
 
         <div class="flex gap-2 justify-end pt-4">
-          <UiButton variant="outline" @click="handleSkip">
+          <Button variant="outline" @click="handleSkip">
             Skip
-          </UiButton>
-          <UiButton @click="handleSubmit" :disabled="loading">
+          </Button>
+          <Button @click="handleSubmit" :disabled="loading">
             {{ selectedCategories.size > 0 ? "Complete Setup" : "Finish" }}
-          </UiButton>
+          </Button>
         </div>
-      </UiCardContent>
-    </UiCard>
+      </CardContent>
+    </Card>
   </div>
 </template>

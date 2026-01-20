@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import type { ITransactionCategorySplit } from "~/@schemas/models/transaction";
 import type { ICategory } from "~/@schemas/models/category";
-import { UiButton } from "~/components/ui/button";
-import { UiInput } from "~/components/ui/input";
-import { UiLabel } from "~/components/ui/label";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
-  UiSelect,
-  UiSelectContent,
-  UiSelectItem,
-  UiSelectTrigger,
-  UiSelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "~/components/ui/select";
 
 type IProps = {
@@ -74,33 +74,33 @@ const getCategoryName = (categoryId: string) => {
 <template>
   <div class="space-y-4">
     <div class="flex justify-between items-center">
-      <UiLabel>Category Splits</UiLabel>
-      <UiButton type="button" variant="outline" size="sm" @click="addSplit">
+      <Label>Category Splits</Label>
+      <Button type="button" variant="outline" size="sm" @click="addSplit">
         Add Split
-      </UiButton>
+      </Button>
     </div>
 
     <div v-for="(split, index) in localSplits" :key="index" class="flex gap-2 items-start">
       <div class="flex-1 space-y-2">
-        <UiSelect v-model="split.categoryId">
-          <UiSelectTrigger>
-            <UiSelectValue :placeholder="split.categoryId ? getCategoryName(split.categoryId) : 'Select category'" />
-          </UiSelectTrigger>
-          <UiSelectContent>
-            <UiSelectItem
+        <Select v-model="split.categoryId">
+          <SelectTrigger>
+            <SelectValue :placeholder="split.categoryId ? getCategoryName(split.categoryId) : 'Select category'" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem
               v-for="category in categories"
               :key="category.id"
               :value="category.id"
             >
               <span v-if="category.icon" class="mr-2">{{ category.icon }}</span>
               {{ category.name }}
-            </UiSelectItem>
-          </UiSelectContent>
-        </UiSelect>
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div class="w-32">
-        <UiInput
+        <Input
           v-model.number="split.amount"
           type="number"
           step="0.01"
@@ -110,14 +110,14 @@ const getCategoryName = (categoryId: string) => {
         />
       </div>
 
-      <UiButton
+      <Button
         type="button"
         variant="ghost"
         size="icon"
         @click="removeSplit(index)"
       >
         ✕
-      </UiButton>
+      </Button>
     </div>
 
     <div v-if="localSplits.length > 0" class="text-sm space-y-1">

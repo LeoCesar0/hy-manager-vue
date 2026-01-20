@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { IBankAccount, ICreateBankAccount } from "~/@schemas/models/bank-account";
-import { UiButton } from "~/components/ui/button";
-import { UiInput } from "~/components/ui/input";
-import { UiLabel } from "~/components/ui/label";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 
 type IProps = {
   bankAccount?: IBankAccount;
@@ -47,8 +47,8 @@ const handleSubmit = () => {
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-4">
     <div class="space-y-2">
-      <UiLabel for="name">Account Name</UiLabel>
-      <UiInput
+      <Label for="name">Account Name</Label>
+      <Input
         id="name"
         v-model="form.name"
         placeholder="e.g., Main Checking, Savings"
@@ -57,12 +57,12 @@ const handleSubmit = () => {
     </div>
 
     <div class="flex gap-2 justify-end">
-      <UiButton type="button" variant="outline" @click="emit('cancel')">
+      <Button type="button" variant="outline" @click="emit('cancel')">
         Cancel
-      </UiButton>
-      <UiButton type="submit" :disabled="loading || !form.name.trim()">
+      </Button>
+      <Button type="submit" :disabled="loading || !form.name.trim()">
         {{ bankAccount ? "Update" : "Create" }} Account
-      </UiButton>
+      </Button>
     </div>
   </form>
 </template>

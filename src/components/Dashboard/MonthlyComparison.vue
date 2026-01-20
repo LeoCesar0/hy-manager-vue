@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import {
-  UiCard,
-  UiCardContent,
-  UiCardHeader,
-  UiCardTitle,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
 } from "~/components/ui/card";
 
 type MonthlyData = {
@@ -57,11 +57,11 @@ const formatCurrency = (amount: number) => {
 </script>
 
 <template>
-  <UiCard>
-    <UiCardHeader>
-      <UiCardTitle>Monthly Comparison</UiCardTitle>
-    </UiCardHeader>
-    <UiCardContent>
+  <Card>
+    <CardHeader>
+      <CardTitle>Monthly Comparison</CardTitle>
+    </CardHeader>
+    <CardContent>
       <div v-if="!currentMonth" class="text-center py-8 text-muted-foreground">
         Not enough data for comparison
       </div>
@@ -98,6 +98,6 @@ const formatCurrency = (amount: number) => {
           </div>
         </div>
       </div>
-    </UiCardContent>
-  </UiCard>
+    </CardContent>
+  </Card>
 </template>

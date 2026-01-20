@@ -19,7 +19,7 @@ export const getOrCreateCreditor = async ({
 
   const existingResult = await firebaseStore.modelList<ICreditor>({
     collection: "creditors",
-    where: [
+    filters: [
       {
         field: "userId",
         operator: "==",
@@ -34,7 +34,7 @@ export const getOrCreateCreditor = async ({
     );
 
     if (existing) {
-      return { data: existing };
+      return { data: existing, error: null };
     }
   }
 

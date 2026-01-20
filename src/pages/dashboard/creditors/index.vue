@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { ICreditor } from "~/@schemas/models/creditor";
 import { getCreditors } from "~/services/api/creditors/get-creditors";
-import { UiButton } from "~/components/ui/button";
+import { Button } from "~/components/ui/button";
 import {
-  UiCard,
-  UiCardContent,
-  UiCardHeader,
-  UiCardTitle,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
 } from "~/components/ui/card";
-import { UiInput } from "~/components/ui/input";
+import { Input } from "~/components/ui/input";
 
 definePageMeta({
   layout: "dashboard",
@@ -63,7 +63,7 @@ onMounted(() => {
     </div>
 
     <div class="space-y-4">
-      <UiInput
+      <Input
         v-model="searchQuery"
         placeholder="Search creditors..."
         class="max-w-md"
@@ -80,21 +80,21 @@ onMounted(() => {
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <UiCard v-for="creditor in filteredCreditors" :key="creditor.id">
-          <UiCardHeader>
-            <UiCardTitle>{{ creditor.name }}</UiCardTitle>
-          </UiCardHeader>
-          <UiCardContent>
+        <Card v-for="creditor in filteredCreditors" :key="creditor.id">
+          <CardHeader>
+            <CardTitle>{{ creditor.name }}</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div class="space-y-2">
               <p class="text-sm text-muted-foreground">
                 {{ creditor.categoryIds.length }} associated categories
               </p>
-              <UiButton variant="outline" size="sm" @click="handleView(creditor)">
+              <Button variant="outline" size="sm" @click="handleView(creditor)">
                 View Details
-              </UiButton>
+              </Button>
             </div>
-          </UiCardContent>
-        </UiCard>
+          </CardContent>
+        </Card>
       </div>
     </div>
   </div>

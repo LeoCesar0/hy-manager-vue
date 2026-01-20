@@ -21,7 +21,7 @@ export const groupByCategory = (
           };
         }
 
-        grouped[split.categoryId].amount += Math.abs(split.amount);
+        grouped[split.categoryId]!.amount += Math.abs(split.amount);
       });
     } else if (transaction.categoryId) {
       const category = categories.find((c) => c.id === transaction.categoryId);
@@ -35,7 +35,7 @@ export const groupByCategory = (
         };
       }
 
-      grouped[transaction.categoryId].amount += Math.abs(transaction.amount);
+      grouped[transaction.categoryId]!.amount += Math.abs(transaction.amount);
     }
   });
 

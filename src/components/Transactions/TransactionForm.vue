@@ -4,16 +4,16 @@ import type { IBankAccount } from "~/@schemas/models/bank-account";
 import type { ICategory } from "~/@schemas/models/category";
 import type { ICreditor } from "~/@schemas/models/creditor";
 import { Timestamp } from "firebase/firestore";
-import { UiButton } from "~/components/ui/button";
-import { UiInput } from "~/components/ui/input";
-import { UiLabel } from "~/components/ui/label";
-import { UiTextarea } from "~/components/ui/textarea";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Textarea } from "~/components/ui/textarea";
 import {
-  UiSelect,
-  UiSelectContent,
-  UiSelectItem,
-  UiSelectTrigger,
-  UiSelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "~/components/ui/select";
 import CategorySplitInput from "./CategorySplitInput.vue";
 
@@ -109,21 +109,21 @@ const getBankAccountName = (id: string) => {
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-4">
     <div class="space-y-2">
-      <UiLabel for="type">Type</UiLabel>
-      <UiSelect v-model="form.type">
-        <UiSelectTrigger>
-          <UiSelectValue :placeholder="form.type" />
-        </UiSelectTrigger>
-        <UiSelectContent>
-          <UiSelectItem value="deposit">Deposit</UiSelectItem>
-          <UiSelectItem value="expense">Expense</UiSelectItem>
-        </UiSelectContent>
-      </UiSelect>
+      <Label for="type">Type</Label>
+      <Select v-model="form.type">
+        <SelectTrigger>
+          <SelectValue :placeholder="form.type" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="deposit">Deposit</SelectItem>
+          <SelectItem value="expense">Expense</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
 
     <div class="space-y-2">
-      <UiLabel for="amount">Amount</UiLabel>
-      <UiInput
+      <Label for="amount">Amount</Label>
+      <Input
         id="amount"
         v-model.number="form.amount"
         type="number"
@@ -133,8 +133,8 @@ const getBankAccountName = (id: string) => {
     </div>
 
     <div class="space-y-2">
-      <UiLabel for="description">Description</UiLabel>
-      <UiTextarea
+      <Label for="description">Description</Label>
+      <Textarea
         id="description"
         v-model="form.description"
         placeholder="Enter transaction description"
@@ -142,8 +142,8 @@ const getBankAccountName = (id: string) => {
     </div>
 
     <div class="space-y-2">
-      <UiLabel for="date">Date</UiLabel>
-      <UiInput
+      <Label for="date">Date</Label>
+      <Input
         id="date"
         v-model="dateString"
         type="date"
@@ -152,26 +152,26 @@ const getBankAccountName = (id: string) => {
     </div>
 
     <div class="space-y-2">
-      <UiLabel for="bankAccount">Bank Account</UiLabel>
-      <UiSelect v-model="form.bankAccountId">
-        <UiSelectTrigger>
-          <UiSelectValue :placeholder="form.bankAccountId ? getBankAccountName(form.bankAccountId) : 'Select account'" />
-        </UiSelectTrigger>
-        <UiSelectContent>
-          <UiSelectItem
+      <Label for="bankAccount">Bank Account</Label>
+      <Select v-model="form.bankAccountId">
+        <SelectTrigger>
+          <SelectValue :placeholder="form.bankAccountId ? getBankAccountName(form.bankAccountId) : 'Select account'" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem
             v-for="account in bankAccounts"
             :key="account.id"
             :value="account.id"
           >
             {{ account.name }}
-          </UiSelectItem>
-        </UiSelectContent>
-      </UiSelect>
+          </SelectItem>
+        </SelectContent>
+      </Select>
     </div>
 
     <div class="space-y-2">
-      <UiLabel for="creditor">Creditor</UiLabel>
-      <UiInput
+      <Label for="creditor">Creditor</Label>
+      <Input
         id="creditor"
         v-model="form.creditorName"
         placeholder="Enter creditor name"
@@ -190,9 +190,9 @@ const getBankAccountName = (id: string) => {
           v-model="useSplits"
           class="rounded"
         />
-        <UiLabel for="useSplits" class="cursor-pointer">
+        <Label for="useSplits" class="cursor-pointer">
           Split across multiple categories
-        </UiLabel>
+        </Label>
       </div>
 
       <CategorySplitInput
@@ -205,12 +205,12 @@ const getBankAccountName = (id: string) => {
     </div>
 
     <div class="flex gap-2 justify-end">
-      <UiButton type="button" variant="outline" @click="emit('cancel')">
+      <Button type="button" variant="outline" @click="emit('cancel')">
         Cancel
-      </UiButton>
-      <UiButton type="submit" :disabled="loading">
+      </Button>
+      <Button type="submit" :disabled="loading">
         {{ transaction ? "Update" : "Create" }} Transaction
-      </UiButton>
+      </Button>
     </div>
   </form>
 </template>

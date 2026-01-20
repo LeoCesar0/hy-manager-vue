@@ -14,14 +14,14 @@ export const calculateCategorySplits = (
         if (!totals[split.categoryId]) {
           totals[split.categoryId] = 0;
         }
-        totals[split.categoryId] += Math.abs(split.amount);
+        totals[split.categoryId]! += Math.abs(split.amount);
         grandTotal += Math.abs(split.amount);
       });
     } else if (transaction.categoryId) {
       if (!totals[transaction.categoryId]) {
         totals[transaction.categoryId] = 0;
       }
-      totals[transaction.categoryId] += Math.abs(transaction.amount);
+      totals[transaction.categoryId]! += Math.abs(transaction.amount);
       grandTotal += Math.abs(transaction.amount);
     }
   });

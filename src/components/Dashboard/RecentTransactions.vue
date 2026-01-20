@@ -6,7 +6,7 @@ import {
   UiCardHeader,
   UiCardTitle,
 } from "~/components/ui/card";
-import { UiButton } from "~/components/ui/button";
+import { Button } from "~/components/ui/button";
 
 type IProps = {
   transactions: ITransaction[];
@@ -37,13 +37,13 @@ const formatAmount = (transaction: ITransaction) => {
   <UiCard>
     <UiCardHeader class="flex flex-row items-center justify-between">
       <UiCardTitle>Recent Transactions</UiCardTitle>
-      <UiButton
+      <Button
         variant="ghost"
         size="sm"
         @click="navigateTo('/dashboard/transactions')"
       >
         View All
-      </UiButton>
+      </Button>
     </UiCardHeader>
     <UiCardContent>
       <div v-if="transactions.length === 0" class="text-center py-8 text-muted-foreground">

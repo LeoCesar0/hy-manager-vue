@@ -15,7 +15,7 @@ import IncomeVsExpenses from "~/components/Dashboard/IncomeVsExpenses.vue";
 import RecentTransactions from "~/components/Dashboard/RecentTransactions.vue";
 import TopCreditors from "~/components/Dashboard/TopCreditors.vue";
 import MonthlyComparison from "~/components/Dashboard/MonthlyComparison.vue";
-import { UiButton } from "~/components/ui/button";
+import { Button } from "~/components/ui/button";
 
 definePageMeta({
   layout: "dashboard",
@@ -67,9 +67,9 @@ onMounted(() => {
         <h1 class="text-3xl font-bold">Dashboard</h1>
         <p class="text-muted-foreground">Overview of your finances</p>
       </div>
-      <UiButton @click="navigateTo('/dashboard/transactions/new')">
+      <Button @click="navigateTo('/dashboard/transactions/new')">
         Add Transaction
-      </UiButton>
+      </Button>
     </div>
 
     <div v-if="loading" class="text-center py-8">

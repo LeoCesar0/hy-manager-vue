@@ -9,11 +9,11 @@ import { getCreditors } from "~/services/api/creditors/get-creditors";
 import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
 import TransactionForm from "~/components/Transactions/TransactionForm.vue";
 import {
-  UiCard,
-  UiCardContent,
-  UiCardDescription,
-  UiCardHeader,
-  UiCardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "~/components/ui/card";
 
 definePageMeta({
@@ -38,9 +38,9 @@ const loadMetadata = async () => {
     getCreditors({ userId: currentUser.value.id }),
   ]);
 
-  if (bankAccountsResult.data) bankAccounts.value = bankAccountsResult.data;
-  if (categoriesResult.data) categories.value = categoriesResult.data;
-  if (creditorsResult.data) creditors.value = creditorsResult.data;
+  if (bankAccountsResult.data) bankAccounts.value = bankAccountsResult.data.list;
+  if (categoriesResult.data) categories.value = categoriesResult.data.list;
+  if (creditorsResult.data) creditors.value = creditorsResult.data.list;
 };
 
 const handleSubmit = async (data: ICreateTransaction, creditorName?: string) => {
@@ -72,12 +72,12 @@ onMounted(() => {
       <p class="text-muted-foreground">Add a new transaction to track your finances</p>
     </div>
 
-    <UiCard>
-      <UiCardHeader>
-        <UiCardTitle>Transaction Details</UiCardTitle>
-        <UiCardDescription>Enter the details of your transaction</UiCardDescription>
-      </UiCardHeader>
-      <UiCardContent>
+    <Card>
+      <CardHeader>
+        <CardTitle>Transaction Details</CardTitle>
+        <CardDescription>Enter the details of your transaction</CardDescription>
+      </CardHeader>
+      <CardContent>
         <TransactionForm
           :loading="loading"
           :bank-accounts="bankAccounts"
@@ -86,7 +86,7 @@ onMounted(() => {
           @submit="handleSubmit"
           @cancel="handleCancel"
         />
-      </UiCardContent>
-    </UiCard>
+      </CardContent>
+    </Card>
   </div>
 </template>

@@ -8,7 +8,7 @@ export const groupByDate = (
 ) => {
   const grouped: Record<
     string,
-    { date: string; income: number; expenses: number }
+    { month: string; income: number; expenses: number }
   > = {};
 
   transactions.forEach((transaction) => {
@@ -17,12 +17,12 @@ export const groupByDate = (
 
     switch (period) {
       case "daily":
-        key = date.toISOString().split("T")[0];
+        key = date.toISOString().split("T")[0]!;
         break;
       case "weekly":
         const weekStart = new Date(date);
         weekStart.setDate(date.getDate() - date.getDay());
-        key = weekStart.toISOString().split("T")[0];
+        key = weekStart.toISOString().split("T")[0]!;
         break;
       case "monthly":
       default:
@@ -32,18 +32,18 @@ export const groupByDate = (
 
     if (!grouped[key]) {
       grouped[key] = {
-        date: key,
+        month: key,
         income: 0,
         expenses: 0,
       };
     }
 
     if (transaction.type === "deposit") {
-      grouped[key].income += Math.abs(transaction.amount);
+      grouped[key]!.income += Math.abs(transaction.amount);
     } else {
-      grouped[key].expenses += Math.abs(transaction.amount);
+      grouped[key]!.expenses += Math.abs(transaction.amount);
     }
   });
 
-  return Object.values(grouped).sort((a, b) => a.date.localeCompare(b.date));
+  return Object.values(grouped).sort((a, b) => a.month.localeCompare(b.month));
 };

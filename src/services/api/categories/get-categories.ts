@@ -12,7 +12,7 @@ export const getCategories = async ({
 
   return await firebaseStore.modelList<ICategory>({
     collection: "categories",
-    where: [
+    filters: [
       {
         field: "userId",
         operator: "==",

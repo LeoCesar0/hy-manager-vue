@@ -2,15 +2,15 @@
 import type { ICreateBankAccount } from "~/@schemas/models/bank-account";
 import { createBankAccount } from "~/services/api/bank-accounts/create-bank-account";
 import {
-  UiCard,
-  UiCardContent,
-  UiCardDescription,
-  UiCardHeader,
-  UiCardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "~/components/ui/card";
-import { UiButton } from "~/components/ui/button";
-import { UiInput } from "~/components/ui/input";
-import { UiLabel } from "~/components/ui/label";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import ProgressIndicator from "~/components/Onboarding/ProgressIndicator.vue";
 
 const router = useRouter();
@@ -54,17 +54,17 @@ const handleSkip = () => {
 
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-    <UiCard class="w-full max-w-2xl">
-      <UiCardHeader>
+    <Card class="w-full max-w-2xl">
+      <CardHeader>
         <ProgressIndicator :current-step="2" :total-steps="3" />
-        <UiCardTitle class="text-2xl text-center mt-4">
+        <CardTitle class="text-2xl text-center mt-4">
           Add Your Bank Accounts
-        </UiCardTitle>
-        <UiCardDescription class="text-center">
+        </CardTitle>
+        <CardDescription class="text-center">
           Add one or more bank accounts to track your money
-        </UiCardDescription>
-      </UiCardHeader>
-      <UiCardContent class="space-y-6">
+        </CardDescription>
+      </CardHeader>
+      <CardContent class="space-y-6">
         <form @submit.prevent="handleSubmit" class="space-y-4">
           <div
             v-for="(account, index) in accounts"
@@ -72,16 +72,16 @@ const handleSkip = () => {
             class="flex gap-2 items-end"
           >
             <div class="flex-1 space-y-2">
-              <UiLabel :for="`account-${index}`">
+              <Label :for="`account-${index}`">
                 Account {{ index + 1 }}
-              </UiLabel>
-              <UiInput
+              </Label>
+              <Input
                 :id="`account-${index}`"
                 v-model="accounts[index]"
                 placeholder="e.g., Main Checking, Savings"
               />
             </div>
-            <UiButton
+            <Button
               v-if="accounts.length > 1"
               type="button"
               variant="ghost"
@@ -89,31 +89,31 @@ const handleSkip = () => {
               @click="removeAccount(index)"
             >
               ✕
-            </UiButton>
+            </Button>
           </div>
 
-          <UiButton
+          <Button
             type="button"
             variant="outline"
             @click="addAccount"
             class="w-full"
           >
             + Add Another Account
-          </UiButton>
+          </Button>
 
           <div class="flex gap-2 justify-end pt-4">
-            <UiButton type="button" variant="outline" @click="handleSkip">
+            <Button type="button" variant="outline" @click="handleSkip">
               Skip
-            </UiButton>
-            <UiButton
+            </Button>
+            <Button
               type="submit"
               :disabled="loading || !accounts.some((a) => a.trim())"
             >
               Continue
-            </UiButton>
+            </Button>
           </div>
         </form>
-      </UiCardContent>
-    </UiCard>
+      </CardContent>
+    </Card>
   </div>
 </template>

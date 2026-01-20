@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ICategory } from "~/@schemas/models/category";
-import { UiBadge } from "~/components/ui/badge";
+import { Badge } from "~/components/ui/badge";
 
 type IProps = {
   category: ICategory;
@@ -19,8 +19,8 @@ const badgeStyle = computed(() => {
 </script>
 
 <template>
-  <UiBadge :style="badgeStyle" variant="outline">
+  <Badge :style="badgeStyle" variant="outline">
     <span v-if="category.icon" class="mr-1">{{ category.icon }}</span>
     {{ category.name }}
-  </UiBadge>
+  </Badge>
 </template>

@@ -7,7 +7,7 @@ import {
   UiCardHeader,
   UiCardTitle,
 } from "~/components/ui/card";
-import { UiButton } from "~/components/ui/button";
+import { Button } from "~/components/ui/button";
 
 type IProps = {
   bankAccount: IBankAccount;
@@ -41,12 +41,12 @@ const formattedBalance = computed(() => {
     </UiCardHeader>
     <UiCardContent>
       <div class="flex gap-2">
-        <UiButton variant="outline" size="sm" @click="emit('edit', bankAccount)">
+        <Button variant="outline" size="sm" @click="emit('edit', bankAccount)">
           Edit
-        </UiButton>
-        <UiButton variant="destructive" size="sm" @click="emit('delete', bankAccount)">
+        </Button>
+        <Button variant="destructive" size="sm" @click="emit('delete', bankAccount)">
           Delete
-        </UiButton>
+        </Button>
       </div>
     </UiCardContent>
   </UiCard>

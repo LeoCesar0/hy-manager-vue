@@ -85,7 +85,6 @@ export const getTransactions = async ({
 
   return await firebaseStore.modelList<ITransaction>({
     collection: "transactions",
-    where,
-    orderBy: [{ field: "date", direction: "desc" }],
+    filters: where,
   });
 };

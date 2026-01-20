@@ -19,7 +19,7 @@ export const groupByCreditor = (
         };
       }
 
-      grouped[transaction.creditorId].amount += Math.abs(transaction.amount);
+      grouped[transaction.creditorId]!.amount += Math.abs(transaction.amount);
     }
   });
 

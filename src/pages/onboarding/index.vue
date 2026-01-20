@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import {
-  UiCard,
-  UiCardContent,
-  UiCardDescription,
-  UiCardHeader,
-  UiCardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "~/components/ui/card";
-import { UiButton } from "~/components/ui/button";
+import { Button } from "~/components/ui/button";
 import ProgressIndicator from "~/components/Onboarding/ProgressIndicator.vue";
 
 const router = useRouter();
@@ -14,17 +14,17 @@ const router = useRouter();
 
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-    <UiCard class="w-full max-w-2xl">
-      <UiCardHeader>
+    <Card class="w-full max-w-2xl">
+      <CardHeader>
         <ProgressIndicator :current-step="1" :total-steps="3" />
-        <UiCardTitle class="text-3xl text-center mt-4">
+        <CardTitle class="text-3xl text-center mt-4">
           Welcome to Your Finance Manager
-        </UiCardTitle>
-        <UiCardDescription class="text-center text-lg">
+        </CardTitle>
+        <CardDescription class="text-center text-lg">
           Let's set up your account in just a few steps
-        </UiCardDescription>
-      </UiCardHeader>
-      <UiCardContent class="space-y-6">
+        </CardDescription>
+      </CardHeader>
+      <CardContent class="space-y-6">
         <div class="space-y-4">
           <div class="flex items-start gap-3">
             <div class="text-2xl">🏦</div>
@@ -58,14 +58,14 @@ const router = useRouter();
         </div>
 
         <div class="flex gap-2 justify-end">
-          <UiButton variant="outline" @click="router.push('/dashboard')">
+          <Button variant="outline" @click="router.push('/dashboard')">
             Skip for now
-          </UiButton>
-          <UiButton @click="router.push('/onboarding/bank-accounts')">
+          </Button>
+          <Button @click="router.push('/onboarding/bank-accounts')">
             Get Started
-          </UiButton>
+          </Button>
         </div>
-      </UiCardContent>
-    </UiCard>
+      </CardContent>
+    </Card>
   </div>
 </template>

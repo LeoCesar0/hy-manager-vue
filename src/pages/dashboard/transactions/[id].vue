@@ -9,11 +9,11 @@ import { getCreditors } from "~/services/api/creditors/get-creditors";
 import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
 import TransactionForm from "~/components/Transactions/TransactionForm.vue";
 import {
-  UiCard,
-  UiCardContent,
-  UiCardDescription,
-  UiCardHeader,
-  UiCardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "~/components/ui/card";
 
 definePageMeta({
@@ -56,9 +56,9 @@ const loadMetadata = async () => {
     getCreditors({ userId: currentUser.value.id }),
   ]);
 
-  if (bankAccountsResult.data) bankAccounts.value = bankAccountsResult.data;
-  if (categoriesResult.data) categories.value = categoriesResult.data;
-  if (creditorsResult.data) creditors.value = creditorsResult.data;
+  if (bankAccountsResult.data) bankAccounts.value = bankAccountsResult.data.list;
+  if (categoriesResult.data) categories.value = categoriesResult.data.list;
+  if (creditorsResult.data) creditors.value = creditorsResult.data.list;
 };
 
 const handleSubmit = async (data: IUpdateTransaction, creditorName?: string) => {
@@ -95,12 +95,12 @@ onMounted(() => {
       <p>Loading...</p>
     </div>
 
-    <UiCard v-else-if="transaction">
-      <UiCardHeader>
-        <UiCardTitle>Transaction Details</UiCardTitle>
-        <UiCardDescription>Update the details of your transaction</UiCardDescription>
-      </UiCardHeader>
-      <UiCardContent>
+    <Card v-else-if="transaction">
+      <CardHeader>
+        <CardTitle>Transaction Details</CardTitle>
+        <CardDescription>Update the details of your transaction</CardDescription>
+      </CardHeader>
+      <CardContent>
         <TransactionForm
           :transaction="transaction"
           :loading="loading"
@@ -110,7 +110,7 @@ onMounted(() => {
           @submit="handleSubmit"
           @cancel="handleCancel"
         />
-      </UiCardContent>
-    </UiCard>
+      </CardContent>
+    </Card>
   </div>
 </template>

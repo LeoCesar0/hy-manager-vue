@@ -48,10 +48,12 @@ const handleSignUp = async () => {
     if (userCredential.user) {
       const createUserService = await import("~/services/api/users/create-user");
       await createUserService.createUser({
-        id: userCredential.user.uid,
-        name: name.value,
-        email: email.value,
-        imageUrl: null,
+        data: {
+          id: userCredential.user.uid,
+          name: name.value,
+          email: email.value,
+          imageUrl: null,
+        },
       });
 
       router.push("/onboarding");

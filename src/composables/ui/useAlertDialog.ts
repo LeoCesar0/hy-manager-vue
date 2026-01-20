@@ -31,6 +31,37 @@ export const useAlertDialog = defineStore(makeStoreKey("alert-dialog"), () => {
     dialogOptions.value = null;
   };
 
+  const confirm = (options: { title: string; description?: string }): Promise<boolean> => {
+    return new Promise((resolve) => {
+      openDialog({
+        title: options.title,
+        message: options.description,
+        hasCancel: true,
+        confirm: {
+          label: "Confirm",
+          action: () => {
+            closeDialog();
+            resolve(true);
+          },
+          variant: "danger",
+        },
+      });
+
+      const originalClose = closeDialog;
+      const closeWithReject = () => {
+        originalClose();
+        resolve(false);
+      };
+
+      const unwatch = watch(isOpen, (value) => {
+        if (!value) {
+          unwatch();
+          resolve(false);
+        }
+      });
+    });
+  };
+
   watch(isOpen, (value) => {
     if (!value && dialogOptions.value) {
       dialogOptions.value = null;
@@ -48,5 +79,6 @@ export const useAlertDialog = defineStore(makeStoreKey("alert-dialog"), () => {
     dialogOptions,
     openDialog,
     closeDialog,
+    confirm,
   };
 });

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { ICategory, ICreateCategory } from "~/@schemas/models/category";
-import { UiButton } from "~/components/ui/button";
-import { UiInput } from "~/components/ui/input";
-import { UiLabel } from "~/components/ui/label";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 
 type IProps = {
   category?: ICategory;
@@ -55,8 +55,8 @@ const commonIcons = ["💰", "🏠", "🚗", "🍔", "🎮", "💊", "📚", "�
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-4">
     <div class="space-y-2">
-      <UiLabel for="name">Category Name</UiLabel>
-      <UiInput
+      <Label for="name">Category Name</Label>
+      <Input
         id="name"
         v-model="form.name"
         placeholder="e.g., Groceries, Transport"
@@ -65,8 +65,8 @@ const commonIcons = ["💰", "🏠", "🚗", "🍔", "🎮", "💊", "📚", "�
     </div>
 
     <div class="space-y-2">
-      <UiLabel for="icon">Icon (optional)</UiLabel>
-      <UiInput
+      <Label for="icon">Icon (optional)</Label>
+      <Input
         id="icon"
         v-model="form.icon"
         placeholder="Choose an emoji"
@@ -86,7 +86,7 @@ const commonIcons = ["💰", "🏠", "🚗", "🍔", "🎮", "💊", "📚", "�
     </div>
 
     <div class="space-y-2">
-      <UiLabel for="color">Color</UiLabel>
+      <Label for="color">Color</Label>
       <div class="flex gap-2 items-center">
         <input
           id="color"
@@ -94,7 +94,7 @@ const commonIcons = ["💰", "🏠", "🚗", "🍔", "🎮", "💊", "📚", "�
           v-model="form.color"
           class="h-10 w-20 rounded border cursor-pointer"
         />
-        <UiInput
+        <Input
           v-model="form.color"
           placeholder="#000000"
           class="flex-1"
@@ -103,12 +103,12 @@ const commonIcons = ["💰", "🏠", "🚗", "🍔", "🎮", "💊", "📚", "�
     </div>
 
     <div class="flex gap-2 justify-end">
-      <UiButton type="button" variant="outline" @click="emit('cancel')">
+      <Button type="button" variant="outline" @click="emit('cancel')">
         Cancel
-      </UiButton>
-      <UiButton type="submit" :disabled="loading || !form.name.trim()">
+      </Button>
+      <Button type="submit" :disabled="loading || !form.name.trim()">
         {{ category ? "Update" : "Create" }} Category
-      </UiButton>
+      </Button>
     </div>
   </form>
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ITransaction } from "~/@schemas/models/transaction";
-import { UiButton } from "~/components/ui/button";
-import { UiBadge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { Badge } from "~/components/ui/badge";
 
 type IProps = {
   transaction: ITransaction;
@@ -55,20 +55,20 @@ const amountClass = computed(() => {
       <div class="text-sm text-muted-foreground">{{ creditorName }}</div>
     </td>
     <td class="p-4">
-      <UiBadge variant="outline">
+      <Badge variant="outline">
         {{ categoryName }}
-      </UiBadge>
+      </Badge>
     </td>
     <td class="p-4 text-sm text-muted-foreground">{{ bankAccountName }}</td>
     <td class="p-4 font-medium" :class="amountClass">{{ formattedAmount }}</td>
     <td class="p-4">
       <div class="flex gap-2">
-        <UiButton variant="ghost" size="sm" @click="emit('edit', transaction)">
+        <Button variant="ghost" size="sm" @click="emit('edit', transaction)">
           Edit
-        </UiButton>
-        <UiButton variant="ghost" size="sm" @click="emit('delete', transaction)">
+        </Button>
+        <Button variant="ghost" size="sm" @click="emit('delete', transaction)">
           Delete
-        </UiButton>
+        </Button>
       </div>
     </td>
   </tr>
