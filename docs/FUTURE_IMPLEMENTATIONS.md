@@ -38,7 +38,9 @@ A comprehensive investment tracking system to complement the existing transactio
 - Create new collections: `investments`, `portfolios`
 - Add new schemas in `src/@schemas/models/`
 - Leverage existing analytics services for calculations
-- Use ApexCharts for portfolio visualization
+- Use Unovis charts (already installed) for portfolio visualization
+- Use shadcn/ui components for all UI elements
+- Style with Tailwind CSS
 
 ## CSV Bank Statement Reader
 
@@ -247,7 +249,7 @@ Generate detailed financial reports and export data.
 
 - **PDF Reports**
   - Professional formatting
-  - Charts and graphs
+  - Charts and graphs using Unovis (export to SVG/PNG)
   - Customizable branding
   - Email delivery option
 
@@ -266,7 +268,8 @@ Generate detailed financial reports and export data.
 
 - Use `jsPDF` for PDF generation
 - `xlsx` library already installed
-- Create report templates
+- Export Unovis charts as images for PDF inclusion
+- Create report templates with shadcn/ui components
 - Background job for large exports
 - Email service integration
 
