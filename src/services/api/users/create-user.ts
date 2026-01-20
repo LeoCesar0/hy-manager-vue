@@ -6,13 +6,13 @@ import {
 import type { ICreateUser, IUser } from "~/@schemas/models/user";
 import { firebaseCreate } from "~/services/firebase/firebaseCreate";
 import { getDefaultCreateToastOptions } from "~/helpers/toast/get-default-create-toast-options";
+import type { IAPIRequestCommon } from "../@types";
 
 type Item = IUser;
 
 export type IAPICreateUser = {
   data: ICreateUser;
-  options?: IHandleAppRequestProps<Item>;
-};
+} & IAPIRequestCommon<Item>;
 
 export const createUser = async ({ data, options }: IAPICreateUser) => {
   const response = await handleAppRequest(

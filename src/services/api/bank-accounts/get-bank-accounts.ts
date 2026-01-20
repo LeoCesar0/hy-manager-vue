@@ -8,6 +8,7 @@ import type { IPaginationBody, IPaginationResult } from "~/@types/pagination";
 import { getDefaultGetToastOptions } from "~/helpers/toast/get-default-get-toast-options";
 import type { FirebaseFilterFor } from "~/services/firebase/@type";
 import { DISPLAY_ERROR } from "~/services/app/display-error";
+import type { IAPIRequestCommon } from "../@types";
 
 type Item = IBankAccount;
 
@@ -15,8 +16,7 @@ export type IAPIGetBankAccounts = {
   userId: string;
   pagination?: IPaginationBody;
   filters?: FirebaseFilterFor<IBankAccount>[];
-  options?: IHandleAppRequestProps<IPaginationResult<Item>>;
-};
+} & IAPIRequestCommon<IPaginationResult<Item>>;
 
 export const getBankAccounts = async ({
   userId,
