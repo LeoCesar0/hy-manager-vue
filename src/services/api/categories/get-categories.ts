@@ -1,23 +1,36 @@
+import {
+  handleAppRequest,
+} from "../@handlers/handle-app-request";
 import type { ICategory } from "~/@schemas/models/category";
-import type { AppResponse } from "~/@schemas/app";
+import type { IAPIRequestCommon } from "../@types";
+import { firebaseList } from "~/services/firebase/firebaseList";
+import { getDefaultGetToastOptions } from "~/helpers/toast/get-default-get-toast-options";
 
-type IProps = {
+type Item = ICategory;
+
+export type IAPIGetCategories = {
   userId: string;
+} & IAPIRequestCommon<Item[]>;
+
+export const getCategories = async ({ userId, options }: IAPIGetCategories) => {
+  const response = await handleAppRequest(
+    async () => {
+      return firebaseList<Item>({
+        collection: "categories",
+        filters: [
+          {
+            field: "userId",
+            operator: "==",
+            value: userId,
+          },
+        ],
+      });
+    },
+    {
+      toastOptions: getDefaultGetToastOptions({ itemName: "Categorias" }),
+      ...options,
+    }
+  );
+  return response;
 };
 
-export const getCategories = async ({
-  userId,
-}: IProps): Promise<AppResponse<ICategory[]>> => {
-  const firebaseStore = useFirebaseStore();
-
-  return await firebaseStore.modelList<ICategory>({
-    collection: "categories",
-    filters: [
-      {
-        field: "userId",
-        operator: "==",
-        value: userId,
-      },
-    ],
-  });
-};

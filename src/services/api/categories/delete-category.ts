@@ -1,12 +1,27 @@
-import type { AppResponse } from "~/@schemas/app";
+import {
+  handleAppRequest,
+} from "../@handlers/handle-app-request";
+import type { IAPIRequestCommon } from "../@types";
+import { firebaseDelete } from "~/services/firebase/firebaseDelete";
+import { getDefaultDeleteToastOptions } from "~/helpers/toast/get-default-delete-toast-options";
 
-export const deleteCategory = async (
-  id: string
-): Promise<AppResponse<void>> => {
-  const firebaseStore = useFirebaseStore();
+export type IAPIDeleteCategory = {
+  id: string;
+} & IAPIRequestCommon<void>;
 
-  return await firebaseStore.modelDelete({
-    collection: "categories",
-    id,
-  });
+export const deleteCategory = async ({ id, options }: IAPIDeleteCategory) => {
+  const response = await handleAppRequest(
+    async () => {
+      return firebaseDelete({
+        collection: "categories",
+        id,
+      });
+    },
+    {
+      toastOptions: getDefaultDeleteToastOptions({ itemName: "Categoria" }),
+      ...options,
+    }
+  );
+  return response;
 };
+

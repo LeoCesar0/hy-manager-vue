@@ -1,46 +1,75 @@
+import {
+  handleAppRequest,
+} from "../@handlers/handle-app-request";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
-import type { AppResponse } from "~/@schemas/app";
+import type { IAPIRequestCommon } from "../@types";
 import { createCreditor } from "./create-creditor";
+import { firebaseList } from "~/services/firebase/firebaseList";
+import { getDefaultGetToastOptions } from "~/helpers/toast/get-default-get-toast-options";
 
-type IProps = {
+type Item = ICounterparty;
+
+export type IAPIGetOrCreateCreditor = {
   name: string;
   userId: string;
   categoryIds?: string[];
-};
+} & IAPIRequestCommon<Item>;
 
-export const getOrCreateCreditor = async ({
-  name,
-  userId,
+export const getOrCreateCreditor = async ({ 
+  name, 
+  userId, 
   categoryIds = [],
-}: IProps): Promise<AppResponse<ICounterparty>> => {
-  const firebaseStore = useFirebaseStore();
+  options 
+}: IAPIGetOrCreateCreditor) => {
+  const response = await handleAppRequest(
+    async () => {
+      const normalizedName = name.trim().toLowerCase();
 
-  const normalizedName = name.trim().toLowerCase();
+      const existingList = await firebaseList<Item>({
+        collection: "creditors",
+        filters: [
+          {
+            field: "userId",
+            operator: "==",
+            value: userId,
+          },
+        ],
+      });
 
-  const existingResult = await firebaseStore.modelList<ICounterparty>({
-    collection: "creditors",
-    filters: [
-      {
-        field: "userId",
-        operator: "==",
-        value: userId,
-      },
-    ],
-  });
+      const existing = existingList.find(
+        (c) => c.name.toLowerCase() === normalizedName
+      );
 
-  if (existingResult.data) {
-    const existing = existingResult.data.find(
-      (c) => c.name.toLowerCase() === normalizedName
-    );
+      if (existing) {
+        return existing;
+      }
 
-    if (existing) {
-      return { data: existing, error: null };
+      const createResult = await createCreditor({
+        data: {
+          name: name.trim(),
+          userId,
+          categoryIds,
+        },
+        options: {
+          toastOptions:{
+            error:true,
+            loading:false,
+            success: false
+          }
+        }
+      });
+
+      if (!createResult.data) {
+        throw new Error("Failed to create creditor");
+      }
+
+      return createResult.data;
+    },
+    {
+      toastOptions: getDefaultGetToastOptions({ itemName: "Terceiro" }),
+      ...options,
     }
-  }
-
-  return await createCreditor({
-    name: name.trim(),
-    userId,
-    categoryIds,
-  });
+  );
+  return response;
 };
+

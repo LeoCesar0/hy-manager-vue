@@ -1,18 +1,35 @@
+import {
+  handleAppRequest,
+} from "../@handlers/handle-app-request";
 import type {
   ICategory,
   IUpdateCategory,
 } from "~/@schemas/models/category";
-import type { AppResponse } from "~/@schemas/app";
+import type { IAPIRequestCommon } from "../@types";
+import { firebaseUpdate } from "~/services/firebase/firebaseUpdate";
+import { getDefaultUpdateToastOptions } from "~/helpers/toast/get-default-update-toast-options";
 
-export const updateCategory = async (
-  id: string,
-  data: IUpdateCategory
-): Promise<AppResponse<ICategory>> => {
-  const firebaseStore = useFirebaseStore();
+type Item = ICategory;
 
-  return await firebaseStore.modelUpdate<IUpdateCategory, ICategory>({
-    collection: "categories",
-    id,
-    data,
-  });
+export type IAPIUpdateCategory = {
+  id: string;
+  data: IUpdateCategory;
+} & IAPIRequestCommon<Item>;
+
+export const updateCategory = async ({ id, data, options }: IAPIUpdateCategory) => {
+  const response = await handleAppRequest(
+    async () => {
+      return firebaseUpdate({
+        collection: "categories",
+        id,
+        data,
+      });
+    },
+    {
+      toastOptions: getDefaultUpdateToastOptions({ itemName: "Categoria" }),
+      ...options,
+    }
+  );
+  return response;
 };
+

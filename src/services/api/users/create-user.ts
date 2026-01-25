@@ -25,7 +25,7 @@ export const createUser = async ({ data, options }: IAPICreateUser) => {
       });
     },
     {
-      toastOptions: getDefaultCreateToastOptions({ itemName: "User" }),
+      toastOptions: getDefaultCreateToastOptions({ itemName: "Usuário" }),
       ...options,
     }
   );

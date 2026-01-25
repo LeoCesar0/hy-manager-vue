@@ -1,16 +1,33 @@
+import {
+  handleAppRequest,
+} from "../@handlers/handle-app-request";
 import type {
   ICategory,
   ICreateCategory,
 } from "~/@schemas/models/category";
-import type { AppResponse } from "~/@schemas/app";
+import type { IAPIRequestCommon } from "../@types";
+import { firebaseCreate } from "~/services/firebase/firebaseCreate";
+import { getDefaultCreateToastOptions } from "~/helpers/toast/get-default-create-toast-options";
 
-export const createCategory = async (
-  data: ICreateCategory
-): Promise<AppResponse<ICategory>> => {
-  const firebaseStore = useFirebaseStore();
+type Item = ICategory;
 
-  return await firebaseStore.modelCreate<ICreateCategory, ICategory>({
-    collection: "categories",
-    data,
-  });
+export type IAPICreateCategory = {
+  data: ICreateCategory;
+} & IAPIRequestCommon<Item>;
+
+export const createCategory = async ({ data, options }: IAPICreateCategory) => {
+  const response = await handleAppRequest(
+    async () => {
+      return firebaseCreate({
+        collection: "categories",
+        data,
+      });
+    },
+    {
+      toastOptions: getDefaultCreateToastOptions({ itemName: "Categoria" }),
+      ...options,
+    }
+  );
+  return response;
 };
+

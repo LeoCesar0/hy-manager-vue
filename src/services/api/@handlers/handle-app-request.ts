@@ -61,7 +61,7 @@ export const handleAppRequest = async <T>(
     const successMessage =
       typeof toastOptions?.success === "object"
         ? toastOptions.success.message
-        : "Success";
+        : "Sucesso";
 
     if (toastLoadingId && toastOptions?.success) {
       toast.update(toastLoadingId, {
@@ -83,7 +83,7 @@ export const handleAppRequest = async <T>(
     if (toastOptions?.loading) {
       const loadingMes =
         typeof toastOptions.loading === "boolean"
-          ? "Loading..."
+          ? "Carregando..."
           : toastOptions.loading.message;
       toastLoadingId = toast.loading(loadingMes);
     }

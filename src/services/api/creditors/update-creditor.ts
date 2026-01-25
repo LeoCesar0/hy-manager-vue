@@ -1,18 +1,35 @@
+import {
+  handleAppRequest,
+} from "../@handlers/handle-app-request";
 import type {
   ICounterparty,
   IUpdateCounterparty,
 } from "~/@schemas/models/counterparty";
-import type { AppResponse } from "~/@schemas/app";
+import type { IAPIRequestCommon } from "../@types";
+import { firebaseUpdate } from "~/services/firebase/firebaseUpdate";
+import { getDefaultUpdateToastOptions } from "~/helpers/toast/get-default-update-toast-options";
 
-export const updateCreditor = async (
-  id: string,
-  data: IUpdateCounterparty
-): Promise<AppResponse<ICounterparty>> => {
-  const firebaseStore = useFirebaseStore();
+type Item = ICounterparty;
 
-  return await firebaseStore.modelUpdate<IUpdateCounterparty, ICounterparty>({
-    collection: "creditors",
-    id,
-    data,
-  });
+export type IAPIUpdateCreditor = {
+  id: string;
+  data: IUpdateCounterparty;
+} & IAPIRequestCommon<Item>;
+
+export const updateCreditor = async ({ id, data, options }: IAPIUpdateCreditor) => {
+  const response = await handleAppRequest(
+    async () => {
+      return firebaseUpdate({
+        collection: "creditors",
+        id,
+        data,
+      });
+    },
+    {
+      toastOptions: getDefaultUpdateToastOptions({ itemName: "Terceiro" }),
+      ...options,
+    }
+  );
+  return response;
 };
+

@@ -7,6 +7,7 @@ import { slugify } from "~/helpers/slugify";
 import type { AppResponse } from "~/@schemas/app";
 import { generateId } from "~/helpers/generateId";
 import { handleApiError } from "~/services/api/@handlers/handle-api-errors";
+import { firebaseCreate } from "~/services/firebase/firebaseCreate";
 
 export type IGetFileByIdProps = {
   fileId: string;
@@ -121,7 +122,7 @@ export const useFile = () => {
       fileData.url = url;
 
       // Create document in Firestore
-      const response = await modelCreate<ICreateFile, IFile>({
+      const response = await firebaseCreate<ICreateFile, IFile>({
         collection: "files",
         data: fileData,
       });

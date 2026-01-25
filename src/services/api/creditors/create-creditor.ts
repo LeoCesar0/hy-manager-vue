@@ -1,16 +1,33 @@
+import {
+  handleAppRequest,
+} from "../@handlers/handle-app-request";
 import type {
   ICounterparty,
   ICreateCounterparty,
 } from "~/@schemas/models/counterparty";
-import type { AppResponse } from "~/@schemas/app";
+import type { IAPIRequestCommon } from "../@types";
+import { firebaseCreate } from "~/services/firebase/firebaseCreate";
+import { getDefaultCreateToastOptions } from "~/helpers/toast/get-default-create-toast-options";
 
-export const createCreditor = async (
-  data: ICreateCounterparty
-): Promise<AppResponse<ICounterparty>> => {
-  const firebaseStore = useFirebaseStore();
+type Item = ICounterparty;
 
-  return await firebaseStore.modelCreate<ICreateCounterparty, ICounterparty>({
-    collection: "creditors",
-    data,
-  });
+export type IAPICreateCreditor = {
+  data: ICreateCounterparty;
+} & IAPIRequestCommon<Item>;
+
+export const createCreditor = async ({ data, options }: IAPICreateCreditor) => {
+  const response = await handleAppRequest(
+    async () => {
+      return firebaseCreate({
+        collection: "creditors",
+        data,
+      });
+    },
+    {
+      toastOptions: getDefaultCreateToastOptions({ itemName: "Terceiro" }),
+      ...options,
+    }
+  );
+  return response;
 };
+

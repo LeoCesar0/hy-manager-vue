@@ -5,18 +5,18 @@ type IProps = {
   itemName: string;
 };
 
-export const getDefaultUpdateToastOptions = ({
+export const getDefaultDeleteToastOptions = ({
   itemName,
 }: IProps): ToastOptions => {
   return {
     loading: {
-      message: `Atualizando ${itemName.toLowerCase()}...`,
+      message: `Deletando ${itemName.toLowerCase()}...`,
     },
     success: {
-      message: `${beautifyObjectName(itemName)} atualizado com sucesso!`,
+      message: `${beautifyObjectName(itemName)} deletado com sucesso!`,
     },
     error: {
-      message: `Falha ao atualizar ${itemName.toLowerCase()}`,
+      message: `Falha ao deletar ${itemName.toLowerCase()}`,
     },
   };
 };

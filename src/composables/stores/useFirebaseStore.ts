@@ -42,93 +42,93 @@ export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
   const firebaseStorage = getStorage(firebaseApp);
   const currentFirebaseUser = ref<User | null>(null);
 
-  const wrappedFirebaseCreate = async <T extends AnyObject, R = T>(
-    ...args: Parameters<typeof firebaseCreate<T, R>>
-  ): Promise<AppResponse<R>> => {
-    return handleAppRequest(() => firebaseCreate<T, R>(...args), {
-      defaultErrorMessage: "Failed to create item",
-    });
-  };
+  // const wrappedFirebaseCreate = async <T extends AnyObject, R = T>(
+  //   ...args: Parameters<typeof firebaseCreate<T, R>>
+  // ): Promise<AppResponse<R>> => {
+  //   return handleAppRequest(() => firebaseCreate<T, R>(...args), {
+  //     defaultErrorMessage: "Failed to create item",
+  //   });
+  // };
 
-  const wrappedFirebaseCreateMany = async <T extends AnyObject, R = T>(
-    ...args: Parameters<typeof firebaseCreateMany<T, R>>
-  ): Promise<AppResponse<R[]>> => {
-    return handleAppRequest(() => firebaseCreateMany<T, R>(...args), {
-      defaultErrorMessage: "Failed to create items",
-    });
-  };
+  // const wrappedFirebaseCreateMany = async <T extends AnyObject, R = T>(
+  //   ...args: Parameters<typeof firebaseCreateMany<T, R>>
+  // ): Promise<AppResponse<R[]>> => {
+  //   return handleAppRequest(() => firebaseCreateMany<T, R>(...args), {
+  //     defaultErrorMessage: "Failed to create items",
+  //   });
+  // };
 
-  const wrappedFirebaseGet = async <R>(
-    ...args: Parameters<typeof firebaseGet<R>>
-  ): Promise<AppResponse<R>> => {
-    return handleAppRequest(() => firebaseGet<R>(...args), {
-      defaultErrorMessage: "Failed to fetch item",
-    });
-  };
+  // const wrappedFirebaseGet = async <R>(
+  //   ...args: Parameters<typeof firebaseGet<R>>
+  // ): Promise<AppResponse<R>> => {
+  //   return handleAppRequest(() => firebaseGet<R>(...args), {
+  //     defaultErrorMessage: "Failed to fetch item",
+  //   });
+  // };
 
-  const wrappedFirebaseUpdate = async <T extends AnyObject, R = T>(
-    ...args: Parameters<typeof firebaseUpdate<T, R>>
-  ): Promise<AppResponse<R>> => {
-    return handleAppRequest(() => firebaseUpdate<T, R>(...args), {
-      defaultErrorMessage: "Failed to update item",
-    });
-  };
+  // const wrappedFirebaseUpdate = async <T extends AnyObject, R = T>(
+  //   ...args: Parameters<typeof firebaseUpdate<T, R>>
+  // ): Promise<AppResponse<R>> => {
+  //   return handleAppRequest(() => firebaseUpdate<T, R>(...args), {
+  //     defaultErrorMessage: "Failed to update item",
+  //   });
+  // };
 
-  const wrappedFirebaseUpdateMany = async <T extends AnyObject, R = T>(
-    ...args: Parameters<typeof firebaseUpdateMany<T, R>>
-  ): Promise<AppResponse<{ id: string; data: R }[]>> => {
-    return handleAppRequest(() => firebaseUpdateMany<T, R>(...args), {
-      defaultErrorMessage: "Failed to update items",
-    });
-  };
+  // const wrappedFirebaseUpdateMany = async <T extends AnyObject, R = T>(
+  //   ...args: Parameters<typeof firebaseUpdateMany<T, R>>
+  // ): Promise<AppResponse<{ id: string; data: R }[]>> => {
+  //   return handleAppRequest(() => firebaseUpdateMany<T, R>(...args), {
+  //     defaultErrorMessage: "Failed to update items",
+  //   });
+  // };
 
-  const wrappedFirebaseDelete = async (
-    ...args: Parameters<typeof firebaseDelete>
-  ): Promise<AppResponse<void>> => {
-    return handleAppRequest(() => firebaseDelete(...args), {
-      defaultErrorMessage: "Failed to delete item",
-    });
-  };
+  // const wrappedFirebaseDelete = async (
+  //   ...args: Parameters<typeof firebaseDelete>
+  // ): Promise<AppResponse<void>> => {
+  //   return handleAppRequest(() => firebaseDelete(...args), {
+  //     defaultErrorMessage: "Failed to delete item",
+  //   });
+  // };
 
-  const wrappedFirebaseList = async <R>(
-    ...args: Parameters<typeof firebaseList<R>>
-  ): Promise<AppResponse<R[]>> => {
-    return handleAppRequest(() => firebaseList<R>(...args), {
-      defaultErrorMessage: "Failed to fetch list",
-    });
-  };
+  // const wrappedFirebaseList = async <R>(
+  //   ...args: Parameters<typeof firebaseList<R>>
+  // ): Promise<AppResponse<R[]>> => {
+  //   return handleAppRequest(() => firebaseList<R>(...args), {
+  //     defaultErrorMessage: "Failed to fetch list",
+  //   });
+  // };
 
-  const wrappedFirebaseGetWhere = async <R>(
-    ...args: Parameters<typeof firebaseGetWhere<R>>
-  ): Promise<AppResponse<R | undefined>> => {
-    return handleAppRequest(() => firebaseGetWhere<R>(...args), {
-      defaultErrorMessage: "Failed to fetch item",
-    });
-  };
+  // const wrappedFirebaseGetWhere = async <R>(
+  //   ...args: Parameters<typeof firebaseGetWhere<R>>
+  // ): Promise<AppResponse<R | undefined>> => {
+  //   return handleAppRequest(() => firebaseGetWhere<R>(...args), {
+  //     defaultErrorMessage: "Failed to fetch item",
+  //   });
+  // };
 
-  const wrappedFirebasePaginatedList = async <R>(
-    ...args: Parameters<typeof firebasePaginatedList<R>>
-  ): Promise<
-    AppResponse<Awaited<ReturnType<typeof firebasePaginatedList<R>>>>
-  > => {
-    return handleAppRequest(() => firebasePaginatedList<R>(...args), {
-      defaultErrorMessage: "Failed to fetch paginated list",
-    });
-  };
+  // const wrappedFirebasePaginatedList = async <R>(
+  //   ...args: Parameters<typeof firebasePaginatedList<R>>
+  // ): Promise<
+  //   AppResponse<Awaited<ReturnType<typeof firebasePaginatedList<R>>>>
+  // > => {
+  //   return handleAppRequest(() => firebasePaginatedList<R>(...args), {
+  //     defaultErrorMessage: "Failed to fetch paginated list",
+  //   });
+  // };
 
   return {
     currentFirebaseUser,
     firebaseAuth: firebaseAuth,
     firebaseDB: firebaseDB,
     firebaseStorage: firebaseStorage,
-    modelCreate: wrappedFirebaseCreate,
-    modelCreateMany: wrappedFirebaseCreateMany,
-    modelGet: wrappedFirebaseGet,
-    modelUpdate: wrappedFirebaseUpdate,
-    modelUpdateMany: wrappedFirebaseUpdateMany,
-    modelDelete: wrappedFirebaseDelete,
-    modelList: wrappedFirebaseList,
-    modelGetWhere: wrappedFirebaseGetWhere,
-    modelPaginatedList: wrappedFirebasePaginatedList,
+    // modelCreate: wrappedFirebaseCreate,
+    // modelCreateMany: wrappedFirebaseCreateMany,
+    // modelGet: wrappedFirebaseGet,
+    // modelUpdate: wrappedFirebaseUpdate,
+    // modelUpdateMany: wrappedFirebaseUpdateMany,
+    // modelDelete: wrappedFirebaseDelete,
+    // modelList: wrappedFirebaseList,
+    // modelGetWhere: wrappedFirebaseGetWhere,
+    // modelPaginatedList: wrappedFirebasePaginatedList,
   };
 });
