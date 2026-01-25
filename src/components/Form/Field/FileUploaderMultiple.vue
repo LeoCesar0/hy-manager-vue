@@ -4,13 +4,13 @@ import { XIcon, UploadIcon, FileIcon } from "lucide-vue-next";
 import { cn } from "~/lib/utils";
 import type { IFile } from "~/@schemas/models/file";
 import type { Nullish } from "~/@types/helpers";
+import { uploadFiles, listFiles } from "~/services/api/files";
 
 export type IFileUploaderProps = {
   showPreview?: boolean;
   acceptedFileTypes?: string[];
   onFilesUploaded?: (files: IFile[]) => void;
   onFilesSelected?: (files: File[]) => void;
-  uploadToOpenAI?: boolean;
 };
 
 type IProps = {
@@ -30,7 +30,8 @@ const { value, meta, errorMessage, handleChange } = useField<Nullish<string[]>>(
 );
 const fileInputRef = ref<HTMLInputElement | null>(null);
 
-const { uploadFiles, listFiles } = useFile();
+const userStore = useUserStore();
+const { currentUser } = storeToRefs(userStore);
 
 const isLoadingFiles = ref(false);
 const uploadedFiles = ref<IFile[]>([]);
@@ -57,7 +58,12 @@ watch(
 
     if (value.value && value.value.length > 0) {
       isLoadingFiles.value = true;
-      listFiles(value.value)
+      listFiles({
+        fileIds: value.value,
+        options: {
+          toastOptions: false,
+        },
+      })
         .then((res) => {
           uploadedFiles.value = res.data ?? [];
         })
@@ -72,7 +78,6 @@ watch(
   }
 );
 
-// Initialize with empty array if value is null/undefined to avoid validation errors
 onMounted(() => {
   if (!value.value) {
     handleChange([]);
@@ -83,7 +88,6 @@ const handleFileSelection = (event: Event) => {
   const input = event.target as HTMLInputElement;
   if (!input.files?.length) return;
 
-  // Convert FileList to array
   const files: File[] = Array.from(input.files);
   selectedFiles.value = files;
 
@@ -91,27 +95,30 @@ const handleFileSelection = (event: Event) => {
     props.onFilesSelected(files);
   }
 
-  // Automatically upload files
   uploadSelectedFiles();
 };
 
 const uploadSelectedFiles = async () => {
-  if (!selectedFiles.value.length) return;
+  if (!selectedFiles.value.length || !currentUser.value) return;
 
   try {
     isLoadingFiles.value = true;
 
-    const response = await uploadFiles(selectedFiles.value);
+    const response = await uploadFiles({
+      files: selectedFiles.value,
+      userId: currentUser.value.id,
+      options: {
+        toastOptions: false,
+      },
+    });
 
     if (response.data && !response.error) {
       if (props.onFilesUploaded) {
         props.onFilesUploaded(response.data);
       }
 
-      // Add new files to our tracked uploaded files
       uploadedFiles.value = [...uploadedFiles.value, ...response.data];
 
-      // Update the form field value with file IDs
       const fileIds = uploadedFiles.value.map((file) => file.id);
 
       handleChange(fileIds);
@@ -120,7 +127,6 @@ const uploadSelectedFiles = async () => {
     console.error("Error uploading files:", error);
   } finally {
     isLoadingFiles.value = false;
-    // Clear selected files
     selectedFiles.value = [];
     if (fileInputRef.value) {
       fileInputRef.value.value = "";
@@ -139,12 +145,11 @@ const removeFile = (index: number) => {
   updatedFiles.splice(index, 1);
   uploadedFiles.value = updatedFiles;
 
-  // Update the form field value with remaining file IDs
   const fileIds = uploadedFiles.value.map((file) => file.id);
 
-  // Ensure fileIds is empty array instead of undefined or null if no files
   handleChange(fileIds.length > 0 ? fileIds : []);
 };
+
 const acceptedFileTypesAsString = computed(() => {
   return props.acceptedFileTypes?.join(",");
 });

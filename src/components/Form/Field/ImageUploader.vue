@@ -5,6 +5,7 @@ import { cn } from "~/lib/utils";
 import type { AvatarProps } from "~/components/Avatar/Avatar.vue";
 import type { IFile, IFileMin } from "~/@schemas/models/file";
 import type { Nullish } from "~/@types/helpers";
+import { uploadFiles } from "~/services/api/files";
 
 export type IImageUploaderProps = {
   showPreview?: boolean;
@@ -32,13 +33,13 @@ const props = withDefaults(defineProps<IProps>(), {
   }),
 });
 
-// Changed from string to IFileMin
 const { value, meta, errorMessage, handleChange } = useField<Nullish<IFile>>(
   props.name
 );
 const fileInputRef = ref<HTMLInputElement | null>(null);
 
-const { uploadFiles, getFileById } = useFile();
+const userStore = useUserStore();
+const { currentUser } = storeToRefs(userStore);
 
 const isLoadingFile = ref(false);
 const selectedFile = ref<File | null>(null);
@@ -55,7 +56,6 @@ const handleFileSelection = (event: Event) => {
   const input = event.target as HTMLInputElement;
   if (!input.files?.length) return;
 
-  // Get the first file since this is a single image uploader
   const file = input.files[0];
   selectedFile.value = file ?? null;
 
@@ -63,18 +63,30 @@ const handleFileSelection = (event: Event) => {
     props.onFileSelected(file);
   }
 
-  // Automatically upload the file
   uploadSelectedFile();
 };
 
 const uploadSelectedFile = async () => {
-  if (!selectedFile.value) return;
+  if (!selectedFile.value || !currentUser.value) return;
 
   try {
     isLoadingFile.value = true;
 
-    // Upload the file - the actual useFile.uploadFiles accepts an array
-    const response = await uploadFiles([selectedFile.value]);
+    const response = await uploadFiles({
+      files: [selectedFile.value],
+      userId: currentUser.value.id,
+      options: {
+        toastOptions: {
+          loading: {
+            message: "Enviando imagem...",
+          },
+          success: {
+            message: "Imagem enviada com sucesso!",
+          },
+          error: true,
+        },
+      },
+    });
 
     if (response.data && !response.error && response.data.length > 0) {
       const uploadedFileData = response.data[0];
@@ -83,12 +95,8 @@ const uploadSelectedFile = async () => {
         props.onFileUploaded(uploadedFileData);
       }
 
-      // Store the uploaded file
-
-      // Update the form field value with IFileMin object
       handleChange(uploadedFileData);
 
-      // Clear selected file
       selectedFile.value = null;
       if (fileInputRef.value) {
         fileInputRef.value.value = "";
@@ -108,7 +116,6 @@ const openFileSelector = () => {
 };
 
 const removeFile = () => {
-  // Set to null instead of empty string
   handleChange(null);
 };
 
