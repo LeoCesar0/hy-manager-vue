@@ -111,14 +111,14 @@ const handleCancel = () => {
 <template>
   <Form @submit="onSubmit" class="space-y-6 mt-6">
     <FormField name="name" label="Nome da Conta" input-variant="input" />
-    <UiSheetFooter class="flex gap-2">
+    <FormActions>
       <UiButton type="button" variant="outline" @click="handleCancel" :disabled="isLoading">
         Cancelar
       </UiButton>
       <UiButton type="submit" :disabled="isLoading">
         <Loading v-if="isLoading" class="mr-2" size="sm" />
-        {{ isEditMode ? "Atualizar" : "Criar" }}
+        {{ 'Salvar' }}
       </UiButton>
-    </UiSheetFooter>
+    </FormActions>
   </Form>
 </template>

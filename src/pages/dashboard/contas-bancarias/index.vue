@@ -25,7 +25,14 @@ const paginationBody = ref<IPaginationBody>({
 });
 
 const isCreateSheetOpen = ref(false);
+const isUpdateSheetOpen = ref(false);
 const updatingBankAccount = ref<IBankAccount | null>(null);
+
+watch(isUpdateSheetOpen, (isUpdateSheetOpen) => {
+    if (!isUpdateSheetOpen) {
+        updatingBankAccount.value = null;
+    }
+}, { immediate: true })
 
 const createBankAccountInitialValues: ICreateBankAccount = {
     name: '',
@@ -81,6 +88,7 @@ const handleDelete = async (bankAccount: IBankAccount) => {
 
 const handleEdit = (bankAccount: IBankAccount) => {
     updatingBankAccount.value = bankAccount;
+    isUpdateSheetOpen.value = true;
 };
 
 const handleCreate = () => {
@@ -89,6 +97,7 @@ const handleCreate = () => {
 
 const handleUpdateSuccess = () => {
     updatingBankAccount.value = null;
+    isUpdateSheetOpen.value = false;
     loadBankAccounts();
 };
 const handleCreateSuccess = () => {
@@ -196,14 +205,15 @@ onMounted(() => {
                 </SheetBody>
             </UiSheetContent>
         </UiSheet>
-        <UiSheet v-if="updatingBankAccount" :open="true">
+        <UiSheet v-model:open="isUpdateSheetOpen">
             <UiSheetContent class=" overflow-y-auto">
+
                 <UiSheetHeader>
                     <UiSheetTitle>
                         Editar Conta
                     </UiSheetTitle>
                     <UiSheetDescription>
-                        "Edite as informações da conta bancária"
+                        Edite as informações da conta bancária
                     </UiSheetDescription>
                 </UiSheetHeader>
                 <SheetBody>

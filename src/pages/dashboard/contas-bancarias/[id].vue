@@ -154,10 +154,7 @@ onMounted(() => {
     </UiCard>
 
     <div v-else class="flex items-center justify-center py-12">
-      <UiEmpty
-        title="Conta não encontrada"
-        description="A conta bancária que você está procurando não existe."
-      >
+      <UiEmpty title="Conta não encontrada" description="A conta bancária que você está procurando não existe.">
         <UiButton @click="handleGoBack">
           <ArrowLeftIcon class="h-4 w-4 mr-2" />
           Voltar
