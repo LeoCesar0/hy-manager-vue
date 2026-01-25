@@ -1,4 +1,5 @@
 import { parseToDate } from "./parseToDate";
+import type { Timestamp } from "firebase/firestore";
 
 type Options = {
   time?: boolean;
@@ -6,7 +7,7 @@ type Options = {
 };
 
 export const formatDate = (
-  date: string | Date | number | undefined | null,
+  date: string | Date | number | Timestamp | undefined | null,
   { time = false, intlOptions = { dateStyle: "long" } }: Options = {}
 ) => {
   if (!date) return "";

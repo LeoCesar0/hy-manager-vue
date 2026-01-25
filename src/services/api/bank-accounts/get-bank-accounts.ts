@@ -43,7 +43,7 @@ export const getBankAccounts = async ({
       });
     },
     {
-      toastOptions: getDefaultGetToastOptions({ itemName: "Bank Account" }),
+      toastOptions: getDefaultGetToastOptions({ itemName: "Contas Bancárias" }),
       ...options,
     }
   );

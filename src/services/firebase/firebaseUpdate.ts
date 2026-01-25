@@ -16,6 +16,9 @@ export const firebaseUpdate = async <T extends AnyObject, R = T>({
   data,
   id,
 }: IFirebaseUpdate<T>): Promise<R> => {
+  if(!id) {
+    throw new Error("Id is required");
+  }
   const schema = COLLECTION_SCHEMA[collectionName];
   const newData = schema.partial().parse({
     ...data,
