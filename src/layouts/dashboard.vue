@@ -1,28 +1,5 @@
 <script setup lang="ts">
 import { signOut } from "firebase/auth";
-import {
-  UiSidebar,
-  UiSidebarContent,
-  UiSidebarFooter,
-  UiSidebarGroup,
-  UiSidebarGroupContent,
-  UiSidebarGroupLabel,
-  UiSidebarHeader,
-  UiSidebarMenu,
-  UiSidebarMenuButton,
-  UiSidebarMenuItem,
-  UiSidebarProvider,
-  UiSidebarTrigger,
-} from "~/components/ui/sidebar";
-import {
-  UiDropdownMenu,
-  UiDropdownMenuContent,
-  UiDropdownMenuItem,
-  UiDropdownMenuLabel,
-  UiDropdownMenuSeparator,
-  UiDropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import { UiAvatar, UiAvatarFallback, UiAvatarImage } from "~/components/ui/avatar";
 
 const userStore = useUserStore();
 const firebaseStore = useFirebaseStore();

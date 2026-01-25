@@ -1,6 +1,7 @@
 import type { ITransaction } from "~/@schemas/models/transaction";
 import type { AppResponse } from "~/@schemas/app";
 import type { Timestamp } from "firebase/firestore";
+import type { FirebaseFilterFor } from "~/services/firebase/@type";
 
 type IProps = {
   userId: string;
@@ -23,11 +24,7 @@ export const getTransactions = async ({
 }: IProps): Promise<AppResponse<ITransaction[]>> => {
   const firebaseStore = useFirebaseStore();
 
-  const where: Array<{
-    field: string;
-    operator: any;
-    value: any;
-  }> = [
+  const filters: FirebaseFilterFor<ITransaction>[] = [
     {
       field: "userId",
       operator: "==",
@@ -36,7 +33,7 @@ export const getTransactions = async ({
   ];
 
   if (startDate) {
-    where.push({
+    filters.push({
       field: "date",
       operator: ">=",
       value: startDate,
@@ -44,7 +41,7 @@ export const getTransactions = async ({
   }
 
   if (endDate) {
-    where.push({
+    filters.push({
       field: "date",
       operator: "<=",
       value: endDate,
@@ -52,7 +49,7 @@ export const getTransactions = async ({
   }
 
   if (categoryId) {
-    where.push({
+    filters.push({
       field: "categoryId",
       operator: "==",
       value: categoryId,
@@ -60,7 +57,7 @@ export const getTransactions = async ({
   }
 
   if (creditorId) {
-    where.push({
+    filters.push({
       field: "creditorId",
       operator: "==",
       value: creditorId,
@@ -68,7 +65,7 @@ export const getTransactions = async ({
   }
 
   if (bankAccountId) {
-    where.push({
+    filters.push({
       field: "bankAccountId",
       operator: "==",
       value: bankAccountId,
@@ -76,7 +73,7 @@ export const getTransactions = async ({
   }
 
   if (type) {
-    where.push({
+    filters.push({
       field: "type",
       operator: "==",
       value: type,
@@ -85,6 +82,6 @@ export const getTransactions = async ({
 
   return await firebaseStore.modelList<ITransaction>({
     collection: "transactions",
-    filters: where,
+    filters,
   });
 };

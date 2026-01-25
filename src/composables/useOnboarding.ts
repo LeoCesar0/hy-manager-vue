@@ -14,17 +14,17 @@ export const useOnboarding = () => {
     const [bankAccountsResult, categoriesResult] = await Promise.all([
       firebaseStore.modelList({
         collection: "bankAccounts",
-        where: [
+        filters:[
           {
             field: "userId",
             operator: "==",
             value: currentUser.value.id,
           },
-        ],
+        ]
       }),
       firebaseStore.modelList({
         collection: "categories",
-        where: [
+        filters: [
           {
             field: "userId",
             operator: "==",

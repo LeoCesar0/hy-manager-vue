@@ -72,8 +72,8 @@ const loadMetadata = async () => {
     getBankAccounts({ userId: currentUser.value.id }),
   ]);
 
-  if (categoriesResult.data) categories.value = categoriesResult.data.list;
-  if (creditorsResult.data) creditors.value = creditorsResult.data.list;
+  if (categoriesResult.data) categories.value = categoriesResult.data;
+  if (creditorsResult.data) creditors.value = creditorsResult.data;
   if (bankAccountsResult.data) bankAccounts.value = bankAccountsResult.data.list;
 };
 

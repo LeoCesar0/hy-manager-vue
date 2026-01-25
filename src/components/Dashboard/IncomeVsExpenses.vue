@@ -1,11 +1,5 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
-import {
-  UiCard,
-  UiCardContent,
-  UiCardHeader,
-  UiCardTitle,
-} from "~/components/ui/card";
 
 type DateData = {
   date: string;
@@ -50,14 +44,14 @@ const series = ref([
 const updateChart = () => {
   if (props.data.length === 0) {
     chartOptions.value.xaxis.categories = [];
-    series.value[0].data = [];
-    series.value[1].data = [];
+    series.value[0] && (series.value[0].data = []);
+    series.value[1] && (series.value[1].data = []);
     return;
   }
 
   chartOptions.value.xaxis.categories = props.data.map((d) => d.date);
-  series.value[0].data = props.data.map((d) => d.income);
-  series.value[1].data = props.data.map((d) => d.expenses);
+  series.value[0] && (series.value[0].data = props.data.map((d) => d.income));
+  series.value[1] && (series.value[1].data = props.data.map((d) => d.expenses));
 };
 
 watch(() => props.data, updateChart, { deep: true });
@@ -77,12 +71,7 @@ onMounted(() => {
         No data available
       </div>
       <ClientOnly v-else>
-        <apexchart
-          type="bar"
-          :options="chartOptions"
-          :series="series"
-          height="300"
-        />
+       
       </ClientOnly>
     </UiCardContent>
   </UiCard>

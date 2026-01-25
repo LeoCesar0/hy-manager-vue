@@ -1,11 +1,5 @@
 <script setup lang="ts">
 import type { ITransaction } from "~/@schemas/models/transaction";
-import {
-  UiCard,
-  UiCardContent,
-  UiCardHeader,
-  UiCardTitle,
-} from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 
 type IProps = {

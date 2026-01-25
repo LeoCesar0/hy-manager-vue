@@ -1,10 +1,4 @@
 <script setup lang="ts">
-import {
-  UiCard,
-  UiCardContent,
-  UiCardHeader,
-  UiCardTitle,
-} from "~/components/ui/card";
 
 type IProps = {
   income: number;

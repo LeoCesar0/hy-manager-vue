@@ -2,13 +2,7 @@
 import type { ICategory, IUpdateCategory } from "~/@schemas/models/category";
 import { updateCategory } from "~/services/api/categories/update-category";
 import CategoryForm from "~/components/Categories/CategoryForm.vue";
-import {
-  UiCard,
-  UiCardContent,
-  UiCardDescription,
-  UiCardHeader,
-  UiCardTitle,
-} from "~/components/ui/card";
+
 
 definePageMeta({
   layout: "dashboard",

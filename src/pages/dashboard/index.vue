@@ -61,40 +61,5 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex justify-between items-center">
-      <div>
-        <h1 class="text-3xl font-bold">Dashboard</h1>
-        <p class="text-muted-foreground">Overview of your finances</p>
-      </div>
-      <Button @click="navigateTo('/dashboard/transactions/new')">
-        Add Transaction
-      </Button>
-    </div>
-
-    <div v-if="loading" class="text-center py-8">
-      <p>Loading...</p>
-    </div>
-
-    <div v-else class="space-y-6">
-      <Overview
-        :income="totals.income"
-        :expenses="totals.expenses"
-        :balance="totals.balance"
-      />
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ExpensesByCategory :data="expensesByCategory" />
-        <IncomeVsExpenses :data="monthlyData" />
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RecentTransactions :transactions="transactions" />
-        <div class="space-y-6">
-          <TopCreditors :data="topCreditors" />
-          <MonthlyComparison :data="monthlyData" />
-        </div>
-      </div>
-    </div>
-  </div>
+  
 </template>

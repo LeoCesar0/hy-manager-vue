@@ -3,13 +3,6 @@ import type { ICategory } from "~/@schemas/models/category";
 import { getCategories } from "~/services/api/categories/get-categories";
 import { deleteCategory } from "~/services/api/categories/delete-category";
 import CategoryBadge from "~/components/Categories/CategoryBadge.vue";
-import { UiButton } from "~/components/ui/button";
-import {
-  UiCard,
-  UiCardContent,
-  UiCardHeader,
-  UiCardTitle,
-} from "~/components/ui/card";
 import { useAlertDialog } from "~/composables/ui/useAlertDialog";
 
 definePageMeta({

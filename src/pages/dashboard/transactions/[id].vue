@@ -57,8 +57,8 @@ const loadMetadata = async () => {
   ]);
 
   if (bankAccountsResult.data) bankAccounts.value = bankAccountsResult.data.list;
-  if (categoriesResult.data) categories.value = categoriesResult.data.list;
-  if (creditorsResult.data) creditors.value = creditorsResult.data.list;
+  if (categoriesResult.data) categories.value = categoriesResult.data;
+  if (creditorsResult.data) creditors.value = creditorsResult.data;
 };
 
 const handleSubmit = async (data: IUpdateTransaction, creditorName?: string) => {

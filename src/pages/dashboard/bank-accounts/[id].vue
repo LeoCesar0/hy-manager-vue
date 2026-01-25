@@ -2,13 +2,6 @@
 import type { IBankAccount, IUpdateBankAccount } from "~/@schemas/models/bank-account";
 import { updateBankAccount } from "~/services/api/bank-accounts/update-bank-account";
 import BankAccountForm from "~/components/BankAccounts/BankAccountForm.vue";
-import {
-  UiCard,
-  UiCardContent,
-  UiCardDescription,
-  UiCardHeader,
-  UiCardTitle,
-} from "~/components/ui/card";
 
 definePageMeta({
   layout: "dashboard",

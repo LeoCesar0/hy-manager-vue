@@ -1,11 +1,5 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
-import {
-  UiCard,
-  UiCardContent,
-  UiCardHeader,
-  UiCardTitle,
-} from "~/components/ui/card";
 
 type CategoryData = {
   id: string;

@@ -59,7 +59,7 @@ watch(
       form.value.description = newVal.description;
       form.value.date = newVal.date;
       form.value.bankAccountId = newVal.bankAccountId;
-      form.value.creditorId = newVal.creditorId;
+      form.value.creditorId = newVal.creditorId || ''
       form.value.categorySplits = newVal.categorySplits || [];
       useSplits.value = (newVal.categorySplits?.length || 0) > 0;
 

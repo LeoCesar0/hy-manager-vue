@@ -3,7 +3,6 @@ import type { IBankAccount } from "~/@schemas/models/bank-account";
 import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
 import { deleteBankAccount } from "~/services/api/bank-accounts/delete-bank-account";
 import BankAccountCard from "~/components/BankAccounts/BankAccountCard.vue";
-import { UiButton } from "~/components/ui/button";
 import { useAlertDialog } from "~/composables/ui/useAlertDialog";
 
 definePageMeta({
@@ -26,7 +25,7 @@ const loadBankAccounts = async () => {
   loading.value = false;
 
   if (result.data) {
-    bankAccounts.value = result.data;
+    bankAccounts.value = result.data.list;
   }
 };
 

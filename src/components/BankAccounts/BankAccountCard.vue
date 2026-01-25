@@ -1,12 +1,5 @@
 <script setup lang="ts">
 import type { IBankAccount } from "~/@schemas/models/bank-account";
-import {
-  UiCard,
-  UiCardContent,
-  UiCardDescription,
-  UiCardHeader,
-  UiCardTitle,
-} from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 
 type IProps = {

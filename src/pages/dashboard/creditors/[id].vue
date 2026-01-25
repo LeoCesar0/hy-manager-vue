@@ -3,16 +3,6 @@ import type { ICreditor, IUpdateCreditor } from "~/@schemas/models/creditor";
 import type { ICategory } from "~/@schemas/models/category";
 import { updateCreditor } from "~/services/api/creditors/update-creditor";
 import { getCategories } from "~/services/api/categories/get-categories";
-import { UiButton } from "~/components/ui/button";
-import { UiInput } from "~/components/ui/input";
-import { UiLabel } from "~/components/ui/label";
-import {
-  UiCard,
-  UiCardContent,
-  UiCardDescription,
-  UiCardHeader,
-  UiCardTitle,
-} from "~/components/ui/card";
 import CategoryBadge from "~/components/Categories/CategoryBadge.vue";
 
 definePageMeta({

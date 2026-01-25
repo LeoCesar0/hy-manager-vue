@@ -12,7 +12,6 @@ export const zTransactionCategorySplit = z.object({
 });
 
 export const zTransactionBase = z.object({
-  id: z.string().optional(),
   type: zTransactionType,
   amount: z.coerce.number(),
   description: z.string(),
@@ -38,6 +37,9 @@ export const zTransactionBase = z.object({
     path: ["categorySplits"],
   }
 );
+export const zCreateTransaction = zTransactionBase.extend({
+  id: z.string().optional(),
+})
 
 export const zTransaction = zTransactionBase.extend(zCommonDoc.shape);
 
