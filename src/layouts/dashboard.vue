@@ -2,6 +2,7 @@
 import { signOut } from "firebase/auth";
 import { LogOutIcon } from "lucide-vue-next";
 import { ROUTE, MENU_GROUPS, MENU_GROUPS_LABELS, type MenuGroup, type IRoute } from "@/static/routes";
+import { APP_CONFIG } from "~/static/app";
 
 const userStore = useUserStore();
 const firebaseStore = useFirebaseStore();
@@ -66,8 +67,8 @@ const menuGroups = computed(() => {
             💰
           </div>
           <div>
-            <h1 class="font-bold text-lg leading-tight">Finance Manager</h1>
-            <p class="text-xs text-muted-foreground">Controle Financeiro</p>
+            <h1 class="font-bold text-lg leading-tight">{{ APP_CONFIG.title }}</h1>
+            <p class="text-xs text-muted-foreground">{{ APP_CONFIG.description }}</p>
           </div>
         </NuxtLink>
       </UiSidebarHeader>
