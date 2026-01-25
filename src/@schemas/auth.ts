@@ -2,7 +2,7 @@ import z from "zod";
 import { zStringNotEmpty } from "./primitives/stringNotEmpty";
 
 export const zSignIn = z.object({
-  email: zStringNotEmpty.email(),
+  email: z.email(),
   password: zStringNotEmpty,
 });
 

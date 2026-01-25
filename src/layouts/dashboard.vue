@@ -7,24 +7,6 @@ const { currentUser } = storeToRefs(userStore);
 const router = useRouter();
 const route = useRoute();
 
-const navigation = [
-  {
-    title: "Dashboard",
-    items: [
-      { title: "Overview", url: "/dashboard", icon: "📊" },
-      { title: "Transactions", url: "/dashboard/transactions", icon: "💰" },
-    ],
-  },
-  {
-    title: "Management",
-    items: [
-      { title: "Bank Accounts", url: "/dashboard/bank-accounts", icon: "🏦" },
-      { title: "Categories", url: "/dashboard/categories", icon: "📁" },
-      { title: "Creditors", url: "/dashboard/creditors", icon: "👥" },
-    ],
-  },
-];
-
 const handleSignOut = async () => {
   await signOut(firebaseStore.firebaseAuth);
   router.push("/sign-in");
@@ -91,16 +73,16 @@ const isActive = (url: string) => {
                 <UiAvatarFallback>{{ getUserInitials }}</UiAvatarFallback>
               </UiAvatar>
               <div class="flex-1 text-left">
-                <p class="text-sm font-medium">{{ currentUser?.name || "User" }}</p>
+                <p class="text-sm font-medium">{{ currentUser?.name || "Usuário" }}</p>
                 <p class="text-xs text-muted-foreground">{{ currentUser?.email }}</p>
               </div>
             </div>
           </UiDropdownMenuTrigger>
           <UiDropdownMenuContent align="end" class="w-56">
-            <UiDropdownMenuLabel>My Account</UiDropdownMenuLabel>
+            <UiDropdownMenuLabel>Minha Conta</UiDropdownMenuLabel>
             <UiDropdownMenuSeparator />
             <UiDropdownMenuItem @click="handleSignOut">
-              Sign out
+              Sair
             </UiDropdownMenuItem>
           </UiDropdownMenuContent>
         </UiDropdownMenu>

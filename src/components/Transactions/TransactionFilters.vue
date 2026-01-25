@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ICategory } from "~/@schemas/models/category";
-import type { ICreditor } from "~/@schemas/models/creditor";
+import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { IBankAccount } from "~/@schemas/models/bank-account";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -15,7 +15,7 @@ import {
 
 type IProps = {
   categories: ICategory[];
-  creditors: ICreditor[];
+  creditors: ICounterparty[];
   bankAccounts: IBankAccount[];
 };
 

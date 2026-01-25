@@ -1,25 +1,25 @@
 import type { ITransaction } from "~/@schemas/models/transaction";
-import type { ICreditor } from "~/@schemas/models/creditor";
+import type { ICounterparty } from "~/@schemas/models/counterparty";
 
 export const groupByCreditor = (
   transactions: ITransaction[],
-  creditors: ICreditor[]
+  creditors: ICounterparty[]
 ) => {
   const grouped: Record<string, { name: string; amount: number }> = {};
 
   transactions.forEach((transaction) => {
-    if (transaction.creditorId) {
-      const creditor = creditors.find((c) => c.id === transaction.creditorId);
+    if (transaction.counterpartyId) {
+      const creditor = creditors.find((c) => c.id === transaction.counterpartyId);
       const creditorName = creditor?.name || "Unknown";
 
-      if (!grouped[transaction.creditorId]) {
-        grouped[transaction.creditorId] = {
+      if (!grouped[transaction.counterpartyId]) {
+        grouped[transaction.counterpartyId] = {
           name: creditorName,
           amount: 0,
         };
       }
 
-      grouped[transaction.creditorId]!.amount += Math.abs(transaction.amount);
+      grouped[transaction.counterpartyId]!.amount += Math.abs(transaction.amount);
     }
   });
 

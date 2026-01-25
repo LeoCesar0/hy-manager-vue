@@ -1,4 +1,4 @@
-import type { ICreditor } from "~/@schemas/models/creditor";
+import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { AppResponse } from "~/@schemas/app";
 
 type IProps = {
@@ -7,10 +7,10 @@ type IProps = {
 
 export const getCreditors = async ({
   userId,
-}: IProps): Promise<AppResponse<ICreditor[]>> => {
+}: IProps): Promise<AppResponse<ICounterparty[]>> => {
   const firebaseStore = useFirebaseStore();
 
-  return await firebaseStore.modelList<ICreditor>({
+  return await firebaseStore.modelList<ICounterparty>({
     collection: "creditors",
     filters: [
       {

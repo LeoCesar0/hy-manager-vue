@@ -1,4 +1,4 @@
-import type { ICreditor } from "~/@schemas/models/creditor";
+import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { AppResponse } from "~/@schemas/app";
 import { createCreditor } from "./create-creditor";
 
@@ -12,12 +12,12 @@ export const getOrCreateCreditor = async ({
   name,
   userId,
   categoryIds = [],
-}: IProps): Promise<AppResponse<ICreditor>> => {
+}: IProps): Promise<AppResponse<ICounterparty>> => {
   const firebaseStore = useFirebaseStore();
 
   const normalizedName = name.trim().toLowerCase();
 
-  const existingResult = await firebaseStore.modelList<ICreditor>({
+  const existingResult = await firebaseStore.modelList<ICounterparty>({
     collection: "creditors",
     filters: [
       {

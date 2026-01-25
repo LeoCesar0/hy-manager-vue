@@ -2,7 +2,7 @@
 import type { ITransaction, ICreateTransaction, ITransactionCategorySplit } from "~/@schemas/models/transaction";
 import type { IBankAccount } from "~/@schemas/models/bank-account";
 import type { ICategory } from "~/@schemas/models/category";
-import type { ICreditor } from "~/@schemas/models/creditor";
+import type { ICounterparty } from "~/@schemas/models/counterparty";
 import { Timestamp } from "firebase/firestore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -21,7 +21,7 @@ type IProps = {
   transaction?: ITransaction;
   bankAccounts: IBankAccount[];
   categories: ICategory[];
-  creditors: ICreditor[];
+  creditors: ICounterparty[];
   loading?: boolean;
 };
 

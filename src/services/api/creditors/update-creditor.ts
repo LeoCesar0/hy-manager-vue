@@ -1,16 +1,16 @@
 import type {
-  ICreditor,
-  IUpdateCreditor,
-} from "~/@schemas/models/creditor";
+  ICounterparty,
+  IUpdateCounterparty,
+} from "~/@schemas/models/counterparty";
 import type { AppResponse } from "~/@schemas/app";
 
 export const updateCreditor = async (
   id: string,
-  data: IUpdateCreditor
-): Promise<AppResponse<ICreditor>> => {
+  data: IUpdateCounterparty
+): Promise<AppResponse<ICounterparty>> => {
   const firebaseStore = useFirebaseStore();
 
-  return await firebaseStore.modelUpdate<IUpdateCreditor, ICreditor>({
+  return await firebaseStore.modelUpdate<IUpdateCounterparty, ICounterparty>({
     collection: "creditors",
     id,
     data,
