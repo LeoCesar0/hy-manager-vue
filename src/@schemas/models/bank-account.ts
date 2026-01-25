@@ -3,7 +3,7 @@ import { zCommonDoc } from "./@common";
 import { zStringNotEmpty } from "../primitives/stringNotEmpty";
 
 export const zBankAccountBase = z.object({
-  name: z.string(),
+  name: zStringNotEmpty,
   userId: zStringNotEmpty,
 });
 

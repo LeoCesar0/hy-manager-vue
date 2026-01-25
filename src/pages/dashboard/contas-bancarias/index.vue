@@ -8,6 +8,7 @@ import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts"
 import { deleteBankAccount } from "~/services/api/bank-accounts/delete-bank-account";
 import { formatDate } from "~/helpers/formatDate";
 import BankAccountForm from "~/components/BankAccounts/BankAccountForm.vue";
+import SheetBody from "~/components/ui/sheet/SheetBody.vue";
 
 definePageMeta({
     layout: "dashboard",
@@ -83,7 +84,7 @@ const handleEdit = (bankAccount: IBankAccount) => {
 };
 
 const handleCreate = () => {
-    updatingBankAccount.value = null;
+    isCreateSheetOpen.value = true;
 };
 
 const handleUpdateSuccess = () => {
@@ -176,12 +177,11 @@ onMounted(() => {
                 Nova Conta
             </UiButton>
         </div>
-
         <Table :columns="columns" :pagination-body="paginationBody" :pagination-result="bankAccounts"
             :is-loading="isLoadingData" />
 
         <UiSheet v-model:open="isCreateSheetOpen">
-            <UiSheetContent class="sm:max-w-xl overflow-y-auto">
+            <UiSheetContent class=" overflow-y-auto">
                 <UiSheetHeader>
                     <UiSheetTitle>
                         Nova Conta
@@ -190,13 +190,14 @@ onMounted(() => {
                         Adicione uma nova conta bancária
                     </UiSheetDescription>
                 </UiSheetHeader>
-
-                <BankAccountForm :initial-values="createBankAccountInitialValues" @success="handleCreateSuccess"
-                    @cancel="isCreateSheetOpen = false" :is-edit-mode="false" />
+                <SheetBody>
+                    <BankAccountForm :initial-values="createBankAccountInitialValues" @success="handleCreateSuccess"
+                        @cancel="isCreateSheetOpen = false" :is-edit-mode="false" />
+                </SheetBody>
             </UiSheetContent>
         </UiSheet>
         <UiSheet v-if="updatingBankAccount" :open="true">
-            <UiSheetContent class="sm:max-w-xl overflow-y-auto">
+            <UiSheetContent class=" overflow-y-auto">
                 <UiSheetHeader>
                     <UiSheetTitle>
                         Editar Conta
@@ -205,8 +206,10 @@ onMounted(() => {
                         "Edite as informações da conta bancária"
                     </UiSheetDescription>
                 </UiSheetHeader>
-                <BankAccountForm v-if="updatingBankAccount" :initial-values="updatingBankAccount"
-                    @success="handleUpdateSuccess" @cancel="updatingBankAccount = null" :is-edit-mode="true" />
+                <SheetBody>
+                    <BankAccountForm v-if="updatingBankAccount" :initial-values="updatingBankAccount"
+                        @success="handleUpdateSuccess" @cancel="updatingBankAccount = null" :is-edit-mode="true" />
+                </SheetBody>
             </UiSheetContent>
         </UiSheet>
     </div>
