@@ -61,7 +61,7 @@ watch(
       listFiles({
         fileIds: value.value,
         options: {
-          toastOptions: false,
+          toastOptions: undefined,
         },
       })
         .then((res) => {
@@ -108,7 +108,7 @@ const uploadSelectedFiles = async () => {
       files: selectedFiles.value,
       userId: currentUser.value.id,
       options: {
-        toastOptions: false,
+        toastOptions: undefined,
       },
     });
 
