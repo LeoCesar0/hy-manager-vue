@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ITransaction, ICreateTransaction, ITransactionCategorySplit } from "~/@schemas/models/transaction";
+import type { ITransaction, ICreateTransaction } from "~/@schemas/models/transaction";
 import type { IBankAccount } from "~/@schemas/models/bank-account";
 import type { ICategory } from "~/@schemas/models/category";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import CategorySplitInput from "./CategorySplitInput.vue";
 
 type IProps = {
   transaction?: ITransaction;
@@ -44,11 +43,9 @@ const form = ref({
   date: props.transaction?.date || Timestamp.now(),
   bankAccountId: props.transaction?.bankAccountId || "",
   creditorName: "",
-  creditorId: props.transaction?.creditorId || null,
-  categorySplits: props.transaction?.categorySplits || [],
+  counterpartyId: props.transaction?.counterpartyId || null,
+  categoryIds: props.transaction?.categoryIds || [],
 });
-
-const useSplits = ref(false);
 
 watch(
   () => props.transaction,
@@ -59,12 +56,11 @@ watch(
       form.value.description = newVal.description;
       form.value.date = newVal.date;
       form.value.bankAccountId = newVal.bankAccountId;
-      form.value.creditorId = newVal.creditorId || ''
-      form.value.categorySplits = newVal.categorySplits || [];
-      useSplits.value = (newVal.categorySplits?.length || 0) > 0;
+      form.value.counterpartyId = newVal.counterpartyId || null;
+      form.value.categoryIds = newVal.categoryIds || [];
 
-      if (newVal.creditorId) {
-        const creditor = props.creditors.find((c) => c.id === newVal.creditorId);
+      if (newVal.counterpartyId) {
+        const creditor = props.creditors.find((c) => c.id === newVal.counterpartyId);
         if (creditor) {
           form.value.creditorName = creditor.name;
         }
@@ -92,10 +88,9 @@ const handleSubmit = () => {
     description: form.value.description,
     date: form.value.date,
     bankAccountId: form.value.bankAccountId,
-    creditorId: form.value.creditorId,
-    categoryId: null,
+    counterpartyId: form.value.counterpartyId,
+    categoryIds: form.value.categoryIds,
     userId: currentUser.value.id,
-    categorySplits: useSplits.value ? form.value.categorySplits : undefined,
   };
 
   emit("submit", data, form.value.creditorName || undefined);
@@ -183,25 +178,21 @@ const getBankAccountName = (id: string) => {
     </div>
 
     <div class="space-y-2">
-      <div class="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="useSplits"
-          v-model="useSplits"
-          class="rounded"
-        />
-        <Label for="useSplits" class="cursor-pointer">
-          Split across multiple categories
-        </Label>
-      </div>
-
-      <CategorySplitInput
-        v-if="useSplits"
-        :splits="form.categorySplits"
-        :categories="categories"
-        :total-amount="form.amount"
-        @update:splits="form.categorySplits = $event"
-      />
+      <Label for="category">Categories</Label>
+      <Select v-model="form.categoryIds[0]">
+        <SelectTrigger>
+          <SelectValue placeholder="Select category" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem
+            v-for="category in categories"
+            :key="category.id"
+            :value="category.id"
+          >
+            {{ category.name }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
     </div>
 
     <div class="flex gap-2 justify-end">

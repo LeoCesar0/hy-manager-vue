@@ -12,7 +12,7 @@ export const zCreateCounterparty = zCounterpartyBase.extend({
   id: z.string().optional(),
 });
 
-export const zUpdateCounterparty = zCounterpartyBase
+export const zUpdateCounterparty = zCounterpartyBase;
 
 export const zCounterparty = zCounterpartyBase.extend(zCommonDoc.shape);
 

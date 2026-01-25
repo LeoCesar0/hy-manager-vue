@@ -26,7 +26,7 @@ const emit = defineEmits<{
     startDate?: string;
     endDate?: string;
     categoryId?: string;
-    creditorId?: string;
+    counterpartyId?: string;
     bankAccountId?: string;
     type?: "deposit" | "expense" | "";
   }];
@@ -37,7 +37,7 @@ const filters = ref({
   startDate: "",
   endDate: "",
   categoryId: "",
-  creditorId: "",
+  counterpartyId: "",
   bankAccountId: "",
   type: "" as "deposit" | "expense" | "",
 });
@@ -51,7 +51,7 @@ const clearFilters = () => {
     startDate: "",
     endDate: "",
     categoryId: "",
-    creditorId: "",
+    counterpartyId: "",
     bankAccountId: "",
     type: "",
   };
@@ -109,7 +109,7 @@ const clearFilters = () => {
 
       <div class="space-y-2">
         <Label for="creditor">Creditor</Label>
-        <Select v-model="filters.creditorId">
+        <Select v-model="filters.counterpartyId">
           <SelectTrigger>
             <SelectValue placeholder="All creditors" />
           </SelectTrigger>

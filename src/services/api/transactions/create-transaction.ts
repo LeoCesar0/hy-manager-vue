@@ -11,10 +11,10 @@ export const createTransaction = async (
 ): Promise<AppResponse<ITransaction>> => {
   const firebaseStore = useFirebaseStore();
 
-  let creditorId = data.creditorId;
+  let counterpartyId = data.counterpartyId;
 
-  if (creditorName && !creditorId) {
-    const categoryIds = data.categorySplits?.map((s) => s.categoryId) || [];
+  if (creditorName && !counterpartyId) {
+    const categoryIds = data.categoryIds || [];
     const creditorResult = await getOrCreateCreditor({
       name: creditorName,
       userId: data.userId,
@@ -22,14 +22,14 @@ export const createTransaction = async (
     });
 
     if (creditorResult.data) {
-      creditorId = creditorResult.data.id;
+      counterpartyId = creditorResult.data.id;
     }
   }
 
   const transactionData = {
     ...data,
-    creditorId: creditorId || null,
-  };
+    counterpartyId: counterpartyId || null,
+  }
 
   return await firebaseStore.modelCreate<ICreateTransaction, ITransaction>({
     collection: "transactions",

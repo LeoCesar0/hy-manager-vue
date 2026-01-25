@@ -2,26 +2,29 @@ import type { ITransaction } from "~/@schemas/models/transaction";
 import type { AppResponse } from "~/@schemas/app";
 import type { Timestamp } from "firebase/firestore";
 import type { FirebaseFilterFor } from "~/services/firebase/@type";
+import type { IPaginationBody, IPaginationResult } from "~/@types/pagination";
 
 type IProps = {
   userId: string;
   startDate?: Timestamp;
   endDate?: Timestamp;
   categoryId?: string;
-  creditorId?: string;
+  counterpartyId?: string;
   bankAccountId?: string;
   type?: "deposit" | "expense";
+  pagination: IPaginationBody;
 };
 
-export const getTransactions = async ({
+export const paginateTransactions = async ({
   userId,
   startDate,
   endDate,
   categoryId,
-  creditorId,
+  counterpartyId,
   bankAccountId,
   type,
-}: IProps): Promise<AppResponse<ITransaction[]>> => {
+  pagination
+}: IProps): Promise<AppResponse<IPaginationResult<ITransaction>>> => {
   const firebaseStore = useFirebaseStore();
 
   const filters: FirebaseFilterFor<ITransaction>[] = [
@@ -50,17 +53,17 @@ export const getTransactions = async ({
 
   if (categoryId) {
     filters.push({
-      field: "categoryId",
-      operator: "==",
+      field: "categoryIds",
+      operator: "array-contains",
       value: categoryId,
     });
   }
 
-  if (creditorId) {
+  if (counterpartyId) {
     filters.push({
-      field: "creditorId",
+      field: "counterpartyId",
       operator: "==",
-      value: creditorId,
+      value: counterpartyId,
     });
   }
 
@@ -80,8 +83,9 @@ export const getTransactions = async ({
     });
   }
 
-  return await firebaseStore.modelList<ITransaction>({
+  return await firebaseStore.modelPaginatedList<ITransaction>({
     collection: "transactions",
     filters,
+    pagination:pagination
   });
 };
