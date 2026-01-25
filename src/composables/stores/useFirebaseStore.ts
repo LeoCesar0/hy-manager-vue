@@ -14,7 +14,7 @@ import { getStorage } from "firebase/storage";
 import { makeStoreKey } from "~/helpers/makeStoreKey";
 import type { AppResponse } from "~/@schemas/app";
 import type { AnyObject } from "~/@types/anyObject";
-import { handleAppRequest } from "~/services/api/@handlers/handle-app-request";
+import { handleAppRequest, type IHandleAppRequestProps } from "~/services/api/@handlers/handle-app-request";
 
 export const useFirebaseStore = defineStore(makeStoreKey("firebase"), () => {
   let firebaseApp: FirebaseApp;

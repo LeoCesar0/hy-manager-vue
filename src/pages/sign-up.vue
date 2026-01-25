@@ -27,12 +27,12 @@ const handleSignUp = async () => {
   error.value = "";
 
   if (password.value !== confirmPassword.value) {
-    error.value = "Passwords do not match";
+    error.value = "As senhas não coincidem";
     return;
   }
 
   if (password.value.length < 6) {
-    error.value = "Password must be at least 6 characters";
+    error.value = "A senha deve ter pelo menos 6 caracteres";
     return;
   }
 
@@ -47,7 +47,7 @@ const handleSignUp = async () => {
 
     if (userCredential.user) {
       const createUserService = await import("~/services/api/users/create-user");
-      await createUserService.createUser({
+      const result = await createUserService.createUser({
         data: {
           id: userCredential.user.uid,
           name: name.value,
@@ -55,11 +55,12 @@ const handleSignUp = async () => {
           imageUrl: null,
         },
       });
-
-      router.push("/onboarding");
+      if(!result.error){
+        router.push("/onboarding");
+      }
     }
   } catch (err: any) {
-    error.value = err.message || "Failed to create account";
+    error.value = err.message || "Falha ao criar conta";
   } finally {
     loading.value = false;
   }
@@ -72,9 +73,9 @@ const { handleGoogleSignIn } = useUserStore();
   <div class="min-h-screen flex items-center justify-center bg-gray-50">
     <Card class="w-full max-w-md">
       <CardHeader>
-        <CardTitle class="text-2xl text-center">Create Account</CardTitle>
+        <CardTitle class="text-2xl text-center">Criar Conta</CardTitle>
         <CardDescription class="text-center">
-          Sign up to start managing your finances
+          Crie uma conta para começar a gerenciar seus finanças
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
@@ -83,7 +84,7 @@ const { handleGoogleSignIn } = useUserStore();
         </div>
 
         <div class="space-y-2">
-          <Label for="name">Name</Label>
+          <Label for="name">Nome</Label>
           <Input
             id="name"
             type="text"
@@ -103,7 +104,7 @@ const { handleGoogleSignIn } = useUserStore();
         </div>
 
         <div class="space-y-2">
-          <Label for="password">Password</Label>
+          <Label for="password">Senha</Label>
           <Input
             id="password"
             type="password"
@@ -113,7 +114,7 @@ const { handleGoogleSignIn } = useUserStore();
         </div>
 
         <div class="space-y-2">
-          <Label for="confirmPassword">Confirm Password</Label>
+          <Label for="confirmPassword">Confirmar Senha</Label>
           <Input
             id="confirmPassword"
             type="password"
@@ -127,7 +128,7 @@ const { handleGoogleSignIn } = useUserStore();
           :disabled="loading || !name || !email || !password || !confirmPassword"
           @click="handleSignUp"
         >
-          Create Account
+          Criar Conta
         </Button>
 
         <div class="relative">
@@ -136,7 +137,7 @@ const { handleGoogleSignIn } = useUserStore();
           </div>
           <div class="relative flex justify-center text-xs uppercase">
             <span class="bg-background px-2 text-muted-foreground">
-              Or continue with
+              Ou continue com
             </span>
           </div>
         </div>
@@ -152,14 +153,14 @@ const { handleGoogleSignIn } = useUserStore();
             alt="Google"
             class="w-4 h-4 mr-2"
           />
-          Sign up with Google
+          Criar Conta com Google
         </Button>
       </CardContent>
       <CardFooter class="flex justify-center">
         <p class="text-sm text-muted-foreground">
-          Already have an account?
+          Já tem uma conta?
           <router-link to="/sign-in" class="text-primary hover:underline">
-            Sign in
+            Entrar
           </router-link>
         </p>
       </CardFooter>

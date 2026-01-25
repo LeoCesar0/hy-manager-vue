@@ -22,9 +22,9 @@ const { handleEmailSignIn, handleGoogleSignIn, loading } = useUserStore();
   <div class="min-h-screen flex items-center justify-center bg-gray-50">
     <Card class="w-full max-w-md">
       <CardHeader>
-        <CardTitle class="text-2xl text-center">Sign In</CardTitle>
+        <CardTitle class="text-2xl text-center">Entrar</CardTitle>
         <CardDescription class="text-center">
-          Choose your preferred sign in method
+          Escolha o método de entrada preferido
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
@@ -38,11 +38,11 @@ const { handleEmailSignIn, handleGoogleSignIn, loading } = useUserStore();
           />
         </div>
         <div class="space-y-2">
-          <Label for="password">Password</Label>
+          <Label for="password">Senha</Label>
           <Input
             id="password"
             type="password"
-            placeholder="Enter your password"
+            placeholder="Insira sua senha"
             v-model="password"
           />
         </div>
@@ -63,7 +63,7 @@ const { handleEmailSignIn, handleGoogleSignIn, loading } = useUserStore();
           </div>
           <div class="relative flex justify-center text-xs uppercase">
             <span class="bg-background px-2 text-muted-foreground">
-              Or continue with
+              Ou continue com
             </span>
           </div>
         </div>
@@ -82,17 +82,17 @@ const { handleEmailSignIn, handleGoogleSignIn, loading } = useUserStore();
             alt="Google"
             class="w-4 h-4 mr-2"
           />
-          Sign in with Google
+          Entrar com Google
         </Button>
       </CardContent>
       <CardFooter class="flex flex-col gap-2">
         <router-link to="/forgot-password" class="text-sm text-primary hover:underline">
-          Forgot password?
+          Esqueceu sua senha?
         </router-link>
         <p class="text-sm text-muted-foreground">
-          Don't have an account?
+          Não tem uma conta?
           <router-link to="/sign-up" class="text-primary hover:underline">
-            Sign up
+            Criar Conta
           </router-link>
         </p>
       </CardFooter>

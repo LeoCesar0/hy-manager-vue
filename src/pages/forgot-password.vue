@@ -35,7 +35,7 @@ const handleResetPassword = async () => {
     await sendPasswordResetEmail(firebaseStore.firebaseAuth, email.value);
     success.value = true;
   } catch (err: any) {
-    error.value = err.message || "Failed to send reset email";
+    error.value = err.message || "Falha ao enviar link de redefinição de senha";
   } finally {
     loading.value = false;
   }
@@ -46,9 +46,9 @@ const handleResetPassword = async () => {
   <div class="min-h-screen flex items-center justify-center bg-gray-50">
     <Card class="w-full max-w-md">
       <CardHeader>
-        <CardTitle class="text-2xl text-center">Reset Password</CardTitle>
+        <CardTitle class="text-2xl text-center">Redefinir Senha</CardTitle>
         <CardDescription class="text-center">
-          Enter your email to receive a password reset link
+          Insira seu email para receber um link de redefinição de senha
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
@@ -57,7 +57,7 @@ const handleResetPassword = async () => {
         </div>
 
         <div v-if="success" class="p-3 rounded bg-green-50 text-green-600 text-sm">
-          Password reset email sent! Check your inbox.
+          Link de redefinição de senha enviado! Verifique sua caixa de entrada.
         </div>
 
         <div class="space-y-2">
@@ -75,14 +75,14 @@ const handleResetPassword = async () => {
           :disabled="loading || !email"
           @click="handleResetPassword"
         >
-          Send Reset Link
+          Enviar Link de Redefinição de Senha
         </Button>
       </CardContent>
       <CardFooter class="flex justify-center">
         <p class="text-sm text-muted-foreground">
-          Remember your password?
+          Lembrou sua senha?
           <router-link to="/sign-in" class="text-primary hover:underline">
-            Sign in
+            Entrar
           </router-link>
         </p>
       </CardFooter>

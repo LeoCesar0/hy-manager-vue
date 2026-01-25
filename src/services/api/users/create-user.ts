@@ -4,9 +4,9 @@ import {
   type IHandleAppRequestProps,
 } from "../@handlers/handle-app-request";
 import type { ICreateUser, IUser } from "~/@schemas/models/user";
+import type { IAPIRequestCommon } from "../@types";
 import { firebaseCreate } from "~/services/firebase/firebaseCreate";
 import { getDefaultCreateToastOptions } from "~/helpers/toast/get-default-create-toast-options";
-import type { IAPIRequestCommon } from "../@types";
 
 type Item = IUser;
 
