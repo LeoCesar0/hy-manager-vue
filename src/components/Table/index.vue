@@ -197,6 +197,8 @@ const table = computed(() => {
   flex: 1;
   width: 100%;
   max-width: 100%;
-  @apply sm:max-w-[175px];
+  @media (min-width: 640px) {
+    max-width: 175px;
+  }
 }
 </style>

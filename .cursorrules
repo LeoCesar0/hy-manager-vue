@@ -12,7 +12,6 @@ export const myFunction = ({...}:IProps) => {
 
 # Vue and CSS Styling
 
-- Create custom classes and apply tailwind styles to them into the Style template at the botom.
 - Script Template always comes at the top
 - You can apply static colors in some cases, but try to follow the shadcn-tailwind colors already implemented, such as primary, secondary, accent, border, background, etc...
 

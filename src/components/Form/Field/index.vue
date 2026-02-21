@@ -16,6 +16,7 @@ import type { IImageUploaderProps } from "~/components/Form/Field/ImageUploader.
 import InputWithOptions from "~/components/Form/Field/InputWithOptions.vue";
 import MultipleSelect from "./MultipleSelect.vue";
 import CardSelect from "~/components/Form/Field/CardSelect.vue";
+import ColorPicker from "~/components/Form/Field/ColorPicker.vue";
 import type { ICardSelectOption } from "~/components/Form/Field/CardSelectItem.vue";
 import type { NumberFieldRootProps } from "reka-ui";
 import type { IDatepickerProps } from "~/components/Datepicker/index.vue";
@@ -38,6 +39,7 @@ export type IFieldInputVariant =
   | "switch"
   | "file-multiple"
   | "image"
+  | "color-picker"
   | "custom";
 
 type Props = {
@@ -295,6 +297,16 @@ const showPass = ref(false);
                 }"
               />
             </div>
+            <!-- COLOR PICKER -->
+            <ColorPicker
+              v-if="inputVariant === 'color-picker'"
+              class="!mt-0"
+              v-bind="{
+                ...componentField,
+                disabled,
+                ...(props.inputProps ?? {}),
+              }"
+            />
             <!-- CUSTOM -->
             <component
               v-if="inputVariant === 'custom'"
