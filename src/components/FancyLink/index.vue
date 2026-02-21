@@ -15,7 +15,7 @@ const props = defineProps<Props>();
     :to="props.to"
     :class="
       clsx(
-        'text-primar cursor-pointer transition-colors hover:text-link/80',
+        'text-accent-foreground cursor-pointer transition-colors hover:text-accent-foreground/80',
         props.class,
         {
           truncate: !!props.truncate,

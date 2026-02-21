@@ -14,7 +14,9 @@ export const formatDate = (
   const _date = parseToDate(date);
 
   if (time) {
-    return _date.toLocaleString(undefined, intlOptions);
+    return _date.toLocaleString("pt-BR", {
+      ...intlOptions,
+    });
   }
-  return _date.toLocaleDateString(undefined, intlOptions);
+  return _date.toLocaleDateString("pt-BR", intlOptions);
 };

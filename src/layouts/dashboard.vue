@@ -137,7 +137,7 @@ const { isLoadingDashboard } = storeToRefs(dashboardStore);
           </div>
         </div>
       </div>
-      <div class="p-6">
+      <div class="p-6 max-w-[90rem] mx-auto">
         <slot />
       </div>
     </main>

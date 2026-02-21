@@ -7,7 +7,7 @@ import { getDefaultDeleteToastOptions } from "~/helpers/toast/get-default-delete
 
 export type IAPIDeleteBankAccount = {
   id: string;
-} & IAPIRequestCommon<void>;
+} & IAPIRequestCommon<boolean>;
 
 export const deleteBankAccount = async ({ id, options }: IAPIDeleteBankAccount) => {
   const response = await handleAppRequest(

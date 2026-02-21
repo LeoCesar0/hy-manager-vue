@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WalletIcon, ArrowLeftIcon, EditIcon, TrashIcon } from "lucide-vue-next";
+import { WalletIcon, ArrowLeftIcon, EditIcon, TrashIcon, EyeIcon } from "lucide-vue-next";
 import type { IBankAccount } from "~/@schemas/models/bank-account";
 import { firebaseGet } from "~/services/firebase/firebaseGet";
 import { deleteBankAccount } from "~/services/api/bank-accounts/delete-bank-account";
@@ -42,42 +42,42 @@ const loadBankAccount = async () => {
     isLoadingData.value = false;
   }
 };
+const { openDialog } = useAlertDialog();
 
 const handleDelete = async () => {
   if (!bankAccount.value) return;
 
-  const confirmed = confirm(
-    `Tem certeza que deseja deletar a conta "${bankAccount.value.name}"?`
-  );
-  if (!confirmed) return;
-
-  const response = await deleteBankAccount({
-    id: bankAccount.value.id,
-    options: {
-      toastOptions: {
-        loading: {
-          message: "Deletando conta bancária...",
-        },
-        success: {
-          message: "Conta bancária deletada com sucesso!",
-        },
-        error: true,
+  openDialog({
+    title: "Deletar Conta Bancária",
+    message: `Tem certeza que deseja deletar a conta "${bankAccount.value?.name}"?`,
+    confirm: {
+      label: "Deletar",
+      action: async () => {
+        if (!bankAccount.value?.id) return;
+        const response = await deleteBankAccount({
+          id: bankAccount.value.id,
+          options: {
+            toastOptions: {
+              loading: {
+                message: "Deletando conta bancária...",
+              },
+              success: {
+                message: "Conta bancária deletada com sucesso!",
+              },
+              error: true,
+            },
+          },
+        });
+        if (response.data) {
+          router.push(ROUTE.bankAccounts.path());
+        }
       },
     },
   });
-
-  if (response.data !== null) {
-    router.push(ROUTE.bankAccounts.path());
-  }
 };
 
 const handleEdit = () => {
   isSheetOpen.value = true;
-};
-
-const handleFormSuccess = () => {
-  isSheetOpen.value = false;
-  loadBankAccount();
 };
 
 const handleGoBack = () => {
@@ -100,19 +100,17 @@ onMounted(() => {
         <p class="text-muted-foreground">Visualize e edite as informações da conta</p>
       </div>
       <div class="flex gap-2">
-        <UiButton variant="outline" size="icon" @click="handleEdit">
+        <UiButton variant="outline" size="icon" @click="handleEdit" title="Editar">
           <EditIcon class="h-4 w-4" />
         </UiButton>
-        <UiButton variant="destructive" size="icon" @click="handleDelete">
+        <UiButton variant="destructive" size="icon" @click="handleDelete" title="Deletar">
           <TrashIcon class="h-4 w-4" />
         </UiButton>
       </div>
     </div>
-
     <div v-if="isLoadingData" class="flex items-center justify-center py-12">
       <Loading :is-loading="true" size="lg" />
     </div>
-
     <UiCard v-else-if="bankAccount" class="p-6">
       <div class="space-y-6">
         <div class="flex items-center gap-4">
@@ -126,9 +124,7 @@ onMounted(() => {
             </p>
           </div>
         </div>
-
         <UiSeparator />
-
         <div class="grid gap-4 md:grid-cols-2">
           <div class="space-y-2">
             <p class="text-sm font-medium text-muted-foreground">Nome</p>
@@ -144,15 +140,9 @@ onMounted(() => {
             <p class="text-sm font-medium text-muted-foreground">Última Atualização</p>
             <p class="text-base">{{ formatDate(bankAccount.updatedAt) }}</p>
           </div>
-
-          <div class="space-y-2">
-            <p class="text-sm font-medium text-muted-foreground">ID</p>
-            <p class="text-base font-mono text-xs">{{ bankAccount.id }}</p>
-          </div>
         </div>
       </div>
     </UiCard>
-
     <div v-else class="flex items-center justify-center py-12">
       <UiEmpty title="Conta não encontrada" description="A conta bancária que você está procurando não existe.">
         <UiButton @click="handleGoBack">

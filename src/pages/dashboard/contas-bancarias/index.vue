@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { h, resolveComponent } from "vue";
 import type { ColumnDef } from "@tanstack/vue-table";
-import { WalletIcon, PlusIcon, EditIcon, TrashIcon, MoreHorizontalIcon } from "lucide-vue-next";
+import { WalletIcon, PlusIcon, EditIcon, TrashIcon, MoreHorizontalIcon, EyeIcon } from "lucide-vue-next";
 import type { IBankAccount, ICreateBankAccount } from "~/@schemas/models/bank-account";
 import type { IPaginationBody, IPaginationResult } from "~/@types/pagination";
 import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
@@ -62,30 +62,39 @@ const loadBankAccounts = async () => {
     }
 };
 
-const handleDelete = async (bankAccount: IBankAccount) => {
-    const confirmed = confirm(
-        `Tem certeza que deseja deletar a conta "${bankAccount.name}"?`
-    );
-    if (!confirmed) return;
+const { openDialog } = useAlertDialog();
 
-    const response = await deleteBankAccount({
-        id: bankAccount.id,
-        options: {
-            toastOptions: {
-                loading: {
-                    message: "Deletando conta bancária...",
-                },
-                success: {
-                    message: "Conta bancária deletada com sucesso!",
-                },
-                error: true,
+const handleDelete = async (bankAccount: IBankAccount) => {
+    if (!bankAccount) return;
+
+    openDialog({
+        title: "Deletar Conta Bancária",
+        message: `Tem certeza que deseja deletar a conta "${bankAccount?.name}"?`,
+        confirm: {
+            label: "Deletar",
+            action: async () => {
+                if (!bankAccount?.id) return;
+                const response = await deleteBankAccount({
+                    id: bankAccount.id,
+                    options: {
+                        toastOptions: {
+                            loading: {
+                                message: "Deletando conta bancária...",
+                            },
+                            success: {
+                                message: "Conta bancária deletada com sucesso!",
+                            },
+                            error: true,
+                        },
+                    },
+                });
+                if (response.data) {
+                    loadBankAccounts();
+                }
             },
         },
     });
 
-    if (response.data !== null) {
-        loadBankAccounts();
-    }
 };
 
 const handleEdit = (bankAccount: IBankAccount) => {
@@ -105,6 +114,11 @@ const handleUpdateSuccess = () => {
 const handleCreateSuccess = () => {
     isCreateSheetOpen.value = false;
     loadBankAccounts();
+};
+
+const router = useRouter();
+const handleView = (bankAccount: IBankAccount) => {
+    router.push(ROUTE.bankAccountId.path(bankAccount.id));
 };
 
 const columns: ColumnDef<IBankAccount>[] = [
@@ -140,6 +154,15 @@ const columns: ColumnDef<IBankAccount>[] = [
                 "div",
                 { class: "flex items-center gap-2" },
                 [
+                    h(
+                        resolveComponent("UiButton"),
+                        {
+                            variant: "ghost",
+                            size: "icon",
+                            onClick: () => handleView(bankAccount),
+                        },
+                        () => h(EyeIcon, { class: "h-4 w-4" })
+                    ),
                     h(
                         resolveComponent("UiButton"),
                         {
@@ -191,39 +214,16 @@ onMounted(() => {
         <Table :columns="columns" :pagination-body="paginationBody" :pagination-result="bankAccounts"
             :is-loading="isLoadingData" />
 
-        <UiSheet v-model:open="isCreateSheetOpen">
-            <UiSheetContent class=" overflow-y-auto">
-                <UiSheetHeader>
-                    <UiSheetTitle>
-                        Nova Conta
-                    </UiSheetTitle>
-                    <UiSheetDescription>
-                        Adicione uma nova conta bancária
-                    </UiSheetDescription>
-                </UiSheetHeader>
-                <SheetBody>
-                    <BankAccountForm :initial-values="createBankAccountInitialValues" @success="handleCreateSuccess"
-                        @cancel="isCreateSheetOpen = false" :is-edit-mode="false" />
-                </SheetBody>
-            </UiSheetContent>
-        </UiSheet>
-        <UiSheet v-model:open="isUpdateSheetOpen">
-            <UiSheetContent class=" overflow-y-auto">
 
-                <UiSheetHeader>
-                    <UiSheetTitle>
-                        Editar Conta
-                    </UiSheetTitle>
-                    <UiSheetDescription>
-                        Edite as informações da conta bancária
-                    </UiSheetDescription>
-                </UiSheetHeader>
-                <SheetBody>
-                    <BankAccountForm v-if="updatingBankAccount" :initial-values="updatingBankAccount"
-                        @success="handleUpdateSuccess" @cancel="updatingBankAccount = null" :is-edit-mode="true" />
-                </SheetBody>
-            </UiSheetContent>
-        </UiSheet>
+        <BankAccountsCreateSheet v-model:is-open="isCreateSheetOpen" :initial-values="createBankAccountInitialValues"
+            :on-success="handleCreateSuccess" :on-cancel="() => {
+                isCreateSheetOpen = false
+            }" />
+        <BankAccountsEditSheet v-model:is-open="isUpdateSheetOpen" :initial-values="updatingBankAccount"
+            :on-success="handleUpdateSuccess" :on-cancel="() => {
+                updatingBankAccount = null
+                isUpdateSheetOpen = false
+            }" />
     </div>
 </template>
 

@@ -23,34 +23,22 @@ watch(
     <UiAlertDialogContent>
       <UiAlertDialogHeader>
         <UiAlertDialogTitle>{{ dialogOptions?.title }}</UiAlertDialogTitle>
-        <UiAlertDialogDescription
-          v-if="dialogOptions?.message"
-          v-html="descriptionHtml"
-        >
+        <UiAlertDialogDescription v-if="dialogOptions?.message" v-html="descriptionHtml">
         </UiAlertDialogDescription>
       </UiAlertDialogHeader>
       <UiAlertDialogFooter>
-        <UiAlertDialogCancel
-          v-if="dialogOptions?.hasCancel"
-          @click="store.closeDialog"
-          >Cancel</UiAlertDialogCancel
-        >
-        <UiAlertDialogAction
-          :class="
-            cn({
-              'danger-color': dialogOptions?.confirm?.variant === 'danger',
-            })
-          "
-          @click="
+        <UiAlertDialogCancel v-if="dialogOptions?.hasCancel" @click="store.closeDialog">Cancel</UiAlertDialogCancel>
+        <UiAlertDialogAction :class="cn({
+          'danger-color': dialogOptions?.confirm?.variant === 'danger',
+        })
+          " @click="
             () => {
               dialogOptions?.confirm?.action();
               store.closeDialog();
             }
-          "
-          >{{
+          ">{{
             dialogOptions?.confirm?.label ?? "Continue"
-          }}</UiAlertDialogAction
-        >
+          }}</UiAlertDialogAction>
       </UiAlertDialogFooter>
     </UiAlertDialogContent>
   </UiAlertDialog>
