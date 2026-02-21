@@ -7,15 +7,17 @@ import { getDefaultDeleteToastOptions } from "~/helpers/toast/get-default-delete
 
 export type IAPIDeleteCategory = {
   id: string;
-} & IAPIRequestCommon<void>;
+} & IAPIRequestCommon<boolean>;
 
 export const deleteCategory = async ({ id, options }: IAPIDeleteCategory) => {
   const response = await handleAppRequest(
     async () => {
-      return firebaseDelete({
+      await firebaseDelete({
         collection: "categories",
         id,
       });
+
+      return true
     },
     {
       toastOptions: getDefaultDeleteToastOptions({ itemName: "Categoria" }),

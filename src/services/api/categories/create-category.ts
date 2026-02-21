@@ -18,10 +18,11 @@ export type IAPICreateCategory = {
 export const createCategory = async ({ data, options }: IAPICreateCategory) => {
   const response = await handleAppRequest(
     async () => {
-      return firebaseCreate({
+      const result = await firebaseCreate<ICreateCategory, ICategory>({
         collection: "categories",
         data,
       });
+      return result
     },
     {
       toastOptions: getDefaultCreateToastOptions({ itemName: "Categoria" }),

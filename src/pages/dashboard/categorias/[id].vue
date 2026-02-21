@@ -114,9 +114,11 @@ onMounted(() => {
       <div class="space-y-6">
         <div class="flex items-center gap-4">
           <div
-            class="h-16 w-16 rounded-full border border-border shrink-0"
+            class="h-20 w-20 rounded-full border border-border shrink-0 flex items-center justify-center text-4xl"
             :style="{ backgroundColor: category.color || 'hsl(var(--muted))' }"
-          />
+          >
+            {{ category.icon || '📁' }}
+          </div>
           <div>
             <h2 class="text-2xl font-bold">{{ category.name }}</h2>
             <p class="text-sm text-muted-foreground">
@@ -134,19 +136,21 @@ onMounted(() => {
           </div>
 
           <div class="space-y-2">
-            <p class="text-sm font-medium text-muted-foreground">Cor</p>
+            <p class="text-sm font-medium text-muted-foreground">Ícone</p>
             <div class="flex items-center gap-2">
-              <div
-                class="h-5 w-5 rounded-full border border-border"
-                :style="{ backgroundColor: category.color || 'hsl(var(--muted))' }"
-              />
-              <p class="text-base">{{ category.color || '—' }}</p>
+              <span class="text-2xl">{{ category.icon || '—' }}</span>
             </div>
           </div>
 
           <div class="space-y-2">
-            <p class="text-sm font-medium text-muted-foreground">Ícone</p>
-            <p class="text-base">{{ category.icon || '—' }}</p>
+            <p class="text-sm font-medium text-muted-foreground">Cor</p>
+            <div class="flex items-center gap-2">
+              <div
+                class="h-6 w-6 rounded-full border border-border"
+                :style="{ backgroundColor: category.color || 'hsl(var(--muted))' }"
+              />
+              <p class="text-base">{{ category.color || '—' }}</p>
+            </div>
           </div>
 
           <div class="space-y-2">
