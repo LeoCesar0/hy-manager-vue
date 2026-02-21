@@ -161,23 +161,6 @@ onMounted(() => {
         </UiButton>
       </UiEmpty>
     </div>
-
-    <!-- <UiSheet v-model:open="isSheetOpen">
-      <UiSheetContent class="sm:max-w-xl overflow-y-auto">
-        <UiSheetHeader>
-          <UiSheetTitle>Editar Conta</UiSheetTitle>
-          <UiSheetDescription>
-            Edite as informações da conta bancária
-          </UiSheetDescription>
-        </UiSheetHeader>
-        
-        <BankAccountForm
-          :bank-account="bankAccount"
-          @success="handleFormSuccess"
-          @cancel="isSheetOpen = false"
-        />
-      </UiSheetContent>
-    </UiSheet> -->
   </div>
 </template>
 

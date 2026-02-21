@@ -9,6 +9,8 @@ import { deleteBankAccount } from "~/services/api/bank-accounts/delete-bank-acco
 import { formatDate } from "~/helpers/formatDate";
 import BankAccountForm from "~/components/BankAccounts/BankAccountForm.vue";
 import SheetBody from "~/components/ui/sheet/SheetBody.vue";
+import FancyLink from "~/components/FancyLink/index.vue";
+import { ROUTE } from "~/static/routes";
 
 definePageMeta({
     layout: "dashboard",
@@ -112,8 +114,8 @@ const columns: ColumnDef<IBankAccount>[] = [
         cell: ({ row }) => {
             const name = row.getValue("name") as string;
             return h(
-                "div",
-                { class: "flex items-center gap-2" },
+                FancyLink,
+                { class: "flex items-center gap-2", to: ROUTE.bankAccountId.path(row.original.id) },
                 [
                     h(WalletIcon, { class: "h-4 w-4 text-muted-foreground" }),
                     h("span", { class: "font-medium" }, name),

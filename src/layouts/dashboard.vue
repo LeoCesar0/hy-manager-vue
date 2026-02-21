@@ -56,14 +56,19 @@ const menuGroups = computed(() => {
     items: groups[groupKey],
   })).filter((group) => group.items.length > 0);
 });
+
+const dashboardStore = useDashboardStore();
+const { isLoadingDashboard } = storeToRefs(dashboardStore);
 </script>
 
 <template>
-  <UiSidebarProvider>
+  <GlobalLoadingPage v-if="isLoadingDashboard" />
+  <UiSidebarProvider v-else>
     <UiSidebar>
       <UiSidebarHeader class="border-b p-4">
         <NuxtLink :to="ROUTE.dashboard.path()" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div class="h-10 w-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold">
+          <div
+            class="h-10 w-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold">
             💰
           </div>
           <div>
@@ -79,10 +84,7 @@ const menuGroups = computed(() => {
           <UiSidebarGroupContent>
             <UiSidebarMenu>
               <UiSidebarMenuItem v-for="item in group.items" :key="item.name">
-                <UiSidebarMenuButton
-                  :as-child="true"
-                  :is-active="isActive(item.path())"
-                >
+                <UiSidebarMenuButton :as-child="true" :is-active="isActive(item.path())">
                   <NuxtLink :to="item.path()" class="flex items-center gap-3">
                     <component :is="item.menu.icon" class="h-4 w-4" />
                     <span>{{ item.label }}</span>
@@ -97,7 +99,8 @@ const menuGroups = computed(() => {
       <UiSidebarFooter class="border-t p-4">
         <UiDropdownMenu>
           <UiDropdownMenuTrigger as-child>
-            <button class="flex items-center gap-3 w-full hover:bg-muted rounded-lg p-2 cursor-pointer transition-colors">
+            <button
+              class="flex items-center gap-3 w-full hover:bg-muted rounded-lg p-2 cursor-pointer transition-colors">
               <UiAvatar class="h-8 w-8">
                 <UiAvatarImage v-if="currentUser?.imageUrl" :src="currentUser.imageUrl" />
                 <UiAvatarFallback>{{ getUserInitials }}</UiAvatarFallback>

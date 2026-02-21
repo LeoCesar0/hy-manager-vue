@@ -1,0 +1,58 @@
+# Files Pattern
+
+When creating a function, follow the pattern which always have 1 object as param, the following way.
+Also in .ts files, priorize exporting only 1 function per file. That file can keep multiple files, but exporting only 1. And the name of the file must be the same as the. function
+
+type IProps = {
+...
+}
+
+export const myFunction = ({...}:IProps) => {
+}
+
+# Vue and CSS Styling
+
+- Create custom classes and apply tailwind styles to them into the Style template at the botom.
+- Script Template always comes at the top
+- You can apply static colors in some cases, but try to follow the shadcn-tailwind colors already implemented, such as primary, secondary, accent, border, background, etc...
+
+# Patterns
+
+- Use DRY and KISS coding patterns
+- Use Parameter Object Pattern for functions
+- Follow existing coding patterns before any action
+
+# Avoid Rules
+
+- DO NOT USE BARREL FILE
+- Never aggregate exports using `export * from ...`
+- Never centralize exports in an index file
+- Always import and export directly from the concrete file path
+- Avoid writing unrequested DOCS or .md
+- Avoid writing example docs or .md, unless requested
+- Avoid running test commands unless requested
+- Avoid writing test files unless requested
+- Avoid using any type, unless you can't find solution
+
+# Examples to Learn With
+
+## Ensure mutation types while mutating models
+
+AVOID:
+
+<bad-example>
+UserModel.create({
+    name:"Robert",
+    ....
+})
+</bad-example>
+
+DO:
+
+<good-example>
+const userValues: ICreateUser = {
+     name:"Robert",
+    ....
+}
+UserModel.create(userValues)
+</good-example>

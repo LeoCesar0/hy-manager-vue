@@ -8,14 +8,17 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const userStore = useUserStore();
   const { currentUser } = storeToRefs(userStore);
 
-  await new Promise<void>((resolve) => {
+  new Promise<void>((resolve) => {
     const unsubscribe = onAuthStateChanged(
       firebaseStore.firebaseAuth,
-      async (user) => {
-        firebaseStore.currentFirebaseUser = user;
-        if (user) {
-          const res = await handleInitializeUser({ user });
+      async (firebaseUser) => {
+        firebaseStore.currentFirebaseUser = firebaseUser;
+        if (firebaseUser && currentUser.value?.id !== firebaseUser.uid) {
+          const res = await handleInitializeUser({ user: firebaseUser });
           currentUser.value = res.data;
+        }
+        if (!firebaseUser) {
+          currentUser.value = null
         }
         unsubscribe();
         resolve();

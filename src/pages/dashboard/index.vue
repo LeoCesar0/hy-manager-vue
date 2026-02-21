@@ -1,14 +1,15 @@
 <script setup lang='ts'>
 
 definePageMeta({
-    layout:'dashboard'
+    layout: 'dashboard'
 })
+
+const userStore = useUserStore();
+const { currentUser } = storeToRefs(userStore);
 
 </script>
 
 <template>
 </template>
 
-<style lang='scss' scoped>
-
-</style>
+<style lang='scss' scoped></style>

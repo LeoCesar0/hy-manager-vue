@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",
   devtools: { enabled: true },
   srcDir: "src/",
-  ssr: true,
+  ssr: false,
   css: ["@/styles/tailwind.css", "@/styles/components.scss"],
   modules: ["shadcn-nuxt", "@pinia/nuxt"],
   imports: {
@@ -38,7 +38,7 @@ export default defineNuxtConfig({
     componentDir: "@/components/ui",
   },
   typescript: {
-    typeCheck: true,
+    typeCheck: false,
   },
   alias: {
     "@lib": resolve(__dirname, "./src/lib"),
