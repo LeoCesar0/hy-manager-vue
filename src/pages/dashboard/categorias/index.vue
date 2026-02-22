@@ -4,6 +4,7 @@ import type { ICategory, ICreateCategory } from "~/@schemas/models/category";
 import { getCategories } from "~/services/api/categories/get-categories";
 import { deleteCategory } from "~/services/api/categories/delete-category";
 import { ROUTE } from "~/static/routes";
+import CategoryCard from "~/components/Categories/CategoryCard.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -127,7 +128,9 @@ onMounted(() => {
 
     <div class="relative flex items-center">
       <SearchIcon class="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-      <input v-model="searchQuery" class="flex h-9 w-full max-w-sm rounded-md border border-input bg-background pl-9 pr-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" type="text" placeholder="Buscar categorias..." />
+      <input v-model="searchQuery"
+        class="flex h-9 w-full max-w-sm rounded-md border border-input bg-background pl-9 pr-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        type="text" placeholder="Buscar categorias..." />
     </div>
 
     <div v-if="isLoadingData" class="flex items-center justify-center py-12">
@@ -145,30 +148,8 @@ onMounted(() => {
     </div>
 
     <div v-else class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr))">
-      <UiCard v-for="category in filteredCategories" :key="category.id" class="p-4 flex flex-col gap-3 hover:shadow-md transition-shadow">
-        <div class="flex items-center gap-3 flex-1">
-          <div 
-            class="h-12 w-12 rounded-full shrink-0 border border-border flex items-center justify-center text-2xl" 
-            :style="{ backgroundColor: category.color || 'hsl(var(--muted))' }"
-          >
-            {{ category.icon || '📁' }}
-          </div>
-          <div class="flex flex-col min-w-0">
-            <p class="font-medium truncate">{{ category.name }}</p>
-          </div>
-        </div>
-        <div class="flex items-center justify-end gap-1 border-t border-border pt-2">
-          <UiButton variant="ghost" size="icon" title="Ver detalhes" @click="handleView(category)">
-            <EyeIcon class="h-4 w-4" />
-          </UiButton>
-          <UiButton variant="ghost" size="icon" title="Editar" @click="handleEdit(category)">
-            <EditIcon class="h-4 w-4" />
-          </UiButton>
-          <UiButton variant="ghost" size="icon" title="Deletar" @click="handleDelete(category)">
-            <TrashIcon class="h-4 w-4 text-destructive" />
-          </UiButton>
-        </div>
-      </UiCard>
+      <CategoryCard v-for="category in filteredCategories" :key="category.id" :category="category"
+        :handle-view="handleView" :handle-edit="handleEdit" :handle-delete="handleDelete" />
     </div>
 
     <CategoriesCreateSheet v-model:is-open="isCreateSheetOpen" :initial-values="createCategoryInitialValues"
@@ -177,4 +158,3 @@ onMounted(() => {
       :on-success="handleUpdateSuccess" :on-cancel="() => { updatingCategory = null; isUpdateSheetOpen = false }" />
   </div>
 </template>
-

@@ -81,7 +81,7 @@ export const CATEGORY_ICON_LABEL: Record<CategoryIcon, string> = {
     fastFood: "Fast Food",
     restaurant: "Restaurante",
     // Moradia
-    home: "Moradia",
+    home: "Casa",
     rent: "Aluguel",
     electricity: "Energia",
     water: "Água",
@@ -149,9 +149,13 @@ export const CATEGORY_ICON_LABEL: Record<CategoryIcon, string> = {
 
 const getOption = (icon: CategoryIcon): ISelectOption => {
     return {
-        value: CATEGORY_ICON[icon],
+        value: icon,
         label: `${CATEGORY_ICON[icon]} ${CATEGORY_ICON_LABEL[icon]}`,
     };
 };
 
 export const CATEGORY_ICONS_OPTIONS: ISelectOption[] = zCategoryIcon.options.map(getOption);
+
+export const getCategoryIcon = (icon: CategoryIcon): string => {
+    return CATEGORY_ICON[icon] || '';
+};
