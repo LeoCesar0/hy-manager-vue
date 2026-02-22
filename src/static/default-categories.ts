@@ -41,6 +41,24 @@ export const DEFAULT_CATEGORY_ICONS: Record<DefaultCategory, CategoryIcon> = {
     "Energia": "electricity",
     "Outros": "others",
 }
+export const DEFAULT_CATEGORY_COLORS: Record<DefaultCategory, CategoryIcon> = {
+    "Alimentação": "food",
+    "Supermercado": "supermarket",
+    "Transporte": "transport",
+    "Saúde": "health",
+    "Educação": "education",
+    "Vestuário": "clothes",
+    "Lazer": "entertainment",
+    "Pet": "pet",
+    "Casa": "home",
+    "Contas": "bank",
+    "Investimentos": "investments",
+    "Cartão de Crédito": "card",
+    "Moradia": "home",
+    "Água": "water",
+    "Energia": "electricity",
+    "Outros": "others",
+}
 
 type ITemplate = Omit<ICreateCategory, "userId">
 

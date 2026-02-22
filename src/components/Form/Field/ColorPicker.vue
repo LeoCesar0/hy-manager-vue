@@ -2,27 +2,34 @@
 import { CheckIcon } from "lucide-vue-next";
 import { cn } from "~/lib/utils";
 
+export type IColorPickerProps = {
+  columns?: number;
+  colors?: string[];
+};
 type IProps = {
   modelValue?: string | null;
   disabled?: boolean;
-};
+  name: string
+} & IColorPickerProps
 
 const props = withDefaults(defineProps<IProps>(), {
   disabled: false,
+  columns: 8,
+  colors: () => [
+    "#ef4444", "#f97316", "#eab308", "#22c55e",
+    "#14b8a6", "#3b82f6", "#8b5cf6", "#ec4899",
+    "#dc2626", "#ea580c", "#ca8a04", "#16a34a",
+    "#0d9488", "#2563eb", "#7c3aed", "#db2777",
+    "#991b1b", "#9a3412", "#854d0e", "#166534",
+    "#134e4a", "#1e40af", "#5b21b6", "#9d174d",
+  ],
 });
 
 const emit = defineEmits<{
   "update:modelValue": [value: string];
 }>();
 
-const PRESET_COLORS = [
-  "#ef4444", "#f97316", "#eab308", "#22c55e",
-  "#14b8a6", "#3b82f6", "#8b5cf6", "#ec4899",
-  "#dc2626", "#ea580c", "#ca8a04", "#16a34a",
-  "#0d9488", "#2563eb", "#7c3aed", "#db2777",
-  "#991b1b", "#9a3412", "#854d0e", "#166534",
-  "#134e4a", "#1e40af", "#5b21b6", "#9d174d",
-];
+
 
 const hexInput = ref(props.modelValue || "");
 
@@ -55,40 +62,40 @@ const previewColor = computed(() =>
 
 <template>
   <div class="flex flex-col gap-3 w-full">
-    <div class="grid gap-2" style="grid-template-columns: repeat(8, 1fr)">
-      <button
-        v-for="color in PRESET_COLORS"
-        :key="color"
-        type="button"
-        :class="cn(
-          'h-7 w-full rounded-md flex items-center justify-center cursor-pointer transition-all',
-          'ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-          {
-            'ring-2 ring-ring ring-offset-2': modelValue === color,
-            'opacity-50 cursor-not-allowed': disabled,
-            'hover:scale-110 hover:shadow-md': !disabled,
-          }
-        )"
-        :style="{ backgroundColor: color }"
-        :disabled="disabled"
-        @click="selectPreset(color)"
-      >
+    <div class="grid gap-2" :style="`grid-template-columns: repeat(${columns}, 1fr)`">
+      <button v-for="color in colors" :key="color" type="button" :class="cn(
+        'h-7 w-full rounded-md flex items-center justify-center cursor-pointer transition-all',
+        'ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        {
+          'ring-2 ring-ring ring-offset-2': modelValue === color,
+          'opacity-50 cursor-not-allowed': disabled,
+          'hover:scale-110 hover:shadow-md': !disabled,
+        }
+      )" :style="{ backgroundColor: color }" :disabled="disabled" @click="selectPreset(color)">
         <CheckIcon v-if="modelValue === color" class="h-3 w-3 text-white drop-shadow" />
       </button>
     </div>
 
     <div class="flex items-center gap-2">
-      <div class="h-8 w-8 rounded-md border border-border shrink-0" :style="{ backgroundColor: previewColor }" />
-      <input
+      <label :for="`custom-color-${name}`" class="h-8 w-8 rounded-md border-none  shrink-0"
+        :style="{ backgroundColor: previewColor }" :disabled="disabled" />
+      <div class="invisible h-0 w-0" >
+        <input type="color" name="name" :id="`custom-color-${name}`" :value="modelValue" class=""
+          :disabled="disabled" />
+      </div>
+      <input :name="name" :id="name"
         class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-        type="text"
-        maxlength="7"
-        placeholder="#000000"
-        :value="hexInput"
-        :disabled="disabled"
-        @input="handleHexInput"
-      />
+        type="text" maxlength="7" placeholder="#000000" :value="hexInput" :disabled="disabled"
+        @input="handleHexInput" />
     </div>
   </div>
 </template>
 
+<style scoped>
+.custom-color {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: none;
+}
+</style>
