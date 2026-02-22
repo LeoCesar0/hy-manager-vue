@@ -5,6 +5,7 @@ import type { ICategory, ICreateCategory } from "~/@schemas/models/category";
 import { zCreateCategory, zUpdateCategory } from "~/@schemas/models/category";
 import { createCategory } from "~/services/api/categories/create-category";
 import { updateCategory } from "~/services/api/categories/update-category";
+import { CATEGORY_PRESET_COLORS } from "~/static/category-colors";
 import { CATEGORY_ICONS_OPTIONS } from "~/static/category-icons";
 
 type IProps = {
@@ -100,14 +101,11 @@ const handleCancel = () => {
 <template>
   <Form @submit="onSubmit" class="space-y-6 mt-6">
     <FormField name="name" label="Nome" input-variant="input" placeholder="Ex: Alimentação" />
-    <FormField name="color" label="Cor" input-variant="color-picker" />
-    <FormField 
-      name="icon" 
-      label="Ícone" 
-      input-variant="select" 
-      placeholder="Selecione um ícone"
-      :select-options="CATEGORY_ICONS_OPTIONS"
-    />
+    <FormField name="color" label="Cor" input-variant="color-picker" :color-picker-props="{
+      colors: CATEGORY_PRESET_COLORS,
+    }" />
+    <FormField name="icon" label="Ícone" input-variant="select" placeholder="Selecione um ícone"
+      :select-options="CATEGORY_ICONS_OPTIONS" />
     <FormActions>
       <UiButton type="button" variant="outline" @click="handleCancel" :disabled="isLoading">
         Cancelar

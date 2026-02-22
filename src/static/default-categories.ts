@@ -60,13 +60,32 @@ export const DEFAULT_CATEGORY_COLORS: Record<DefaultCategory, CategoryIcon> = {
     "Outros": "others",
 }
 
+export const DEFAULT_CATEGORY_COLORS_MAP: Record<DefaultCategory, string> = {
+    "Alimentação": "#ef4444",
+    "Supermercado": "#f97316",
+    "Transporte": "#eab308",
+    "Saúde": "#22c55e",
+    "Educação": "#14b8a6",
+    "Vestuário": "#3b82f6",
+    "Lazer": "#ec4899",
+    "Pet": "#0d9488",
+    "Casa": "#ea580c",
+    "Contas": "#ca8a04",
+    "Investimentos": "#16a34a",
+    "Cartão de Crédito": "#dc2626",
+    "Moradia": "#7c3aed",
+    "Água": "#2563eb",
+    "Energia": "#db2777",
+    "Outros": "#991b1b",
+}
+
 type ITemplate = Omit<ICreateCategory, "userId">
 
 const getCategory = (category: DefaultCategory): ITemplate => {
     return {
         name: category,
         icon: DEFAULT_CATEGORY_ICONS[category],
-        color: null,
+        color: DEFAULT_CATEGORY_COLORS_MAP[category],
     }
 }
 

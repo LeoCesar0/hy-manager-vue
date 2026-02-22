@@ -16,7 +16,7 @@ import type { IImageUploaderProps } from "~/components/Form/Field/ImageUploader.
 import InputWithOptions from "~/components/Form/Field/InputWithOptions.vue";
 import MultipleSelect from "./MultipleSelect.vue";
 import CardSelect from "~/components/Form/Field/CardSelect.vue";
-import ColorPicker from "~/components/Form/Field/ColorPicker.vue";
+import ColorPicker, { type IColorPickerProps } from "~/components/Form/Field/ColorPicker.vue";
 import type { ICardSelectOption } from "~/components/Form/Field/CardSelectItem.vue";
 import type { NumberFieldRootProps } from "reka-ui";
 import type { IDatepickerProps } from "~/components/Datepicker/index.vue";
@@ -64,6 +64,7 @@ type Props = {
   autoLabel?: boolean;
   onSelectOption?: (option: ISelectOption) => void;
   inputOptions?: string[];
+  colorPickerProps?: IColorPickerProps;
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -305,6 +306,7 @@ const showPass = ref(false);
                 ...componentField,
                 disabled,
                 ...(props.inputProps ?? {}),
+                ...(props.colorPickerProps ?? {}),
               }"
             />
             <!-- CUSTOM -->
