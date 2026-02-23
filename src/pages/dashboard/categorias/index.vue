@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { PlusIcon, EditIcon, TrashIcon, EyeIcon, SearchIcon, FolderIcon } from "lucide-vue-next";
+import { PlusIcon, SearchIcon, } from "lucide-vue-next";
 import type { ICategory, ICreateCategory } from "~/@schemas/models/category";
 import { getCategories } from "~/services/api/categories/get-categories";
 import { deleteCategory } from "~/services/api/categories/delete-category";
 import { ROUTE } from "~/static/routes";
 import CategoryCard from "~/components/Categories/CategoryCard.vue";
+import { setupDefaultCategories } from "~/services/api/categories/setup-default-categories";
 
 definePageMeta({
   layout: "dashboard",
@@ -111,6 +112,47 @@ const handleUpdateSuccess = () => {
 onMounted(() => {
   loadCategories();
 });
+
+const handleCreateDefaultCategories = async () => {
+  const confirm = async ({ deleteExisting }: { deleteExisting?: boolean }) => {
+    const response = await setupDefaultCategories({
+      userId: currentUser.value?.id || "",
+      deleteExisting,
+      options: {
+        toastOptions: {
+          loading: { message: "Criando categorias padrão..." },
+          success: { message: "Categorias padrão criadas com sucesso!" },
+          error: true,
+        },
+        loadingRefs: [isLoadingData]
+      }
+    });
+    if (response.data) {
+      loadCategories();
+    }
+  }
+
+  openDialog({
+    title: "Criar Categorias Padrão",
+    message: "Deseja resetar as categorias e carregar as padrões, ou apenas carregar as padrões?",
+    confirm: {
+      label: "Criar",
+      action: async () => {
+        await confirm({ deleteExisting: true });
+      },
+    },
+    otherOptions: [
+      {
+        label: "Resetar e carregar as padrões",
+        action: () => {
+          confirm({ deleteExisting: false });
+        },
+        variant: "danger",
+      },
+    ],
+  });
+};
+
 </script>
 
 <template>
@@ -120,12 +162,16 @@ onMounted(() => {
         <h1 class="text-3xl font-bold tracking-tight">Categorias</h1>
         <p class="text-muted-foreground">Gerencie suas categorias de transações</p>
       </div>
-      <UiButton @click="handleCreate">
-        <PlusIcon class="h-4 w-4 mr-2" />
-        Nova Categoria
-      </UiButton>
+      <div class="flex items-center gap-2">
+        <UiButton @click="handleCreateDefaultCategories" :disabled="isLoadingData" variant="outline">
+          Carregar Categorias Padrão
+        </UiButton>
+        <UiButton @click="handleCreate">
+          <PlusIcon class="h-4 w-4 mr-2" />
+          Nova Categoria
+        </UiButton>
+      </div>
     </div>
-
     <div class="relative flex items-center">
       <SearchIcon class="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
       <input v-model="searchQuery"

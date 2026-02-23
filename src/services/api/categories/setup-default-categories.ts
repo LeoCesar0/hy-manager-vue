@@ -12,12 +12,14 @@ import { getCategories } from "./get-categories";
 import { DEFAULT_CATEGORIES } from "~/static/default-categories";
 import { firebaseCreateMany } from "~/services/firebase/firebaseCreateMany";
 import { slugify } from "~/helpers/slugify";
+import { firebaseDeleteMany } from "~/services/firebase/firebaseDeleteMany";
 
 export type IAPISetupDefaultCategories = {
   userId: string;
+  deleteExisting?: boolean;
 } & IAPIRequestCommon<ICategory[]>;
 
-export const setupDefaultCategories = async ({ userId, options }: IAPISetupDefaultCategories) => {
+export const setupDefaultCategories = async ({ userId, deleteExisting, options }: IAPISetupDefaultCategories) => {
   const response = await handleAppRequest<ICategory[]>(
     async () => {
       const existingCategories = await getCategories({ userId });
@@ -29,6 +31,12 @@ export const setupDefaultCategories = async ({ userId, options }: IAPISetupDefau
           userId,
         }
       })
+      if (deleteExisting) {
+        await firebaseDeleteMany({
+          collection: "categories",
+          ids: existingCategories.data?.map(c => c.id) || [],
+        })
+      }
       const result = await firebaseCreateMany<ICreateCategory, ICategory>({
         collection: "categories",
         data: values,

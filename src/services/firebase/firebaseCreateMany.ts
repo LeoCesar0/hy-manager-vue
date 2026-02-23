@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { writeBatch, Timestamp } from "firebase/firestore";
+import { writeBatch, Timestamp, WriteBatch } from "firebase/firestore";
 import { createDocRef } from "./createDocRef";
 import type { AnyObject } from "~/@types/anyObject";
 import { COLLECTION_SCHEMA, type FirebaseCollection } from "./collections";
@@ -7,11 +7,13 @@ import { COLLECTION_SCHEMA, type FirebaseCollection } from "./collections";
 type IFirebaseCreateMany<T extends AnyObject> = {
   collection: FirebaseCollection;
   data: T[];
+  batch?: WriteBatch;
 };
 
 export const firebaseCreateMany = async <T extends AnyObject, R = T>({
   collection: collectionName,
   data,
+  batch: _batch
 }: IFirebaseCreateMany<T>): Promise<R[]> => {
   const { firebaseDB } = useFirebaseStore();
 
@@ -19,7 +21,7 @@ export const firebaseCreateMany = async <T extends AnyObject, R = T>({
     return [];
   }
 
-  const batch = writeBatch(firebaseDB);
+  const batch = _batch || writeBatch(firebaseDB);
   const documentsData: R[] = [];
 
   const schema = COLLECTION_SCHEMA[collectionName];

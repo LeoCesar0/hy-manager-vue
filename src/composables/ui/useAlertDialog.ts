@@ -1,10 +1,11 @@
 import { ref } from "vue";
+import type { ButtonVariants } from "~/components/ui/button";
 import { makeStoreKey } from "~/helpers/makeStoreKey";
 
 type ActionProps = {
   label: string;
   action: () => void;
-  variant?: "primary" | "danger";
+  variant?: ButtonVariants["variant"];
 };
 
 interface AlertDialogOptions {
@@ -12,6 +13,7 @@ interface AlertDialogOptions {
   message?: string;
   hasCancel?: boolean;
   confirm?: ActionProps;
+  otherOptions?: ActionProps[]
 }
 
 export const useAlertDialog = defineStore(makeStoreKey("alert-dialog"), () => {

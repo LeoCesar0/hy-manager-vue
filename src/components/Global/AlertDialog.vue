@@ -39,6 +39,15 @@ watch(
           ">{{
             dialogOptions?.confirm?.label ?? "Continue"
           }}</UiAlertDialogAction>
+        <UiButton v-for="option in dialogOptions?.otherOptions" :key="option.label" :class="cn({
+          'danger-color': option.variant === 'danger',
+        })
+          " @click="() => {
+            store.closeDialog();
+            option.action();
+          }" :variant="option.variant">
+          {{ option.label }}
+        </UiButton>
       </UiAlertDialogFooter>
     </UiAlertDialogContent>
   </UiAlertDialog>
