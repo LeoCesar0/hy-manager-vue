@@ -50,7 +50,7 @@ const loadCategories = async () => {
       options: { toastOptions: undefined },
     });
     if (response.data) {
-      categories.value = response.data;
+      categories.value = response.data.sort((a, b) => a.name.localeCompare(b.name));
     }
   } finally {
     isLoadingData.value = false;
@@ -138,14 +138,14 @@ const handleCreateDefaultCategories = async () => {
     confirm: {
       label: "Criar",
       action: async () => {
-        await confirm({ deleteExisting: true });
+        await confirm({ deleteExisting: false });
       },
     },
     otherOptions: [
       {
         label: "Resetar e carregar as padrões",
         action: () => {
-          confirm({ deleteExisting: false });
+          confirm({ deleteExisting: true });
         },
         variant: "danger",
       },

@@ -24,7 +24,7 @@ export const zCategoryIcon = z.enum([
   // Pet
   'pet', 'veterinary',
   // Casa
-  'cleaning', 'maintenance', 'furniture',
+  'cleaning', 'maintenance', 'furniture','bills',
   // Tecnologia
   'technology', 'electronics',
   // Financeiro

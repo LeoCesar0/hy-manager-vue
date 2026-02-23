@@ -52,6 +52,7 @@ export const CATEGORY_ICON: Record<CategoryIcon, string> = {
     cleaning: "🧹",
     maintenance: "🔧",
     furniture: "🛋️",
+    bills: "🧾",
     // Tecnologia
     technology: "💻",
     electronics: "📱",
@@ -134,6 +135,7 @@ export const CATEGORY_ICON_LABEL: Record<CategoryIcon, string> = {
     card: "Cartão",
     business: "Gráfico",
     work: "Maleta",
+    bills: "Despesas",
     // Outros
     gifts: "Presente",
     parties: "Festa",
