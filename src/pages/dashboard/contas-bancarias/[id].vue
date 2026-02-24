@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { WalletIcon, ArrowLeftIcon, EditIcon, TrashIcon, EyeIcon } from "lucide-vue-next";
+import { WalletIcon, ArrowLeftIcon } from "lucide-vue-next";
 import type { IBankAccount } from "~/@schemas/models/bank-account";
 import { firebaseGet } from "~/services/firebase/firebaseGet";
 import { deleteBankAccount } from "~/services/api/bank-accounts/delete-bank-account";
 import { formatDate } from "~/helpers/formatDate";
 import { ROUTE } from "~/static/routes";
 import BankAccountForm from "~/components/BankAccounts/BankAccountForm.vue";
+import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
+import DetailCard from "~/components/Dashboard/DetailCard.vue";
+import DetailField from "~/components/Dashboard/DetailField.vue";
+import ActionButtons from "~/components/Dashboard/ActionButtons.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -90,68 +94,58 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex items-center gap-4">
-      <UiButton variant="ghost" size="icon" @click="handleGoBack">
-        <ArrowLeftIcon class="h-4 w-4" />
-      </UiButton>
-      <div class="flex-1">
-        <h1 class="text-3xl font-bold tracking-tight">Detalhes da Conta</h1>
-        <p class="text-muted-foreground">Visualize e edite as informações da conta</p>
-      </div>
-      <div class="flex gap-2">
-        <UiButton variant="outline" size="icon" @click="handleEdit" title="Editar">
-          <EditIcon class="h-4 w-4" />
+  <DashboardSection 
+    title="Detalhes da Conta" 
+    subtitle="Visualize e edite as informações da conta"
+    :show-back-button="true"
+    :on-back="handleGoBack"
+    :loading="isLoadingData"
+  >
+    <template #detail-actions>
+      <ActionButtons 
+        :show-view="false"
+        :on-edit="handleEdit"
+        :on-delete="handleDelete"
+      />
+    </template>
+
+    <DetailCard 
+      :not-found="!bankAccount"
+      not-found-title="Conta não encontrada"
+      not-found-description="A conta bancária que você está procurando não existe."
+    >
+      <template #not-found-action>
+        <UiButton @click="handleGoBack">
+          <ArrowLeftIcon class="h-4 w-4 mr-2" />
+          Voltar
         </UiButton>
-        <UiButton variant="destructive" size="icon" @click="handleDelete" title="Deletar">
-          <TrashIcon class="h-4 w-4" />
-        </UiButton>
-      </div>
-    </div>
-    <div v-if="isLoadingData" class="flex items-center justify-center py-12">
-      <Loading :is-loading="true" size="lg" />
-    </div>
-    <UiCard v-else-if="bankAccount" class="p-6">
-      <div class="space-y-6">
+      </template>
+
+      <template #header>
         <div class="flex items-center gap-4">
           <div class="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
             <WalletIcon class="h-8 w-8 text-primary" />
           </div>
           <div>
-            <h2 class="text-2xl font-bold">{{ bankAccount.name }}</h2>
+            <h2 class="text-2xl font-bold">{{ bankAccount?.name }}</h2>
             <p class="text-sm text-muted-foreground">
-              Criada em {{ formatDate(bankAccount.createdAt) }}
+              Criada em {{ formatDate(bankAccount?.createdAt) }}
             </p>
           </div>
         </div>
-        <UiSeparator />
+      </template>
+
+      <template #content>
         <div class="grid gap-4 md:grid-cols-2">
-          <div class="space-y-2">
-            <p class="text-sm font-medium text-muted-foreground">Nome</p>
-            <p class="text-base">{{ bankAccount.name }}</p>
-          </div>
+          <DetailField label="Nome" :value="bankAccount?.name" />
 
-          <div class="space-y-2">
-            <p class="text-sm font-medium text-muted-foreground">Data de Criação</p>
-            <p class="text-base">{{ formatDate(bankAccount.createdAt) }}</p>
-          </div>
+          <DetailField label="Data de Criação" :value="formatDate(bankAccount?.createdAt)" />
 
-          <div class="space-y-2">
-            <p class="text-sm font-medium text-muted-foreground">Última Atualização</p>
-            <p class="text-base">{{ formatDate(bankAccount.updatedAt) }}</p>
-          </div>
+          <DetailField label="Última Atualização" :value="formatDate(bankAccount?.updatedAt)" />
         </div>
-      </div>
-    </UiCard>
-    <div v-else class="flex items-center justify-center py-12">
-      <UiEmpty title="Conta não encontrada" description="A conta bancária que você está procurando não existe.">
-        <UiButton @click="handleGoBack">
-          <ArrowLeftIcon class="h-4 w-4 mr-2" />
-          Voltar
-        </UiButton>
-      </UiEmpty>
-    </div>
-  </div>
+      </template>
+    </DetailCard>
+  </DashboardSection>
 </template>
 
 <style lang="scss" scoped></style>

@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { h, resolveComponent } from "vue";
+import { h } from "vue";
 import type { ColumnDef } from "@tanstack/vue-table";
-import { WalletIcon, PlusIcon, EditIcon, TrashIcon, MoreHorizontalIcon, EyeIcon } from "lucide-vue-next";
+import { WalletIcon, PlusIcon } from "lucide-vue-next";
 import type { IBankAccount, ICreateBankAccount } from "~/@schemas/models/bank-account";
 import type { IPaginationBody, IPaginationResult } from "~/@types/pagination";
 import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
 import { deleteBankAccount } from "~/services/api/bank-accounts/delete-bank-account";
 import { formatDate } from "~/helpers/formatDate";
-import BankAccountForm from "~/components/BankAccounts/BankAccountForm.vue";
-import SheetBody from "~/components/ui/sheet/SheetBody.vue";
 import FancyLink from "~/components/FancyLink/index.vue";
 import { ROUTE } from "~/static/routes";
+import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
+import ActionButtons from "~/components/Dashboard/ActionButtons.vue";
 
 definePageMeta({
     layout: "dashboard",
@@ -150,39 +150,14 @@ const columns: ColumnDef<IBankAccount>[] = [
         header: "Ações",
         cell: ({ row }) => {
             const bankAccount = row.original;
-            return h(
-                "div",
-                { class: "flex items-center gap-2" },
-                [
-                    h(
-                        resolveComponent("UiButton"),
-                        {
-                            variant: "ghost",
-                            size: "icon",
-                            onClick: () => handleView(bankAccount),
-                        },
-                        () => h(EyeIcon, { class: "h-4 w-4" })
-                    ),
-                    h(
-                        resolveComponent("UiButton"),
-                        {
-                            variant: "ghost",
-                            size: "icon",
-                            onClick: () => handleEdit(bankAccount),
-                        },
-                        () => h(EditIcon, { class: "h-4 w-4" })
-                    ),
-                    h(
-                        resolveComponent("UiButton"),
-                        {
-                            variant: "ghost",
-                            size: "icon",
-                            onClick: () => handleDelete(bankAccount),
-                        },
-                        () => h(TrashIcon, { class: "h-4 w-4 text-destructive" })
-                    ),
-                ]
-            );
+            return h(ActionButtons, {
+                showView: true,
+                editVariant: "ghost",
+                deleteVariant: "ghost",
+                onView: () => handleView(bankAccount),
+                onEdit: () => handleEdit(bankAccount),
+                onDelete: () => handleDelete(bankAccount),
+            });
         },
     },
 ];
@@ -200,20 +175,20 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="space-y-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold tracking-tight">Contas Bancárias</h1>
-                <p class="text-muted-foreground">Gerencie suas contas bancárias</p>
-            </div>
+    <DashboardSection 
+        title="Contas Bancárias" 
+        subtitle="Gerencie suas contas bancárias"
+        :loading="isLoadingData"
+    >
+        <template #actions>
             <UiButton @click="handleCreate">
                 <PlusIcon class="h-4 w-4 mr-2" />
                 Nova Conta
             </UiButton>
-        </div>
+        </template>
+
         <Table :columns="columns" :pagination-body="paginationBody" :pagination-result="bankAccounts"
             :is-loading="isLoadingData" />
-
 
         <BankAccountsCreateSheet v-model:is-open="isCreateSheetOpen" :initial-values="createBankAccountInitialValues"
             :on-success="handleCreateSuccess" :on-cancel="() => {
@@ -224,7 +199,7 @@ onMounted(() => {
                 updatingBankAccount = null
                 isUpdateSheetOpen = false
             }" />
-    </div>
+    </DashboardSection>
 </template>
 
 <style lang="scss" scoped></style>

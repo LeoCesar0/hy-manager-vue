@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { ArrowLeftIcon, EditIcon, TrashIcon } from "lucide-vue-next";
+import { ArrowLeftIcon } from "lucide-vue-next";
 import type { ICategory } from "~/@schemas/models/category";
 import { firebaseGet } from "~/services/firebase/firebaseGet";
 import { deleteCategory } from "~/services/api/categories/delete-category";
 import { formatDate } from "~/helpers/formatDate";
 import { ROUTE } from "~/static/routes";
+import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
+import DetailCard from "~/components/Dashboard/DetailCard.vue";
+import DetailField from "~/components/Dashboard/DetailField.vue";
+import ActionButtons from "~/components/Dashboard/ActionButtons.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -87,96 +91,76 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex items-center gap-4">
-      <UiButton variant="ghost" size="icon" @click="handleGoBack">
-        <ArrowLeftIcon class="h-4 w-4" />
-      </UiButton>
-      <div class="flex-1">
-        <h1 class="text-3xl font-bold tracking-tight">Detalhes da Categoria</h1>
-        <p class="text-muted-foreground">Visualize e edite as informações da categoria</p>
-      </div>
-      <div class="flex gap-2">
-        <UiButton variant="outline" size="icon" title="Editar" @click="handleEdit">
-          <EditIcon class="h-4 w-4" />
-        </UiButton>
-        <UiButton variant="destructive" size="icon" title="Deletar" @click="handleDelete">
-          <TrashIcon class="h-4 w-4" />
-        </UiButton>
-      </div>
-    </div>
+  <DashboardSection 
+    title="Detalhes da Categoria" 
+    subtitle="Visualize e edite as informações da categoria"
+    :show-back-button="true"
+    :on-back="handleGoBack"
+    :loading="isLoadingData"
+  >
+    <template #detail-actions>
+      <ActionButtons 
+        :show-view="false"
+        :on-edit="handleEdit"
+        :on-delete="handleDelete"
+      />
+    </template>
 
-    <div v-if="isLoadingData" class="flex items-center justify-center py-12">
-      <Loading :is-loading="true" size="lg" />
-    </div>
-
-    <UiCard v-else-if="category" class="p-6">
-      <div class="space-y-6">
-        <div class="flex items-center gap-4">
-          <div
-            class="h-20 w-20 rounded-full border border-border shrink-0 flex items-center justify-center text-4xl"
-            :style="{ backgroundColor: category.color || 'hsl(var(--muted))' }"
-          >
-            {{ category.icon || '📁' }}
-          </div>
-          <div>
-            <h2 class="text-2xl font-bold">{{ category.name }}</h2>
-            <p class="text-sm text-muted-foreground">
-              Criada em {{ formatDate(category.createdAt) }}
-            </p>
-          </div>
-        </div>
-
-        <UiSeparator />
-
-        <div class="grid gap-4 md:grid-cols-2">
-          <div class="space-y-2">
-            <p class="text-sm font-medium text-muted-foreground">Nome</p>
-            <p class="text-base">{{ category.name }}</p>
-          </div>
-
-          <div class="space-y-2">
-            <p class="text-sm font-medium text-muted-foreground">Ícone</p>
-            <div class="flex items-center gap-2">
-              <span class="text-2xl">{{ category.icon || '—' }}</span>
-            </div>
-          </div>
-
-          <div class="space-y-2">
-            <p class="text-sm font-medium text-muted-foreground">Cor</p>
-            <div class="flex items-center gap-2">
-              <div
-                class="h-6 w-6 rounded-full border border-border"
-                :style="{ backgroundColor: category.color || 'hsl(var(--muted))' }"
-              />
-              <p class="text-base">{{ category.color || '—' }}</p>
-            </div>
-          </div>
-
-          <div class="space-y-2">
-            <p class="text-sm font-medium text-muted-foreground">Data de Criação</p>
-            <p class="text-base">{{ formatDate(category.createdAt) }}</p>
-          </div>
-
-          <div class="space-y-2">
-            <p class="text-sm font-medium text-muted-foreground">Última Atualização</p>
-            <p class="text-base">{{ formatDate(category.updatedAt) }}</p>
-          </div>
-        </div>
-      </div>
-    </UiCard>
-
-    <div v-else class="flex items-center justify-center py-12">
-      <UiEmpty
-        title="Categoria não encontrada"
-        description="A categoria que você está procurando não existe."
-      >
+    <DetailCard 
+      :not-found="!category"
+      not-found-title="Categoria não encontrada"
+      not-found-description="A categoria que você está procurando não existe."
+    >
+      <template #not-found-action>
         <UiButton @click="handleGoBack">
           <ArrowLeftIcon class="h-4 w-4 mr-2" />
           Voltar
         </UiButton>
-      </UiEmpty>
-    </div>
+      </template>
+
+      <template #header>
+        <div class="flex items-center gap-4">
+          <div
+            class="h-20 w-20 rounded-full border border-border shrink-0 flex items-center justify-center text-4xl"
+            :style="{ backgroundColor: category?.color || 'hsl(var(--muted))' }"
+          >
+            {{ category?.icon || '📁' }}
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold">{{ category?.name }}</h2>
+            <p class="text-sm text-muted-foreground">
+              Criada em {{ formatDate(category?.createdAt) }}
+            </p>
+          </div>
+        </div>
+      </template>
+
+      <template #content>
+        <div class="grid gap-4 md:grid-cols-2">
+          <DetailField label="Nome" :value="category?.name" />
+
+          <DetailField label="Ícone">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">{{ category?.icon || '—' }}</span>
+            </div>
+          </DetailField>
+
+          <DetailField label="Cor">
+            <div class="flex items-center gap-2">
+              <div
+                class="h-6 w-6 rounded-full border border-border"
+                :style="{ backgroundColor: category?.color || 'hsl(var(--muted))' }"
+              />
+              <p class="text-base">{{ category?.color || '—' }}</p>
+            </div>
+          </DetailField>
+
+          <DetailField label="Data de Criação" :value="formatDate(category?.createdAt)" />
+
+          <DetailField label="Última Atualização" :value="formatDate(category?.updatedAt)" />
+        </div>
+      </template>
+    </DetailCard>
 
     <CategoriesEditSheet
       v-if="category"
@@ -185,6 +169,6 @@ onMounted(() => {
       :on-success="handleEditSuccess"
       :on-cancel="() => { isSheetOpen = false }"
     />
-  </div>
+  </DashboardSection>
 </template>
 

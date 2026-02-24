@@ -14,6 +14,7 @@ export const myFunction = ({...}:IProps) => {
 
 - Script Template always comes at the top
 - You can apply static colors in some cases, but try to follow the shadcn-tailwind colors already implemented, such as primary, secondary, accent, border, background, etc...
+- For most cases, prefer using descriptive functions instead of vue emits
 
 # Patterns
 
