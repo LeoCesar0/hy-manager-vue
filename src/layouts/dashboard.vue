@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { signOut } from "firebase/auth";
-import { LogOutIcon } from "lucide-vue-next";
+import { LogOutIcon, WalletIcon } from "lucide-vue-next";
 import { ROUTE, MENU_GROUPS, MENU_GROUPS_LABELS, type MenuGroup, type IRoute } from "@/static/routes";
 import { APP_CONFIG } from "~/static/app";
+import type { ISelectOption } from "~/@schemas/select";
 
 const userStore = useUserStore();
 const firebaseStore = useFirebaseStore();
@@ -58,7 +59,35 @@ const menuGroups = computed(() => {
 });
 
 const dashboardStore = useDashboardStore();
-const { isLoadingDashboard } = storeToRefs(dashboardStore);
+const { isLoadingDashboard, bankAccounts, currentBankAccount, isLoadingBankAccounts } = storeToRefs(dashboardStore);
+
+const bankAccountOptions = computed<ISelectOption[]>(() => {
+  return [
+    { value: 'all', label: 'Todas as Contas' },
+    ...bankAccounts.value.map(acc => ({
+      value: acc.id,
+      label: acc.name,
+    })),
+  ];
+});
+
+const selectedBankAccountId = computed({
+  get: () => currentBankAccount.value?.id || 'all',
+  set: (value: string) => {
+    if (value === 'all') {
+      dashboardStore.setCurrentBankAccount(null);
+    } else {
+      const bankAccount = bankAccounts.value.find(acc => acc.id === value);
+      if (bankAccount) {
+        dashboardStore.setCurrentBankAccount(bankAccount);
+      }
+    }
+  },
+});
+
+onMounted(() => {
+  dashboardStore.loadBankAccounts();
+});
 </script>
 
 <template>
@@ -76,6 +105,19 @@ const { isLoadingDashboard } = storeToRefs(dashboardStore);
             <p class="text-xs text-muted-foreground">{{ APP_CONFIG.description }}</p>
           </div>
         </NuxtLink>
+        <div class="flex items-center gap-2 mt-2 ">
+          <WalletIcon class="h-4 w-4 text-muted-foreground" />
+          <UiSelect v-model="selectedBankAccountId" :disabled="isLoadingBankAccounts">
+            <UiSelectTrigger class="w-[200px]">
+              <UiSelectValue placeholder="Selecione uma conta" />
+            </UiSelectTrigger>
+            <UiSelectContent>
+              <UiSelectItem v-for="option in bankAccountOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </UiSelectItem>
+            </UiSelectContent>
+          </UiSelect>
+        </div>
       </UiSidebarHeader>
 
       <UiSidebarContent>
@@ -135,9 +177,10 @@ const { isLoadingDashboard } = storeToRefs(dashboardStore);
           <div class="flex-1">
             <h2 class="text-lg font-semibold">{{ route.meta.title || 'Dashboard' }}</h2>
           </div>
+
         </div>
       </div>
-      <div class="p-6 max-w-[90rem] mx-auto">
+      <div class="p-6 max-w-screen-2xl mx-auto">
         <slot />
       </div>
     </main>

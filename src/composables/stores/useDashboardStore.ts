@@ -1,12 +1,60 @@
-
+import type { IBankAccount } from "~/@schemas/models/bank-account";
 import { makeStoreKey } from "~/helpers/makeStoreKey";
+import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
 
 export const useDashboardStore = defineStore(makeStoreKey("dashboard"), () => {
   const userStore = useUserStore();
   const { currentUser } = storeToRefs(userStore);
-  const isLoadingDashboard = computed(() => !currentUser.value)
+  
+  const bankAccounts = ref<IBankAccount[]>([]);
+  const currentBankAccount = ref<IBankAccount | null>(null);
+  const isLoadingBankAccounts = ref(false);
+
+  const isLoadingDashboard = computed(() => !currentUser.value);
+
+  const loadBankAccounts = async () => {
+    if (!currentUser.value) return;
+
+    isLoadingBankAccounts.value = true;
+    try {
+      const response = await getBankAccounts({
+        userId: currentUser.value.id,
+        pagination: { page: 1, limit: 100 },
+        options: { toastOptions: undefined },
+      });
+
+      if (response.data?.list) {
+        bankAccounts.value = response.data.list;
+        
+        if (bankAccounts.value.length > 0) {
+          const firstAccount = bankAccounts.value[0];
+          if (firstAccount && !currentBankAccount.value) {
+            currentBankAccount.value = firstAccount;
+          }
+        }
+      }
+    } finally {
+      isLoadingBankAccounts.value = false;
+    }
+  };
+
+  const setCurrentBankAccount = (bankAccount: IBankAccount | null) => {
+    currentBankAccount.value = bankAccount;
+  };
+
+  const resetStore = () => {
+    bankAccounts.value = [];
+    currentBankAccount.value = null;
+    isLoadingBankAccounts.value = false;
+  };
 
   return {
-    isLoadingDashboard
+    bankAccounts,
+    currentBankAccount,
+    isLoadingBankAccounts,
+    isLoadingDashboard,
+    loadBankAccounts,
+    setCurrentBankAccount,
+    resetStore,
   };
 });
