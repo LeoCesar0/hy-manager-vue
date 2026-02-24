@@ -23,7 +23,6 @@ export const handleAppRequest = async <T>(
   }: IHandleAppRequestProps<T> = {}
 ): Promise<AppResponse<T>> => {
   const { toast } = useToast();
-
   let toastLoadingId: null | LoadingId = null;
 
   const handleError = async (res: AppResponseError) => {

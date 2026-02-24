@@ -25,7 +25,6 @@ export const firebaseCreate = async <T extends AnyObject, R = T>({
     ...data,
     ...commonData,
   });
-  console.log(`❗ newData -->`, newData);
   await firebaseUpsertData(collectionName, newData, id);
   const snapShot = await getDataById(collectionName, id);
   const createdData = snapShot.data() as R;

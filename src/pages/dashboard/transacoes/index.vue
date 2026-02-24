@@ -130,7 +130,6 @@ const loadTransactions = async () => {
       bankAccountId: currentBankAccount.value?.id || filters.value.bankAccountId || undefined,
       counterpartyId: filters.value.counterpartyId || undefined,
       pagination: paginationBody.value,
-      options: { toastOptions: undefined },
     });
 
     if (response.data) {

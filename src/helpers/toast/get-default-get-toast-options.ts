@@ -16,13 +16,13 @@ export const getDefaultGetToastOptions = ({
 }: IProps): ToastOptions => {
   return {
     loading: loading ? {
-      message: `Getting ${itemName.toLowerCase()}...`,
+      message: `Buscando ${itemName.toLowerCase()}...`,
     } : false,
     success: success ? {
-      message: `${beautifyObjectName(itemName)} got successfully!`,
+      message: `${beautifyObjectName(itemName)} buscada com sucesso!`,
     } : false,
     error: {
-      message: `Failed to get ${itemName.toLowerCase()}`,
+      message: `Falha ao buscar ${itemName.toLowerCase()}`,
     },
   };
 };

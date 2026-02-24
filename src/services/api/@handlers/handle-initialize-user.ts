@@ -44,7 +44,6 @@ export const handleInitializeUser = async ({ user }: IHandleInitializeUser) => {
           },
         },
       });
-      console.log(`❗ newUser created -->`, newUserResponse);
       return newUserResponse;
     },
     {

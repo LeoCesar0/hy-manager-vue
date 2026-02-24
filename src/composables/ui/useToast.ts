@@ -52,7 +52,6 @@ export const useToast = () => {
         return results;
       })
       .catch((err) => {
-        console.log("❗ handleToastPromise catch -->", err);
         const error = handleUnexpectedError({
           error: err,
           errorMessage: defaultErrorMessage,
@@ -114,7 +113,6 @@ export const useToast = () => {
         return res;
       })
       .catch((err) => {
-        console.log("❗ handleToastAnyPromise catch -->", err);
         const errorRes = handleUnexpectedError({
           error: err,
           errorMessage: defaultErrorMessage,
