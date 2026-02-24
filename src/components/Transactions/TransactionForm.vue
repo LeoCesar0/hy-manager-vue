@@ -10,13 +10,14 @@ import type { IBankAccount } from "~/@schemas/models/bank-account";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { ISelectOption } from "~/@schemas/select";
 import { Timestamp } from "firebase/firestore";
+import { getCategoryIcon } from "~/static/category-icons";
+import { getCategories } from "~/services/api/categories/get-categories";
+import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
+import { getCreditors } from "~/services/api/creditors/get-creditors";
 
 type IProps = {
   initialValues: T;
   isEditMode: boolean;
-  categories: ICategory[];
-  bankAccounts: IBankAccount[];
-  counterparties: ICounterparty[];
 };
 
 const props = defineProps<IProps>();
@@ -50,22 +51,53 @@ watch(
   { immediate: true }
 );
 
+const categories = ref<ICategory[]>([]);
+const bankAccounts = ref<IBankAccount[]>([]);
+const counterparties = ref<ICounterparty[]>([]);
+
+onMounted(async () => {
+  if (!currentUser.value?.id) return;
+
+  const [categoriesRes, bankAccountsRes, counterpartiesRes] = await Promise.all([
+    getCategories({
+      userId: currentUser.value.id,
+    }),
+    getBankAccounts({
+      userId: currentUser.value.id,
+      pagination: { page: 1, limit: 100 },
+    }),
+    getCreditors({
+      userId: currentUser.value.id,
+    }),
+  ]);
+
+  if (categoriesRes.data) {
+    categories.value = categoriesRes.data;
+  }
+  if (bankAccountsRes.data?.list) {
+    bankAccounts.value = bankAccountsRes.data.list;
+  }
+  if (counterpartiesRes.data) {
+    counterparties.value = counterpartiesRes.data;
+  }
+});
+
 const categoryOptions = computed<ISelectOption[]>(() => {
-  return props.categories.map(cat => ({
+  return categories.value.map(cat => ({
     value: cat.id,
-    label: `${cat.icon} ${cat.name}`,
+    label: `${cat.icon ? getCategoryIcon(cat.icon) : ''} ${cat.name}`,
   }));
 });
 
 const bankAccountOptions = computed<ISelectOption[]>(() => {
-  return props.bankAccounts.map(acc => ({
+  return bankAccounts.value.map(acc => ({
     value: acc.id,
     label: acc.name,
   }));
 });
 
 const counterpartyOptions = computed<ISelectOption[]>(() => {
-  return props.counterparties.map(cp => ({
+  return counterparties.value.map(cp => ({
     value: cp.id,
     label: cp.name,
   }));
@@ -131,59 +163,26 @@ const handleCancel = () => {
 
 <template>
   <Form @submit="onSubmit" class="space-y-6 mt-6">
-    <FormField 
-      name="type" 
-      label="Tipo" 
-      input-variant="select" 
-      placeholder="Selecione o tipo"
-      :select-options="typeOptions" 
-    />
+    <FormField name="type" label="Tipo" input-variant="select" placeholder="Selecione o tipo"
+      :select-options="typeOptions" />
 
-    <FormField 
-      name="amount" 
-      label="Valor" 
-      input-variant="input" 
-      type="number" 
-      placeholder="0.00"
-      :input-props="{ step: '0.01', min: '0' }"
-    />
+    <FormField name="amount" label="Valor" input-variant="input" type="number" placeholder="0.00"
+      :input-props="{ step: '0.01', min: '0' }" />
 
-    <FormField 
-      name="description" 
-      label="Descrição" 
-      input-variant="textarea" 
-      placeholder="Descreva a transação..."
-    />
+    <FormField name="description" label="Descrição" input-variant="textarea" placeholder="Descreva a transação..." />
 
-    <FormField 
-      name="date" 
-      label="Data" 
-      input-variant="datepicker"
-    />
+    <FormField name="date" label="Data" input-variant="datepicker" />
 
-    <FormField 
-      name="bankAccountId" 
-      label="Conta Bancária" 
-      input-variant="select" 
-      placeholder="Selecione a conta"
-      :select-options="bankAccountOptions" 
-    />
+    <FormField name="bankAccountId" label="Conta Bancária" input-variant="select" placeholder="Selecione a conta"
+      :select-options="bankAccountOptions" />
 
-    <FormField 
-      name="categoryIds" 
-      label="Categorias" 
-      input-variant="multiple-select" 
-      placeholder="Selecione as categorias"
-      :multiple-select-options="categoryOptions" 
-    />
+    <!-- <FormField name="categoryIds" label="Categorias" input-variant="multiple-select"
+      placeholder="Selecione as categorias" :multiple-select-options="categoryOptions" /> -->
+    <FormField name="categoryIds" label="Categorias" input-variant="select" placeholder="Selecione as categorias"
+      :select-options="categoryOptions" />
 
-    <FormField 
-      name="counterpartyId" 
-      label="Terceiro (opcional)" 
-      input-variant="select" 
-      placeholder="Selecione o terceiro"
-      :select-options="counterpartyOptions" 
-    />
+    <FormField name="counterpartyId" label="Terceiro (opcional)" input-variant="select"
+      placeholder="Selecione o terceiro" :select-options="counterpartyOptions" />
 
     <FormActions>
       <UiButton type="button" variant="outline" @click="handleCancel" :disabled="isLoading">

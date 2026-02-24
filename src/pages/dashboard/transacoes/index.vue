@@ -83,14 +83,14 @@ const allTransactionsForSummary = computed(() => {
 
 const filteredTransactions = computed(() => {
   let result = transactions.value?.list || [];
-  
+
   if (filters.value.search) {
     const searchLower = filters.value.search.toLowerCase();
-    result = result.filter(t => 
+    result = result.filter(t =>
       t.description?.toLowerCase().includes(searchLower)
     );
   }
-  
+
   return result;
 });
 
@@ -214,7 +214,7 @@ const handleExport = () => {
       .filter(cat => t.categoryIds?.includes(cat.id))
       .map(cat => cat.name)
       .join('; ');
-    
+
     const bankAccount = bankAccounts.value.find(acc => acc.id === t.bankAccountId);
     const counterparty = counterparties.value.find(cp => cp.id === t.counterpartyId);
 
@@ -237,11 +237,11 @@ const handleExport = () => {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
-  
+
   link.setAttribute('href', url);
   link.setAttribute('download', `transacoes_${new Date().toISOString().split('T')[0]}.csv`);
   link.style.visibility = 'hidden';
-  
+
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -269,11 +269,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <DashboardSection 
-    title="Transações" 
-    subtitle="Gerencie suas receitas e despesas"
-    :loading="isLoadingData && !transactions"
-  >
+  <DashboardSection title="Transações" subtitle="Gerencie suas receitas e despesas"
+    :loading="isLoadingData && !transactions">
     <template #actions>
       <UiButton @click="handleExport" variant="outline" :disabled="!filteredTransactions.length">
         <DownloadIcon class="h-4 w-4 mr-2" />
@@ -286,75 +283,34 @@ onMounted(() => {
     </template>
 
     <template #filters>
-      <SummaryCards 
-        :transactions="allTransactionsForSummary" 
-        :loading="isLoadingData"
-      />
-      
-      <FilterPanel 
-        v-model="filters"
-        :categories="categories"
-        :bank-accounts="bankAccounts"
-        :counterparties="counterparties"
-        @apply="handleApplyFilters"
-        @clear="handleClearFilters"
-      />
+      <SummaryCards :transactions="allTransactionsForSummary" :loading="isLoadingData" />
+
+      <FilterPanel v-model="filters" :categories="categories" :bank-accounts="bankAccounts"
+        :counterparties="counterparties" @apply="handleApplyFilters" @clear="handleClearFilters" />
     </template>
 
-    <EmptyState 
-      v-if="filteredTransactions.length === 0 && !isLoadingData"
-      title="Nenhuma transação encontrada"
+    <EmptyState v-if="filteredTransactions.length === 0 && !isLoadingData" title="Nenhuma transação encontrada"
       :description="filters.search || filters.type || filters.categoryId ? 'Tente ajustar os filtros.' : 'Crie sua primeira transação clicando no botão acima.'"
-      :show-create-button="!filters.search && !filters.type"
-      create-button-label="Nova Transação"
-      :on-create="handleCreate"
-    />
+      :show-create-button="!filters.search && !filters.type" create-button-label="Nova Transação"
+      :on-create="handleCreate" />
 
     <div v-else class="space-y-3">
-      <TransactionCard 
-        v-for="transaction in filteredTransactions" 
-        :key="transaction.id"
-        :transaction="transaction"
-        :categories="categories"
-        :bank-accounts="bankAccounts"
-        :counterparties="counterparties"
-        :on-view="handleView"
-        :on-edit="handleEdit"
-        :on-delete="handleDelete"
-      />
+      <TransactionCard v-for="transaction in filteredTransactions" :key="transaction.id" :transaction="transaction"
+        :categories="categories" :bank-accounts="bankAccounts" :counterparties="counterparties" :on-view="handleView"
+        :on-edit="handleEdit" :on-delete="handleDelete" />
     </div>
 
     <div v-if="transactions && transactions.pages > 1" class="mt-6">
-      <TablePagination 
-        :pagination-body="paginationBody"
-        :pagination-result="transactions"
-      />
+      <TablePagination :pagination-body="paginationBody" :pagination-result="transactions" />
     </div>
 
-    <TransactionsCreateSheet 
-      v-model:is-open="isCreateSheetOpen" 
-      :initial-values="createTransactionInitialValues"
-      :categories="categories"
-      :bank-accounts="bankAccounts"
-      :counterparties="counterparties"
-      :on-success="handleCreateSuccess" 
-      :on-cancel="() => { isCreateSheetOpen = false }" 
-    />
-    
-    <TransactionsEditSheet 
-      v-model:is-open="isUpdateSheetOpen" 
-      :initial-values="updatingTransaction"
-      :categories="categories"
-      :bank-accounts="bankAccounts"
-      :counterparties="counterparties"
-      :on-success="handleUpdateSuccess" 
-      :on-cancel="() => { updatingTransaction = null; isUpdateSheetOpen = false }" 
-    />
+    <TransactionsCreateSheet v-model:is-open="isCreateSheetOpen" :initial-values="createTransactionInitialValues"
+      :on-success="handleCreateSuccess" :on-cancel="() => { isCreateSheetOpen = false }" />
 
-    <UiButton
-      class="fixed bottom-6 right-6 rounded-full h-14 w-14 shadow-lg md:hidden z-50"
-      @click="handleCreate"
-    >
+    <TransactionsEditSheet v-model:is-open="isUpdateSheetOpen" :initial-values="updatingTransaction"
+      :on-success="handleUpdateSuccess" :on-cancel="() => { updatingTransaction = null; isUpdateSheetOpen = false }" />
+
+    <UiButton class="fixed bottom-6 right-6 rounded-full h-14 w-14 shadow-lg md:hidden z-50" @click="handleCreate">
       <PlusIcon class="h-6 w-6" />
     </UiButton>
   </DashboardSection>

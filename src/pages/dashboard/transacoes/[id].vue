@@ -280,9 +280,6 @@ onMounted(() => {
       v-if="transaction"
       v-model:is-open="isSheetOpen"
       :initial-values="transaction"
-      :categories="categories"
-      :bank-accounts="bankAccounts"
-      :counterparties="counterparties"
       :on-success="handleEditSuccess"
       :on-cancel="() => { isSheetOpen = false }"
     />

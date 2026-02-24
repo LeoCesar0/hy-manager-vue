@@ -1,16 +1,10 @@
 <script setup lang="ts">
 import type { ICreateTransaction } from "~/@schemas/models/transaction";
-import type { ICategory } from "~/@schemas/models/category";
-import type { IBankAccount } from "~/@schemas/models/bank-account";
-import type { ICounterparty } from "~/@schemas/models/counterparty";
 import TransactionForm from "./TransactionForm.vue";
 
 type IProps = {
   isOpen: boolean;
   initialValues: ICreateTransaction;
-  categories: ICategory[];
-  bankAccounts: IBankAccount[];
-  counterparties: ICounterparty[];
   onSuccess?: () => void;
   onCancel?: () => void;
 };
@@ -42,8 +36,7 @@ const handleCancel = () => {
         </UiSheetDescription>
       </UiSheetHeader>
       <UiSheetBody>
-        <TransactionForm :initial-values="initialValues" :is-edit-mode="false" :categories="categories"
-          :bank-accounts="bankAccounts" :counterparties="counterparties" @success="handleSuccess"
+        <TransactionForm :initial-values="initialValues" :is-edit-mode="false" @success="handleSuccess"
           @cancel="handleCancel" />
       </UiSheetBody>
     </UiSheetContent>
