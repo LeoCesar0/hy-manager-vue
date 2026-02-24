@@ -85,9 +85,7 @@ const selectedBankAccountId = computed({
   },
 });
 
-onMounted(() => {
-  dashboardStore.loadBankAccounts();
-});
+
 </script>
 
 <template>

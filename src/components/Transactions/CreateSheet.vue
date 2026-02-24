@@ -41,15 +41,11 @@ const handleCancel = () => {
           Crie uma nova transação de receita ou despesa
         </UiSheetDescription>
       </UiSheetHeader>
-      <TransactionForm 
-        :initial-values="initialValues" 
-        :is-edit-mode="false"
-        :categories="categories"
-        :bank-accounts="bankAccounts"
-        :counterparties="counterparties"
-        @success="handleSuccess"
-        @cancel="handleCancel"
-      />
+      <UiSheetBody>
+        <TransactionForm :initial-values="initialValues" :is-edit-mode="false" :categories="categories"
+          :bank-accounts="bankAccounts" :counterparties="counterparties" @success="handleSuccess"
+          @cancel="handleCancel" />
+      </UiSheetBody>
     </UiSheetContent>
   </UiSheet>
 </template>

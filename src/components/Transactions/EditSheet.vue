@@ -41,16 +41,11 @@ const handleCancel = () => {
           Atualize as informações da transação
         </UiSheetDescription>
       </UiSheetHeader>
-      <TransactionForm 
-        v-if="initialValues"
-        :initial-values="initialValues" 
-        :is-edit-mode="true"
-        :categories="categories"
-        :bank-accounts="bankAccounts"
-        :counterparties="counterparties"
-        @success="handleSuccess"
-        @cancel="handleCancel"
-      />
+      <UiSheetBody>
+        <TransactionForm v-if="initialValues" :initial-values="initialValues" :is-edit-mode="true"
+          :categories="categories" :bank-accounts="bankAccounts" :counterparties="counterparties"
+          @success="handleSuccess" @cancel="handleCancel" />
+      </UiSheetBody>
     </UiSheetContent>
   </UiSheet>
 </template>
