@@ -9,6 +9,7 @@ import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
 import DetailCard from "~/components/Dashboard/DetailCard.vue";
 import DetailField from "~/components/Dashboard/DetailField.vue";
 import ActionButtons from "~/components/Dashboard/ActionButtons.vue";
+import { getCategoryIcon } from "~/static/category-icons";
 
 definePageMeta({
   layout: "dashboard",
@@ -124,7 +125,7 @@ onMounted(() => {
             class="h-20 w-20 rounded-full border border-border shrink-0 flex items-center justify-center text-4xl"
             :style="{ backgroundColor: category?.color || 'hsl(var(--muted))' }"
           >
-            {{ category?.icon || '📁' }}
+            {{ category?.icon ? getCategoryIcon(category.icon) : '—' }}
           </div>
           <div>
             <h2 class="text-2xl font-bold">{{ category?.name }}</h2>
@@ -141,7 +142,7 @@ onMounted(() => {
 
           <DetailField label="Ícone">
             <div class="flex items-center gap-2">
-              <span class="text-2xl">{{ category?.icon || '—' }}</span>
+              <span class="text-2xl">{{ category?.icon ? getCategoryIcon(category.icon) : '—' }}</span>
             </div>
           </DetailField>
 

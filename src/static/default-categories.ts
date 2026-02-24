@@ -23,7 +23,7 @@ export const zDefaultCategory = z.enum(
 export type DefaultCategory = z.infer<typeof zDefaultCategory>;
 
 export const DEFAULT_CATEGORY_ICONS: Record<DefaultCategory, CategoryIcon> = {
-    "Alimentação": "food",
+    "Alimentação": "restaurant",
     "Supermercado": "supermarket",
     "Transporte": "transport",
     "Saúde": "health",

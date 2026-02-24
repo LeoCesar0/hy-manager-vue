@@ -2,6 +2,7 @@
 import { EditIcon, EyeIcon, TrashIcon } from 'lucide-vue-next';
 import type { ICategory } from '~/@schemas/models/category';
 import { getCategoryIcon } from '~/static/category-icons';
+import { ROUTE } from '~/static/routes';
 
 type Props = {
     category: ICategory;
@@ -21,7 +22,9 @@ const props = defineProps<Props>();
                 {{ category.icon ? getCategoryIcon(category.icon) : '' }}
             </div>
             <div class="flex flex-col min-w-0">
-                <p class="font-medium truncate">{{ category.name }}</p>
+                <FancyLink :to="ROUTE.categoryId.path(category.id)">
+                    <p class="font-medium truncate">{{ category.name }}</p>
+                </FancyLink>
             </div>
         </div>
         <div class="flex items-center justify-end gap-1 border-t border-border pt-2">
