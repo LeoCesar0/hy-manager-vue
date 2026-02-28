@@ -76,8 +76,36 @@
   --sidebar-border: oklch(0.91 0.018 260);
   --sidebar-ring: oklch(0.6 0.17 226);
 
-  --deposit: oklch(0.65 0.18 145);
-  --expense: oklch(0.577 0.245 27.325);
+  /* Color Kit Option 1: Balanced Green/Red (Active) */
+  /* --deposit: oklch(0.65 0.18 145); */
+  /* --expense: oklch(0.577 0.245 27.325); */
+
+  /* Color Kit Option 2: Vibrant Teal/Coral
+  --deposit: oklch(0.62 0.16 180);
+  --expense: oklch(0.6 0.22 25);
+  */
+
+  /* Color Kit Option 3: Soft Mint/Rose */
+  --deposit: oklch(0.68 0.14 160);
+  --expense: oklch(0.62 0.18 15);
+
+  /* Color Kit Option 4: Deep Emerald/Crimson */
+  /* --deposit: oklch(0.58 0.2 155); */
+  /* --expense: oklch(0.55 0.24 20); */
+
+  /* Color Kit Option 5: Sky Blue/Rose Pink */
+  /* --deposit: oklch(0.62 0.15 230); */
+  /* --expense: oklch(0.65 0.18 350); */
+
+  /* Color Kit Option 6: Ocean Blue/Magenta
+  --deposit: oklch(0.58 0.18 240);
+  --expense: oklch(0.62 0.2 330);
+  */
+
+  /* Color Kit Option 7: Azure/Berry
+  --deposit: oklch(0.64 0.16 250);
+  --expense: oklch(0.6 0.19 340);
+  */
 }
 
 .dark {
@@ -113,8 +141,39 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.55 0.12 226);
 
-  --deposit: oklch(0.35 0.18 145);
-  --expense: oklch(0.423 0.245 27.325);
+  /* Color Kit Option 1: Balanced Green/Red (Active) */
+  --deposit: oklch(0.7 0.18 145);
+  --expense: oklch(0.65 0.2 22);
+
+  /* Color Kit Option 2: Vibrant Teal/Coral
+  --deposit: oklch(0.68 0.16 180);
+  --expense: oklch(0.7 0.18 25);
+  */
+
+  /* Color Kit Option 3: Soft Mint/Rose
+  --deposit: oklch(0.72 0.14 160);
+  --expense: oklch(0.68 0.15 15);
+  */
+
+  /* Color Kit Option 4: Deep Emerald/Crimson
+  --deposit: oklch(0.65 0.2 155);
+  --expense: oklch(0.62 0.2 20);
+  */
+
+  /* Color Kit Option 5: Sky Blue/Rose Pink
+  --deposit: oklch(0.68 0.15 230);
+  --expense: oklch(0.7 0.16 350);
+  */
+
+  /* Color Kit Option 6: Ocean Blue/Magenta
+  --deposit: oklch(0.65 0.18 240);
+  --expense: oklch(0.68 0.18 330);
+  */
+
+  /* Color Kit Option 7: Azure/Berry
+  --deposit: oklch(0.7 0.16 250);
+  --expense: oklch(0.66 0.17 340);
+  */
 }
 
 @layer base {
