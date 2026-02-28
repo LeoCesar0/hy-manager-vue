@@ -3,6 +3,7 @@ import type { CategoryIcon, ICreateCategory } from "~/@schemas/models/category";
 
 export const zDefaultCategory = z.enum(
     [
+        "Salário",
         "Alimentação",
         "Supermercado",
         "Transporte",
@@ -23,6 +24,7 @@ export const zDefaultCategory = z.enum(
 export type DefaultCategory = z.infer<typeof zDefaultCategory>;
 
 export const DEFAULT_CATEGORY_ICONS: Record<DefaultCategory, CategoryIcon> = {
+    "Salário": "work",
     "Alimentação": "restaurant",
     "Supermercado": "supermarket",
     "Transporte": "transport",
@@ -40,6 +42,7 @@ export const DEFAULT_CATEGORY_ICONS: Record<DefaultCategory, CategoryIcon> = {
     "Outros": "others",
 }
 export const DEFAULT_CATEGORY_COLORS: Record<DefaultCategory, CategoryIcon> = {
+    "Salário": "work",
     "Alimentação": "food",
     "Supermercado": "supermarket",
     "Transporte": "transport",
@@ -61,7 +64,7 @@ export const DEFAULT_CATEGORY_COLORS_MAP: Record<DefaultCategory, string> = {
     "Alimentação": "#ef4444",
     "Supermercado": "#f97316",
     "Transporte": "#7c3aed",
-    "Saúde": "#22c55e",
+    "Saúde": "#166534",
     "Educação": "#14b8a6",
     "Vestuário": "#8b5cf6",
     "Lazer": "#ec4899",
@@ -73,6 +76,7 @@ export const DEFAULT_CATEGORY_COLORS_MAP: Record<DefaultCategory, string> = {
     "Água": "#2563eb",
     "Energia": "#ca8a04",
     "Outros": "#000000",
+    "Salário": "#22c55e",
 }
 
 type ITemplate = Omit<ICreateCategory, "userId">

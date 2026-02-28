@@ -22,20 +22,23 @@ export type IAPISetupDefaultCategories = {
 export const setupDefaultCategories = async ({ userId, deleteExisting, options }: IAPISetupDefaultCategories) => {
   const response = await handleAppRequest<ICategory[]>(
     async () => {
+      const mappedIds = new Map<string, string>()
+      let existingCategories = await getCategories({ userId })
+      existingCategories.data?.forEach(c => mappedIds.set(slugify(c.name), c.id))
       if (deleteExisting) {
-        const existingCategories = await getCategories({ userId })
         await firebaseDeleteMany({
           collection: "categories",
           ids: existingCategories.data?.map(c => c.id) || [],
         })
+        existingCategories = await getCategories({ userId }) // refetch to get the latest data
       }
-      const existingCategories = await getCategories({ userId })
       const defaultCategories = DEFAULT_CATEGORIES.filter(category => !existingCategories.data?.some(c => slugify(c.name) === slugify(category.name)));
 
       const values: ICreateCategory[] = defaultCategories.map(item => {
         return {
           ...item,
           userId,
+          id: mappedIds.get(slugify(item.name)) || undefined,
         }
       })
 
