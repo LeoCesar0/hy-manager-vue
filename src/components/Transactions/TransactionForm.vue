@@ -169,9 +169,7 @@ const handleCancel = () => {
   <Form @submit="onSubmit" class="space-y-6 mt-6">
     <FormField name="type" label="Tipo" input-variant="select" placeholder="Selecione o tipo"
       :select-options="typeOptions" />
-
-    <FormField name="amount" label="Valor" input-variant="input" type="number" placeholder="0.00"
-      :input-props="{ step: '0.01', min: '0' }" />
+    <FormField name="amount" label="Valor" input-variant="number" type="number" placeholder="0.00" :input-props="{}" />
 
     <FormField name="description" label="Descrição" input-variant="textarea" placeholder="Descreva a transação..." />
 

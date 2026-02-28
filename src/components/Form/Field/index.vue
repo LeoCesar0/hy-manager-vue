@@ -89,28 +89,17 @@ const showPass = ref(false);
 
 <template>
   <Field v-slot="{ componentField, meta, field, value }" :name="name">
-    <UiFormItem
-      v-auto-animate
-      :class="cn('flex gap-1 flex-col items-start w-full')"
-    >
-      <div
-        :class="
-          cn('flex-1 w-full', [
-            {
-              'flex items-center gap-3': isInLineInput,
-              'flex gap-1 flex-col items-start': !isInLineInput,
-            },
-            props.class ?? '',
-          ])
-        "
-      >
+    <UiFormItem v-auto-animate :class="cn('flex gap-1 flex-col items-start w-full')">
+      <div :class="cn('flex-1 w-full', [
+        {
+          'flex items-center gap-3': isInLineInput,
+          'flex gap-1 flex-col items-start': !isInLineInput,
+        },
+        props.class ?? '',
+      ])
+        ">
         <div :class="cn('flex items-center gap-2', labelContainerClass)">
-          <UiFormLabel
-            v-if="shownLabel"
-            :disabled="disabled"
-            :required="meta.required"
-            >{{ shownLabel }}</UiFormLabel
-          >
+          <UiFormLabel v-if="shownLabel" :disabled="disabled" :required="meta.required">{{ shownLabel }}</UiFormLabel>
           <slot name="field-label-right" />
           <template v-if="inputVariant === 'slider'">
             <!-- show value -->
@@ -122,262 +111,158 @@ const showPass = ref(false);
         <slot name="field-header" />
 
         <div v-if="topDescription">
-          <p
-            class="text-muted-foreground text-sm mt-1 mb-1 whitespace-pre-line"
-          >
+          <p class="text-muted-foreground text-sm mt-1 mb-1 whitespace-pre-line">
             {{ topDescription }}
           </p>
         </div>
         <UiFormControl>
           <div class="flex items-start flex-1 w-full">
             <!-- INPUT -->
-            <UiInput
-              v-if="inputVariant === 'input'"
-              class="!mt-0"
-              :placeholder="placeholder ?? ''"
-              v-bind="{
-                ...componentField,
-                disabled,
-                ...(props.inputProps ?? {}),
-              }"
-            />
+            <UiInput v-if="inputVariant === 'input'" class="!mt-0" :placeholder="placeholder ?? ''" v-bind="{
+              ...componentField,
+              disabled,
+              ...(props.inputProps ?? {}),
+            }" />
             <!-- PASSWORD -->
-            <UiInput
-              v-if="inputVariant === 'password'"
-              class="!mt-0"
-              :placeholder="placeholder ?? ''"
-              v-bind="{
-                ...componentField,
-                disabled,
-                ...(props.inputProps ?? {}),
-                type: showPass ? 'text' : 'password',
-              }"
-            />
+            <UiInput v-if="inputVariant === 'password'" class="!mt-0" :placeholder="placeholder ?? ''" v-bind="{
+              ...componentField,
+              disabled,
+              ...(props.inputProps ?? {}),
+              type: showPass ? 'text' : 'password',
+            }" />
             <!-- NUMBER -->
-            <UiInput
-              v-if="inputVariant === 'number'"
-              class="!mt-0"
-              :placeholder="placeholder ?? ''"
-              v-bind="{
-                ...componentField,
-                disabled,
-                ...(props.inputProps ?? {}),
-              }"
-            />
+            <UiInput v-if="inputVariant === 'number'" class="!mt-0" :placeholder="placeholder ?? ''" v-bind="{
+              ...componentField,
+              disabled,
+              ...(props.inputProps ?? {}),
+              type: 'number',
+            }" />
             <!-- NUMBER SHADCN -->
-            <NumberField
-              v-if="inputVariant === 'number-shadcn'"
-              class="!mt-0"
-              :placeholder="placeholder ?? ''"
-              v-bind="{
-                ...componentField,
-                disabled,
-                ...(props.inputProps ?? {}),
-                ...(numberOptions ?? {}),
-              }"
-            >
+            <NumberField v-if="inputVariant === 'number-shadcn'" class="!mt-0" :placeholder="placeholder ?? ''" v-bind="{
+              ...componentField,
+              disabled,
+              ...(props.inputProps ?? {}),
+              ...(numberOptions ?? {}),
+            }">
               <NumberFieldContent>
                 <NumberFieldInput />
               </NumberFieldContent>
             </NumberField>
             <!-- TEXTAREA -->
-            <UiTextarea
-              v-if="inputVariant === 'textarea'"
-              class="!mt-0"
-              :placeholder="placeholder ?? ''"
-              v-bind="{
-                ...componentField,
-                disabled,
-                ...(props.inputProps ?? {}),
-              }"
-              :rows="props.inputProps?.rows || 5"
-            />
+            <UiTextarea v-if="inputVariant === 'textarea'" class="!mt-0" :placeholder="placeholder ?? ''" v-bind="{
+              ...componentField,
+              disabled,
+              ...(props.inputProps ?? {}),
+            }" :rows="props.inputProps?.rows || 5" />
             <!-- SLIDER -->
-            <SliderSingle
-              v-if="inputVariant === 'slider'"
-              class="!mt-0"
-              :placeholder="placeholder ?? ''"
-              v-bind="{
-                ...componentField,
-                disabled,
-                ...(props.inputProps ?? {}),
-              }"
-            />
+            <SliderSingle v-if="inputVariant === 'slider'" class="!mt-0" :placeholder="placeholder ?? ''" v-bind="{
+              ...componentField,
+              disabled,
+              ...(props.inputProps ?? {}),
+            }" />
             <!-- SLIDER MULTIPLE -->
-            <UiSlider
-              v-if="inputVariant === 'sliderMultiple'"
-              class="!mt-0"
-              :placeholder="placeholder ?? ''"
-              v-bind="{
-                ...componentField,
-                disabled,
-                ...(props.inputProps ?? {}),
-              }"
-            />
+            <UiSlider v-if="inputVariant === 'sliderMultiple'" class="!mt-0" :placeholder="placeholder ?? ''" v-bind="{
+              ...componentField,
+              disabled,
+              ...(props.inputProps ?? {}),
+            }" />
             <!-- CHECKBOX -->
-            <UiCheckbox
-              v-if="inputVariant === 'checkbox'"
-              class="!mt-0"
-              v-bind="{
-                ...componentField,
-                disabled,
-                ...(props.inputProps ?? {}),
-              }"
-              :checked="componentField.modelValue"
-              @update:checked="componentField['onUpdate:modelValue']"
-            />
+            <UiCheckbox v-if="inputVariant === 'checkbox'" class="!mt-0" v-bind="{
+              ...componentField,
+              disabled,
+              ...(props.inputProps ?? {}),
+            }" :checked="componentField.modelValue" @update:checked="componentField['onUpdate:modelValue']" />
             <!-- SWITCH -->
-            <UiSwitch
-              v-if="inputVariant === 'switch'"
-              class="!mt-0"
-              v-bind="{
-                ...componentField,
-                disabled,
-                ...(props.inputProps ?? {}),
-              }"
-              :checked="componentField.modelValue"
-              @update:checked="componentField['onUpdate:modelValue']"
-            />
+            <UiSwitch v-if="inputVariant === 'switch'" class="!mt-0" v-bind="{
+              ...componentField,
+              disabled,
+              ...(props.inputProps ?? {}),
+            }" :checked="componentField.modelValue" @update:checked="componentField['onUpdate:modelValue']" />
             <!-- SELECT -->
-            <UiSelect
-              v-if="inputVariant === 'select'"
-              class="!mt-0"
-              v-bind="{
-                ...componentField,
-                disabled,
-                ...(props.inputProps ?? {}),
-              }"
-              @update:modelValue="
-                (value) => {
-                  if (onSelectOption) {
-                    const option = selectOptions.find(
-                      (option) => option.value === value
-                    );
-                    if (option) {
-                      onSelectOption(option);
-                    }
+            <UiSelect v-if="inputVariant === 'select'" class="!mt-0" v-bind="{
+              ...componentField,
+              disabled,
+              ...(props.inputProps ?? {}),
+            }" @update:modelValue="
+              (value) => {
+                if (onSelectOption) {
+                  const option = selectOptions.find(
+                    (option) => option.value === value
+                  );
+                  if (option) {
+                    onSelectOption(option);
                   }
                 }
-              "
-            >
+              }
+            ">
               <UiSelectTrigger class="w-full">
                 <UiSelectValue :placeholder="placeholder ?? ''" />
               </UiSelectTrigger>
               <UiSelectContent>
-                <UiSelectItem
-                  v-for="option in selectOptions"
-                  :key="option.value"
-                  :value="option.value"
-                >
+                <UiSelectItem v-for="option in selectOptions" :key="option.value" :value="option.value">
                   {{ option.label }}
                 </UiSelectItem>
               </UiSelectContent>
             </UiSelect>
             <!-- MULTIPLE SELECT -->
-            <MultipleSelect
-              v-if="inputVariant === 'multiple-select'"
-              class="!mt-0"
-              :model-value="componentField.modelValue || []"
-              :options="selectOptions"
-              :placeholder="placeholder"
-              v-bind="{
+            <MultipleSelect v-if="inputVariant === 'multiple-select'" class="!mt-0"
+              :model-value="componentField.modelValue || []" :options="selectOptions" :placeholder="placeholder" v-bind="{
                 ...componentField,
                 disabled,
                 ...(props.inputProps ?? {}),
-              }"
-            />
+              }" />
 
             <!-- datepicker -->
-            <DatePicker
-              v-if="inputVariant === 'datepicker'"
-              class="!mt-0"
-              v-bind="{
-                ...componentField,
-                disabled,
-                ...(props.inputProps ?? {}),
-                ...(props.datePickerProps ?? {}),
-              }"
-            />
+            <DatePicker v-if="inputVariant === 'datepicker'" class="!mt-0" v-bind="{
+              ...componentField,
+              disabled,
+              ...(props.inputProps ?? {}),
+              ...(props.datePickerProps ?? {}),
+            }" />
             <!-- COLOR PICKER -->
-            <ColorPicker
-              v-if="inputVariant === 'color-picker'"
-              class="!mt-0"
-              v-bind="{
-                ...componentField,
-                disabled,
-                ...(props.inputProps ?? {}),
-                ...(props.colorPickerProps ?? {}),
-              }"
-            />
+            <ColorPicker v-if="inputVariant === 'color-picker'" class="!mt-0" v-bind="{
+              ...componentField,
+              disabled,
+              ...(props.inputProps ?? {}),
+              ...(props.colorPickerProps ?? {}),
+            }" />
             <!-- CUSTOM -->
-            <component
-              v-if="inputVariant === 'custom'"
-              :is="props.inputProps?.as || 'input'"
-              class="!mt-0 w-full"
+            <component v-if="inputVariant === 'custom'" :is="props.inputProps?.as || 'input'" class="!mt-0 w-full"
               v-bind="{
                 ...componentField,
                 disabled,
                 ...(props.inputProps ?? {}),
-              }"
-              :value="componentField.modelValue"
-            />
+              }" :value="componentField.modelValue" />
             <!-- FILE -->
-            <FileUploaderMultiple
-              v-if="inputVariant === 'file-multiple'"
-              :name="name"
-              :disabled="disabled"
-              v-bind="{
-                ...props.inputProps,
-                ...(props.fileUploaderProps ?? {}),
-              }"
-            />
+            <FileUploaderMultiple v-if="inputVariant === 'file-multiple'" :name="name" :disabled="disabled" v-bind="{
+              ...props.inputProps,
+              ...(props.fileUploaderProps ?? {}),
+            }" />
             <!-- IMAGE -->
-            <ImageUploader
-              v-if="inputVariant === 'image'"
-              :name="name"
-              :disabled="disabled"
-              v-bind="{
-                ...props.inputProps,
-                ...(props.imageUploaderProps ?? {}),
-              }"
-            />
+            <ImageUploader v-if="inputVariant === 'image'" :name="name" :disabled="disabled" v-bind="{
+              ...props.inputProps,
+              ...(props.imageUploaderProps ?? {}),
+            }" />
             <!-- INPUT WITH OPTIONS -->
-            <InputWithOptions
-              v-if="inputVariant === 'input-with-options'"
-              class="!mt-0"
-              :placeholder="placeholder ?? ''"
-              :options="inputOptions"
-              v-bind="{
+            <InputWithOptions v-if="inputVariant === 'input-with-options'" class="!mt-0"
+              :placeholder="placeholder ?? ''" :options="inputOptions" v-bind="{
                 ...componentField,
                 disabled,
                 ...(props.inputProps ?? {}),
-              }"
-            />
+              }" />
             <!-- CARD SELECT -->
-            <CardSelect
-              v-if="inputVariant === 'card-select'"
-              class="!mt-0"
-              :options="cardSelectOptions || []"
-              v-bind="{
-                ...componentField,
-                disabled,
-                ...(props.inputProps ?? {}),
-              }"
-            />
-            <UiButton
-              v-if="inputVariant === 'password'"
-              :variant="'ghost'"
-              size="icon"
-              type="button"
-              :class="{
-                'text-blue-500': showPass,
-              }"
-              @click="
-                () => {
-                  showPass = !showPass;
-                }
-              "
-            >
+            <CardSelect v-if="inputVariant === 'card-select'" class="!mt-0" :options="cardSelectOptions || []" v-bind="{
+              ...componentField,
+              disabled,
+              ...(props.inputProps ?? {}),
+            }" />
+            <UiButton v-if="inputVariant === 'password'" :variant="'ghost'" size="icon" type="button" :class="{
+              'text-blue-500': showPass,
+            }" @click="
+              () => {
+                showPass = !showPass;
+              }
+            ">
               <EyeIcon />
             </UiButton>
             <slot name="input-right" />
@@ -387,7 +272,7 @@ const showPass = ref(false);
 
       <UiFormDescription v-if="description">{{
         description
-      }}</UiFormDescription>
+        }}</UiFormDescription>
       <UiFormMessage />
     </UiFormItem>
   </Field>
