@@ -168,14 +168,14 @@ onMounted(() => {
       <template #header>
         <div class="flex items-center gap-4">
           <div class="h-16 w-16 rounded-full flex items-center justify-center shrink-0"
-            :class="transaction?.type === 'deposit' ? 'bg-green-100 dark:bg-green-900/20' : 'bg-red-100 dark:bg-red-900/20'">
-            <ArrowUpIcon v-if="transaction?.type === 'deposit'" class="h-8 w-8 text-green-600 dark:text-green-400" />
-            <ArrowDownIcon v-else class="h-8 w-8 text-red-600 dark:text-red-400" />
+            :class="transaction?.type === 'deposit' ? 'bg-deposit/10' : 'bg-expense/10'">
+            <ArrowUpIcon v-if="transaction?.type === 'deposit'" class="h-8 w-8 text-deposit" />
+            <ArrowDownIcon v-else class="h-8 w-8 text-expense" />
           </div>
           <div>
             <div class="flex items-center gap-2 mb-1">
               <span class="px-3 py-1 rounded-full text-xs font-medium"
-                :class="transaction?.type === 'deposit' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'">
+                :class="transaction?.type === 'deposit' ? 'bg-deposit/10 text-deposit' : 'bg-expense/10 text-expense'">
                 {{ transaction?.type === 'deposit' ? 'Receita' : 'Despesa' }}
               </span>
             </div>

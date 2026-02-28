@@ -280,7 +280,6 @@ onMounted(() => {
 
     <template #filters>
       <SummaryCards :transactions="allTransactionsForSummary" :loading="isLoadingData" />
-
       <FilterPanel v-model="filters" :categories="categories" :bank-accounts="bankAccounts"
         :counterparties="counterparties" @apply="handleApplyFilters" @clear="handleClearFilters" />
     </template>

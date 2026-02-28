@@ -75,6 +75,9 @@
   --sidebar-accent-foreground: oklch(0.28 0.08 290);
   --sidebar-border: oklch(0.91 0.018 260);
   --sidebar-ring: oklch(0.6 0.17 226);
+
+  --deposit: oklch(0.65 0.18 145);
+  --expense: oklch(0.577 0.245 27.325);
 }
 
 .dark {
@@ -109,6 +112,9 @@
   --sidebar-accent-foreground: oklch(0.92 0.06 290);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.55 0.12 226);
+
+  --deposit: oklch(0.35 0.18 145);
+  --expense: oklch(0.423 0.245 27.325);
 }
 
 @layer base {
@@ -117,6 +123,33 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-deposit {
+    color: var(--deposit);
+  }
+  .text-expense {
+    color: var(--expense);
+  }
+  .bg-deposit {
+    background-color: var(--deposit);
+  }
+  .bg-expense {
+    background-color: var(--expense);
+  }
+  .bg-deposit\/10 {
+    background-color: color-mix(in oklch, var(--deposit) 10%, transparent);
+  }
+  .bg-expense\/10 {
+    background-color: color-mix(in oklch, var(--expense) 10%, transparent);
+  }
+  .bg-deposit\/20 {
+    background-color: color-mix(in oklch, var(--deposit) 20%, transparent);
+  }
+  .bg-expense\/20 {
+    background-color: color-mix(in oklch, var(--expense) 20%, transparent);
   }
 }
 

@@ -48,15 +48,15 @@ const counterparty = computed(() => {
       <div class="flex items-start gap-4 flex-1">
         <div 
           class="h-10 w-10 rounded-full flex items-center justify-center shrink-0"
-          :class="transaction.type === 'deposit' ? 'bg-green-100 dark:bg-green-900/20' : 'bg-red-100 dark:bg-red-900/20'"
+          :class="transaction.type === 'deposit' ? 'bg-deposit/10' : 'bg-expense/10'"
         >
           <ArrowUpIcon 
             v-if="transaction.type === 'deposit'" 
-            class="h-5 w-5 text-green-600 dark:text-green-400" 
+            class="h-5 w-5 text-deposit" 
           />
           <ArrowDownIcon 
             v-else 
-            class="h-5 w-5 text-red-600 dark:text-red-400" 
+            class="h-5 w-5 text-expense" 
           />
         </div>
 

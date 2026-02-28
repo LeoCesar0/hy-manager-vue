@@ -28,12 +28,12 @@ const totals = computed(() => {
         <div class="space-y-1">
           <p class="text-sm font-medium text-muted-foreground">Total de Receitas</p>
           <p v-if="loading" class="h-8 w-32 bg-muted animate-pulse rounded" />
-          <p v-else class="text-2xl font-bold text-green-600 dark:text-green-400">
+          <p v-else class="text-2xl font-bold text-deposit">
             {{ formatCurrency({ amount: totals.income }) }}
           </p>
         </div>
-        <div class="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-          <TrendingUpIcon class="h-6 w-6 text-green-600 dark:text-green-400" />
+        <div class="h-12 w-12 rounded-full bg-deposit/10 flex items-center justify-center">
+          <TrendingUpIcon class="h-6 w-6 text-deposit" />
         </div>
       </div>
     </UiCard>
@@ -43,12 +43,12 @@ const totals = computed(() => {
         <div class="space-y-1">
           <p class="text-sm font-medium text-muted-foreground">Total de Despesas</p>
           <p v-if="loading" class="h-8 w-32 bg-muted animate-pulse rounded" />
-          <p v-else class="text-2xl font-bold text-red-600 dark:text-red-400">
+          <p v-else class="text-2xl font-bold text-expense">
             {{ formatCurrency({ amount: totals.expenses }) }}
           </p>
         </div>
-        <div class="h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-          <TrendingDownIcon class="h-6 w-6 text-red-600 dark:text-red-400" />
+        <div class="h-12 w-12 rounded-full bg-expense/10 flex items-center justify-center">
+          <TrendingDownIcon class="h-6 w-6 text-expense" />
         </div>
       </div>
     </UiCard>
@@ -61,18 +61,18 @@ const totals = computed(() => {
           <p 
             v-else 
             class="text-2xl font-bold"
-            :class="totals.balance >= 0 ? 'text-primary' : 'text-red-600 dark:text-red-400'"
+            :class="totals.balance >= 0 ? 'text-primary' : 'text-expense'"
           >
             {{ formatCurrency({ amount: totals.balance }) }}
           </p>
         </div>
         <div 
           class="h-12 w-12 rounded-full flex items-center justify-center"
-          :class="totals.balance >= 0 ? 'bg-primary/10' : 'bg-red-100 dark:bg-red-900/20'"
+          :class="totals.balance >= 0 ? 'bg-primary/10' : 'bg-expense/10'"
         >
           <WalletIcon 
             class="h-6 w-6"
-            :class="totals.balance >= 0 ? 'text-primary' : 'text-red-600 dark:text-red-400'"
+            :class="totals.balance >= 0 ? 'text-primary' : 'text-expense'"
           />
         </div>
       </div>
