@@ -8,6 +8,7 @@ import { formatCurrency } from "~/helpers/formatCurrency";
 import { getTransactionColor } from "~/helpers/getTransactionColor";
 import { formatDate } from "~/helpers/formatDate";
 import ActionButtons from "~/components/Dashboard/ActionButtons.vue";
+import { getCategoryIcon } from "~/static/category-icons";
 
 type IProps = {
   transaction: ITransaction;
@@ -38,6 +39,7 @@ const counterparty = computed(() => {
     cp.id === props.transaction.counterpartyId
   );
 });
+
 </script>
 
 <template>
@@ -92,7 +94,7 @@ const counterparty = computed(() => {
                   color: 'white'
                 }"
               >
-                <span>{{ category.icon }}</span>
+                <span>{{ getCategoryIcon(category.icon) }}</span>
                 <span>{{ category.name }}</span>
               </span>
             </div>

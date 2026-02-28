@@ -1,5 +1,6 @@
 import type { ISelectOption } from "~/@schemas/select";
 import { zCategoryIcon, type CategoryIcon } from "~/@schemas/models/category";
+import type { Nullish } from "~/@types/helpers";
 
 export const CATEGORY_ICON: Record<CategoryIcon, string> = {
     // Alimentação
@@ -158,6 +159,7 @@ const getOption = (icon: CategoryIcon): ISelectOption => {
 
 export const CATEGORY_ICONS_OPTIONS: ISelectOption[] = zCategoryIcon.options.map(getOption);
 
-export const getCategoryIcon = (icon: CategoryIcon): string => {
+export const getCategoryIcon = (icon: Nullish<CategoryIcon>): string => {
+    if (!icon) return ''
     return CATEGORY_ICON[icon] || '';
 };
