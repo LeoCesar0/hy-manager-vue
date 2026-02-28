@@ -35,10 +35,7 @@ const counterparties = ref<ICounterparty[]>([]);
 
 const bankAccounts = computed(() => storeBankAccounts.value);
 
-const paginationBody = ref<IPaginationBody>({
-  page: 1,
-  limit: 20,
-});
+const { paginationBody } = usePagination({ limit: 20 })
 
 const filters = ref<{
   startDate: Timestamp | null;
@@ -299,7 +296,7 @@ onMounted(() => {
         :on-edit="handleEdit" :on-delete="handleDelete" />
     </div>
 
-    <div v-if="transactions && transactions.pages > 1" class="mt-6">
+    <div v-if="transactions" class="mt-6">
       <TablePagination :pagination-body="paginationBody" :pagination-result="transactions" />
     </div>
 
