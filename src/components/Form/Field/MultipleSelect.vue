@@ -41,14 +41,10 @@ const isSelected = (value: any) => {
 
 <template>
   <UiSelect v-bind="forwarded" multiple>
-    <UiSelectTrigger
-      class="w-full"
-      :class="
-        cn({
-          'text-muted-foreground': !selectedLabels,
-        })
-      "
-    >
+    <UiSelectTrigger class="w-full" :class="cn({
+      'text-muted-foreground': !selectedLabels,
+    })
+      ">
       <UiSelectValue class="truncate">
         {{ selectedLabels || placeholder }}
       </UiSelectValue>
@@ -56,18 +52,10 @@ const isSelected = (value: any) => {
 
     <UiSelectContent>
       <UiSelectGroup>
-        <UiSelectItem
-          v-for="option in options"
-          :key="option.value"
-          :value="option.value"
-          class="relative"
-        >
+        <UiSelectItem v-for="option in options" :key="option.value" :value="option.value" class="relative">
           <!-- @click.stop="toggleOption(option.value)" -->
           <div class="flex items-center gap-2 min-w-0">
-            <UiCheckbox
-              :checked="isSelected(option.value)"
-              :disabled="disabled"
-            />
+            <UiCheckbox :model-value="isSelected(option.value)" :disabled="disabled" />
             <slot name="option-icon" :option="option" />
             <!-- @update:checked="() => toggleOption(option.value)" -->
             <span class="flex-1 truncate">{{ option.label }}</span>
