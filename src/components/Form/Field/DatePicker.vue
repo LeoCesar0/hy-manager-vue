@@ -21,9 +21,10 @@ import {
     DatePickerPrev,
     DatePickerRoot,
     DatePickerTrigger,
+    type DatePickerRootProps,
     type DateValue,
 } from 'reka-ui'
-import { CalendarDate } from '@internationalized/date';
+import { CalendarDate, CalendarDateTime } from '@internationalized/date';
 import { parseToDate } from '~/helpers/parseToDate';
 import { Timestamp } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
@@ -35,6 +36,7 @@ export type IDatePickerProps = {
     placeholder?: string;
     disabled?: boolean;
     locale?: string;
+    options?: DatePickerRootProps
 }
 
 const props = withDefaults(defineProps<IDatePickerProps>(), {
@@ -61,11 +63,17 @@ const convertToCalendarDate = (value: Timestamp | Date | string | number | undef
 
     try {
         const jsDate = parseToDate(value);
-        return new CalendarDate(
+
+        return new CalendarDateTime(
             jsDate.getFullYear(),
             jsDate.getMonth() + 1,
-            jsDate.getDate()
+            jsDate.getDate(),
+            jsDate.getHours(),
+            jsDate.getMinutes(),
+            jsDate.getSeconds()
         );
+
+
     } catch (error) {
         console.error('Error converting to CalendarDate:', error);
         return undefined;
@@ -75,7 +83,21 @@ const convertToCalendarDate = (value: Timestamp | Date | string | number | undef
 const convertFromCalendarDate = (value: DateValue | undefined): Timestamp => {
     if (!value) return Timestamp.now();
 
-    const jsDate = new Date(value.year, value.month - 1, value.day);
+    let jsDate: Date;
+
+    if ('hour' in value && 'minute' in value) {
+        jsDate = new Date(
+            value.year,
+            value.month - 1,
+            value.day,
+            value.hour,
+            value.minute,
+            'second' in value ? value.second : 0
+        );
+    } else {
+        jsDate = new Date(value.year, value.month - 1, value.day);
+    }
+
     return Timestamp.fromDate(jsDate);
 };
 
@@ -98,7 +120,7 @@ const calendarValue = computed({
 </script>
 
 <template>
-    <DatePickerRoot v-model="calendarValue" :disabled="disabled" :locale="userLocale">
+    <DatePickerRoot v-model="calendarValue" :disabled="disabled" :locale="userLocale" v-bind="props.options">
         <DatePickerField v-slot="{ segments }" :class="cn(
             'flex w-full select-none items-center rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-[color,box-shadow]',
             'focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]',

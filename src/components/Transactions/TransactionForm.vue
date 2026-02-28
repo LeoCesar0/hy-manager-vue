@@ -175,8 +175,11 @@ const handleCancel = () => {
 
     <FormField name="description" label="Descrição" input-variant="textarea" placeholder="Descreva a transação..." />
 
-    <p>date: {{ formatDate(parseToDate(values.date as Timestamp), { time: true }) }}</p>
-    <FormField name="date" label="Data" input-variant="datepicker" />
+    <FormField name="date" label="Data" input-variant="datepicker" :date-picker-props="{
+      options: {
+        granularity: 'minute'
+      }
+    }" />
     <FormField name="bankAccountId" label="Conta Bancária" input-variant="select" placeholder="Selecione a conta"
       :select-options="bankAccountOptions" />
 
