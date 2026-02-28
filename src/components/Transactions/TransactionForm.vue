@@ -181,10 +181,10 @@ const handleCancel = () => {
     <FormField name="bankAccountId" label="Conta Bancária" input-variant="select" placeholder="Selecione a conta"
       :select-options="bankAccountOptions" />
 
-    <!-- <FormField name="categoryIds" label="Categorias" input-variant="multiple-select"
-      placeholder="Selecione as categorias" :multiple-select-options="categoryOptions" /> -->
-    <FormField name="categoryIds" label="Categorias" input-variant="select" placeholder="Selecione as categorias"
-      :select-options="categoryOptions" />
+    <FormField name="categoryIds" label="Categorias" input-variant="multiple-select"
+      placeholder="Selecione as categorias" :select-options="categoryOptions" />
+    <!-- <FormField name="categoryIds" label="Categorias" input-variant="select" placeholder="Selecione as categorias"
+      :select-options="categoryOptions" /> -->
 
     <FormField name="counterpartyId" label="Terceiro (opcional)" input-variant="select"
       placeholder="Selecione o terceiro" :select-options="counterpartyOptions" />
