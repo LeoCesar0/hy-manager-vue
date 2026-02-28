@@ -8,7 +8,7 @@ type Options = {
 
 export const formatDate = (
   date: string | Date | number | Timestamp | undefined | null,
-  { time = false, intlOptions = { dateStyle: "long" } }: Options = {}
+  { time = false, intlOptions = { dateStyle: "medium" } }: Options = {}
 ) => {
   if (!date) return "";
   const _date = parseToDate(date);
@@ -16,6 +16,7 @@ export const formatDate = (
   if (time) {
     return _date.toLocaleString("pt-BR", {
       ...intlOptions,
+      timeStyle: "short",
     });
   }
   return _date.toLocaleDateString("pt-BR", intlOptions);
