@@ -19,7 +19,7 @@ import CardSelect from "~/components/Form/Field/CardSelect.vue";
 import ColorPicker, { type IColorPickerProps } from "~/components/Form/Field/ColorPicker.vue";
 import type { ICardSelectOption } from "~/components/Form/Field/CardSelectItem.vue";
 import type { NumberFieldRootProps } from "reka-ui";
-import type { IDatepickerProps } from "~/components/Datepicker/index.vue";
+import DatePicker, { type IDatePickerProps } from "~/components/Form/Field/DatePicker.vue";
 import { beautifyObjectName } from "~/helpers/shadcnui-utils/auto-form";
 
 export type IFieldInputVariant =
@@ -53,7 +53,8 @@ type Props = {
   selectOptions?: ISelectOption<any>[];
   cardSelectOptions?: ICardSelectOption[];
   disabled?: boolean;
-  datepickerProps?: IDatepickerProps;
+  // datepickerProps?: IDatepickerProps;
+  datePickerProps?: IDatePickerProps;
   fileUploaderProps?: IFileUploaderProps;
   imageUploaderProps?: IImageUploaderProps;
   required?: boolean;
@@ -287,17 +288,16 @@ const showPass = ref(false);
             />
 
             <!-- datepicker -->
-            <div v-if="inputVariant === 'datepicker'">
-              <Datepicker
-                class="!mt-0"
-                v-bind="{
-                  ...componentField,
-                  disabled,
-                  ...(props.inputProps ?? {}),
-                  ...(props.datepickerProps ?? {}),
-                }"
-              />
-            </div>
+            <DatePicker
+              v-if="inputVariant === 'datepicker'"
+              class="!mt-0"
+              v-bind="{
+                ...componentField,
+                disabled,
+                ...(props.inputProps ?? {}),
+                ...(props.datePickerProps ?? {}),
+              }"
+            />
             <!-- COLOR PICKER -->
             <ColorPicker
               v-if="inputVariant === 'color-picker'"

@@ -14,6 +14,8 @@ import { getCategoryIcon } from "~/static/category-icons";
 import { getCategories } from "~/services/api/categories/get-categories";
 import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
 import { getCreditors } from "~/services/api/creditors/get-creditors";
+import { parseToDate } from "~/helpers/parseToDate";
+import { formatDate } from "~/helpers/formatDate";
 
 type IProps = {
   initialValues: T;
@@ -34,7 +36,7 @@ const isLoading = ref(false);
 
 const validationSchema = toTypedSchema(zCreateTransaction);
 
-const { handleSubmit, resetForm, setValues } = useForm({
+const { handleSubmit, resetForm, setValues, values } = useForm({
   validationSchema,
   initialValues: props.initialValues,
 });
@@ -150,6 +152,8 @@ const onSubmit = handleSubmit(async (values) => {
       });
       if (response.data) emit("success");
     }
+  } catch (err) {
+    console.log(`❌ transaction form error -->`, err);
   } finally {
     isLoading.value = false;
   }
@@ -171,8 +175,8 @@ const handleCancel = () => {
 
     <FormField name="description" label="Descrição" input-variant="textarea" placeholder="Descreva a transação..." />
 
+    <p>date: {{ formatDate(parseToDate(values.date as Timestamp)) }}</p>
     <FormField name="date" label="Data" input-variant="datepicker" />
-
     <FormField name="bankAccountId" label="Conta Bancária" input-variant="select" placeholder="Selecione a conta"
       :select-options="bankAccountOptions" />
 
