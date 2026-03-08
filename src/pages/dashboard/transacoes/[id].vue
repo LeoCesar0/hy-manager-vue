@@ -3,7 +3,7 @@ import { ArrowLeftIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-vue-next";
 import type { ITransaction } from "~/@schemas/models/transaction";
 import type { ICategory } from "~/@schemas/models/category";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
-import { firebaseGet } from "~/services/firebase/firebaseGet";
+import { getTransaction } from "~/services/api/transactions/get-transaction";
 import { deleteTransaction } from "~/services/api/transactions/delete-transaction";
 import { getCategories } from "~/services/api/categories/get-categories";
 import { getCounterparties } from "~/services/api/counterparties/get-counterparties";
@@ -85,12 +85,12 @@ const loadTransaction = async () => {
 
   isLoadingData.value = true;
   try {
-    const response = await firebaseGet<ITransaction>({
-      collection: "transactions",
+    const response = await getTransaction({
       id: transactionId,
+      options: { toastOptions: undefined },
     });
-    if (response) {
-      transaction.value = response;
+    if (response.data) {
+      transaction.value = response.data;
     }
   } catch (error) {
     console.error("Error loading transaction:", error);

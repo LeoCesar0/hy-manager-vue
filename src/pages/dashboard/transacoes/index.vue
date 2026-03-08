@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PlusIcon, DownloadIcon } from "lucide-vue-next";
+import { PlusIcon, DownloadIcon, UploadIcon } from "lucide-vue-next";
 import { Timestamp } from "firebase/firestore";
 import type { ITransaction, ICreateTransaction } from "~/@schemas/models/transaction";
 import type { ICategory } from "~/@schemas/models/category";
@@ -17,6 +17,7 @@ import FilterPanel from "~/components/Transactions/FilterPanel.vue";
 import TransactionCard from "~/components/Transactions/TransactionCard.vue";
 import TransactionsCreateSheet from "~/components/Transactions/CreateSheet.vue";
 import TransactionsEditSheet from "~/components/Transactions/EditSheet.vue";
+import TransactionsImportSheet from "~/components/Transactions/ImportSheet.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -57,6 +58,7 @@ const filters = ref<{
 
 const isCreateSheetOpen = ref(false);
 const isUpdateSheetOpen = ref(false);
+const isImportSheetOpen = ref(false);
 const updatingTransaction = ref<ITransaction | null>(null);
 
 watch(isUpdateSheetOpen, (value) => {
@@ -272,6 +274,10 @@ onMounted(() => {
         <DownloadIcon class="h-4 w-4 mr-2" />
         Exportar
       </UiButton>
+      <UiButton @click="isImportSheetOpen = true" variant="outline">
+        <UploadIcon class="h-4 w-4 mr-2" />
+        Importar
+      </UiButton>
       <UiButton @click="handleCreate">
         <PlusIcon class="h-4 w-4 mr-2" />
         Nova Transação
@@ -304,6 +310,12 @@ onMounted(() => {
 
     <TransactionsEditSheet v-model:is-open="isUpdateSheetOpen" :initial-values="updatingTransaction"
       :on-success="handleUpdateSuccess" :on-cancel="() => { updatingTransaction = null; isUpdateSheetOpen = false }" />
+
+    <TransactionsImportSheet v-model:is-open="isImportSheetOpen"
+      :bank-account-id="currentBankAccount?.id || ''"
+      :user-id="currentUser?.id || ''"
+      :on-success="() => { isImportSheetOpen = false; loadTransactions(); }"
+      :on-cancel="() => { isImportSheetOpen = false }" />
 
     <UiButton class="fixed bottom-6 right-6 rounded-full h-14 w-14 shadow-lg md:hidden z-50" @click="handleCreate">
       <PlusIcon class="h-6 w-6" />

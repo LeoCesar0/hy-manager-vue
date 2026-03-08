@@ -26,6 +26,7 @@ export const handleAppRequest = async <T>(
   let toastLoadingId: null | LoadingId = null;
 
   const handleError = async (res: AppResponseError) => {
+    console.log(`❌ handleError -->`, res);
     if (onError) {
       await onError(res);
       await nextTick();

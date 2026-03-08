@@ -68,3 +68,7 @@ Global middleware (`src/middleware/auth.global.ts`) listens to `onAuthStateChang
 ### Auto-imports
 
 Nuxt auto-imports from `src/composables/*.ts` and `src/composables/**/*.ts`. No need to manually import composables or Vue APIs.
+
+### Suggestions
+
+If you have any concern or can view any problem on our plan or my suggestions, let me know. Let's discuss the changes and paths to forward.
