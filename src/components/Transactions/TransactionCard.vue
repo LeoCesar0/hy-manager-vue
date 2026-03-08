@@ -45,7 +45,7 @@ const counterparty = computed(() => {
 <template>
   <UiCard class="p-4 hover:shadow-md transition-shadow">
     <div class="flex items-start justify-between gap-4">
-      <div class="flex items-start gap-4 flex-1">
+      <div class="flex items-start gap-4 flex-1 min-w-0">
         <div 
           class="h-10 w-10 rounded-full flex items-center justify-center shrink-0"
           :class="transaction.type === 'deposit' ? 'bg-deposit/10' : 'bg-expense/10'"
@@ -63,7 +63,7 @@ const counterparty = computed(() => {
         <div class="flex-1 min-w-0 w-full">
           <div class="flex items-start justify-between gap-2 mb-2">
             <div class="flex-1 min-w-0">
-              <p class="font-medium text-base truncate max-w-[80%]">
+              <p class="font-medium text-base truncate">
                 {{ transaction.description || 'Sem descrição' }}
               </p>
               <p class="text-sm text-muted-foreground">
