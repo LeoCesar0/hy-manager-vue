@@ -3,27 +3,28 @@ import {
 } from "../@handlers/handle-app-request";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { IAPIRequestCommon } from "../@types";
-import { createCreditor } from "./create-creditor";
+import { createCounterparty } from "./create-counterparty";
 import { firebaseList } from "~/services/firebase/firebaseList";
 import { getDefaultGetToastOptions } from "~/helpers/toast/get-default-get-toast-options";
+import { slugify } from "~/helpers/slugify";
 
 type Item = ICounterparty;
 
-export type IAPIGetOrCreateCreditor = {
+export type IAPIGetOrCreateCounterparty = {
   name: string;
   userId: string;
   categoryIds?: string[];
 } & IAPIRequestCommon<Item>;
 
-export const getOrCreateCreditor = async ({ 
-  name, 
-  userId, 
+export const getOrCreateCounterparty = async ({
+  name,
+  userId,
   categoryIds = [],
-  options 
-}: IAPIGetOrCreateCreditor) => {
+  options
+}: IAPIGetOrCreateCounterparty) => {
   const response = await handleAppRequest(
     async () => {
-      const normalizedName = name.trim().toLowerCase();
+      const normalizedName = slugify(name);
 
       const existingList = await firebaseList<Item>({
         collection: "creditors",
@@ -37,14 +38,14 @@ export const getOrCreateCreditor = async ({
       });
 
       const existing = existingList.find(
-        (c) => c.name.toLowerCase() === normalizedName
+        (c) => slugify(c.name) === normalizedName
       );
 
       if (existing) {
         return existing;
       }
 
-      const createResult = await createCreditor({
+      const createResult = await createCounterparty({
         data: {
           name: name.trim(),
           userId,
@@ -60,7 +61,7 @@ export const getOrCreateCreditor = async ({
       });
 
       if (!createResult.data) {
-        throw new Error("Failed to create creditor");
+        throw new Error("Failed to create counterparty");
       }
 
       return createResult.data;
@@ -72,4 +73,3 @@ export const getOrCreateCreditor = async ({
   );
   return response;
 };
-

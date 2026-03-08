@@ -8,7 +8,7 @@ import type { IPaginationBody, IPaginationResult } from "~/@types/pagination";
 import { paginateTransactions } from "~/services/api/transactions/paginate-transactions";
 import { deleteTransaction } from "~/services/api/transactions/delete-transaction";
 import { getCategories } from "~/services/api/categories/get-categories";
-import { getCreditors } from "~/services/api/creditors/get-creditors";
+import { getCounterparties } from "~/services/api/counterparties/get-counterparties";
 import { ROUTE } from "~/static/routes";
 import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
 import EmptyState from "~/components/Dashboard/EmptyState.vue";
@@ -99,7 +99,7 @@ const loadAuxiliaryData = async () => {
       userId: currentUser.value.id,
       options: { toastOptions: undefined },
     }),
-    getCreditors({
+    getCounterparties({
       userId: currentUser.value.id,
       options: { toastOptions: undefined },
     }),

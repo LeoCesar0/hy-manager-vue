@@ -11,11 +11,11 @@ import { getDefaultCreateToastOptions } from "~/helpers/toast/get-default-create
 
 type Item = ICounterparty;
 
-export type IAPICreateCreditor = {
+export type IAPICreateCounterparty = {
   data: ICreateCounterparty;
 } & IAPIRequestCommon<Item>;
 
-export const createCreditor = async ({ data, options }: IAPICreateCreditor) => {
+export const createCounterparty = async ({ data, options }: IAPICreateCounterparty) => {
   const response = await handleAppRequest(
     async () => {
       return firebaseCreate({

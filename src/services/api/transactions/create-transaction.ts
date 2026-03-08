@@ -8,39 +8,46 @@ import type {
 import type { IAPIRequestCommon } from "../@types";
 import { firebaseCreate } from "~/services/firebase/firebaseCreate";
 import { getDefaultCreateToastOptions } from "~/helpers/toast/get-default-create-toast-options";
-import { getOrCreateCreditor } from "../creditors/get-or-create-creditor";
+import { getOrCreateCounterparty } from "../counterparties/get-or-create-counterparty";
 
 type Item = ITransaction;
 
 export type IAPICreateTransaction = {
   data: ICreateTransaction;
-  creditorName?: string;
+  counterpartyName?: string;
 } & IAPIRequestCommon<Item>;
 
-export const createTransaction = async ({ 
-  data, 
-  creditorName,
-  options 
+export const createTransaction = async ({
+  data,
+  counterpartyName,
+  options
 }: IAPICreateTransaction) => {
   const response = await handleAppRequest(
     async () => {
       let counterpartyId = data.counterpartyId;
+      let categoryIds = data.categoryIds || [];
 
-      if (creditorName && !counterpartyId) {
-        const categoryIds = data.categoryIds || [];
-        const creditorResult = await getOrCreateCreditor({
-          name: creditorName,
+      if (counterpartyName && !counterpartyId) {
+        const counterpartyResult = await getOrCreateCounterparty({
+          name: counterpartyName,
           userId: data.userId,
           categoryIds: categoryIds.filter((id) => id),
         });
 
-        if (creditorResult.data) {
-          counterpartyId = creditorResult.data.id;
+        if (counterpartyResult.data) {
+          counterpartyId = counterpartyResult.data.id;
+
+          if (counterpartyResult.data.categoryIds?.length) {
+            categoryIds = [
+              ...new Set([...categoryIds, ...counterpartyResult.data.categoryIds])
+            ];
+          }
         }
       }
 
       const transactionData = {
         ...data,
+        categoryIds,
         counterpartyId: counterpartyId || null,
       };
 
@@ -56,4 +63,3 @@ export const createTransaction = async ({
   );
   return response;
 };
-

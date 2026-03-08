@@ -11,12 +11,12 @@ import { getDefaultUpdateToastOptions } from "~/helpers/toast/get-default-update
 
 type Item = ICounterparty;
 
-export type IAPIUpdateCreditor = {
+export type IAPIUpdateCounterparty = {
   id: string;
   data: IUpdateCounterparty;
 } & IAPIRequestCommon<Item>;
 
-export const updateCreditor = async ({ id, data, options }: IAPIUpdateCreditor) => {
+export const updateCounterparty = async ({ id, data, options }: IAPIUpdateCounterparty) => {
   const response = await handleAppRequest(
     async () => {
       return firebaseUpdate({

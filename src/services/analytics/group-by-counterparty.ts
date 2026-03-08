@@ -1,20 +1,20 @@
 import type { ITransaction } from "~/@schemas/models/transaction";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
 
-export const groupByCreditor = (
+export const groupByCounterparty = (
   transactions: ITransaction[],
-  creditors: ICounterparty[]
+  counterparties: ICounterparty[]
 ) => {
   const grouped: Record<string, { name: string; amount: number }> = {};
 
   transactions.forEach((transaction) => {
     if (transaction.counterpartyId) {
-      const creditor = creditors.find((c) => c.id === transaction.counterpartyId);
-      const creditorName = creditor?.name || "Unknown";
+      const counterparty = counterparties.find((c) => c.id === transaction.counterpartyId);
+      const counterpartyName = counterparty?.name || "Unknown";
 
       if (!grouped[transaction.counterpartyId]) {
         grouped[transaction.counterpartyId] = {
-          name: creditorName,
+          name: counterpartyName,
           amount: 0,
         };
       }

@@ -8,11 +8,11 @@ import { getDefaultGetToastOptions } from "~/helpers/toast/get-default-get-toast
 
 type Item = ICounterparty;
 
-export type IAPIGetCreditors = {
+export type IAPIGetCounterparties = {
   userId: string;
 } & IAPIRequestCommon<Item[]>;
 
-export const getCreditors = async ({ userId, options }: IAPIGetCreditors) => {
+export const getCounterparties = async ({ userId, options }: IAPIGetCounterparties) => {
   const response = await handleAppRequest(
     async () => {
       return firebaseList<Item>({

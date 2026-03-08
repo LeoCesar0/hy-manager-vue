@@ -6,7 +6,7 @@ import type { ICounterparty } from "~/@schemas/models/counterparty";
 import { firebaseGet } from "~/services/firebase/firebaseGet";
 import { deleteTransaction } from "~/services/api/transactions/delete-transaction";
 import { getCategories } from "~/services/api/categories/get-categories";
-import { getCreditors } from "~/services/api/creditors/get-creditors";
+import { getCounterparties } from "~/services/api/counterparties/get-counterparties";
 import { formatDate } from "~/helpers/formatDate";
 import { formatCurrency } from "~/helpers/formatCurrency";
 import { getTransactionColor } from "~/helpers/getTransactionColor";
@@ -66,7 +66,7 @@ const loadAuxiliaryData = async () => {
       userId: currentUser.value.id,
       options: { toastOptions: undefined },
     }),
-    getCreditors({
+    getCounterparties({
       userId: currentUser.value.id,
       options: { toastOptions: undefined },
     }),

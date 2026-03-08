@@ -13,9 +13,8 @@ import { Timestamp } from "firebase/firestore";
 import { getCategoryIcon } from "~/static/category-icons";
 import { getCategories } from "~/services/api/categories/get-categories";
 import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
-import { getCreditors } from "~/services/api/creditors/get-creditors";
-import { parseToDate } from "~/helpers/parseToDate";
-import { formatDate } from "~/helpers/formatDate";
+import { getCounterparties } from "~/services/api/counterparties/get-counterparties";
+import { ChevronsUpDownIcon, CheckIcon, XIcon } from "lucide-vue-next";
 
 type IProps = {
   initialValues: T;
@@ -57,6 +56,13 @@ const categories = ref<ICategory[]>([]);
 const bankAccounts = ref<IBankAccount[]>([]);
 const counterparties = ref<ICounterparty[]>([]);
 
+const counterpartySearchQuery = ref("");
+const selectedCounterpartyId = ref<string | undefined>(
+  (props.initialValues as ITransaction)?.counterpartyId || undefined
+);
+
+const comboboxOpen = ref(false);
+
 onMounted(async () => {
   if (!currentUser.value?.id) return;
 
@@ -68,7 +74,7 @@ onMounted(async () => {
       userId: currentUser.value.id,
       pagination: { page: 1, limit: 100 },
     }),
-    getCreditors({
+    getCounterparties({
       userId: currentUser.value.id,
     }),
   ]);
@@ -81,6 +87,13 @@ onMounted(async () => {
   }
   if (counterpartiesRes.data) {
     counterparties.value = counterpartiesRes.data;
+  }
+
+  if (selectedCounterpartyId.value) {
+    const match = counterparties.value.find((cp) => cp.id === selectedCounterpartyId.value);
+    if (match) {
+      counterpartySearchQuery.value = match.name;
+    }
   }
 });
 
@@ -98,11 +111,10 @@ const bankAccountOptions = computed<ISelectOption[]>(() => {
   }));
 });
 
-const counterpartyOptions = computed<ISelectOption[]>(() => {
-  return counterparties.value.map(cp => ({
-    value: cp.id,
-    label: cp.name,
-  }));
+const filteredCounterparties = computed(() => {
+  const q = counterpartySearchQuery.value.toLowerCase().trim();
+  if (!q) return counterparties.value;
+  return counterparties.value.filter((cp) => cp.name.toLowerCase().includes(q));
 });
 
 const typeOptions: ISelectOption[] = [
@@ -110,18 +122,34 @@ const typeOptions: ISelectOption[] = [
   { value: 'expense', label: 'Despesa' },
 ];
 
+const handleSelectCounterparty = (value: string) => {
+  const match = counterparties.value.find((cp) => cp.id === value);
+  if (match) {
+    selectedCounterpartyId.value = match.id;
+    counterpartySearchQuery.value = match.name;
+  }
+  comboboxOpen.value = false;
+};
+
+const handleClearCounterparty = () => {
+  selectedCounterpartyId.value = undefined;
+  counterpartySearchQuery.value = "";
+};
+
 const onSubmit = handleSubmit(async (values) => {
   if (!currentUser.value) return;
 
   isLoading.value = true;
   try {
+    const isNewCounterparty = counterpartySearchQuery.value.trim() && !selectedCounterpartyId.value;
+
     const data = {
       type: values.type,
       amount: values.amount,
       description: values.description,
       date: values.date || Timestamp.now(),
       categoryIds: values.categoryIds || [],
-      counterpartyId: values.counterpartyId || null,
+      counterpartyId: selectedCounterpartyId.value || null,
       userId: values.userId || currentUser.value.id,
       bankAccountId: values.bankAccountId,
     };
@@ -130,6 +158,7 @@ const onSubmit = handleSubmit(async (values) => {
       const response = await updateTransaction({
         id: (props.initialValues as ITransaction).id || "",
         data,
+        counterpartyName: isNewCounterparty ? counterpartySearchQuery.value.trim() : undefined,
         options: {
           toastOptions: {
             loading: { message: "Atualizando transação..." },
@@ -142,6 +171,7 @@ const onSubmit = handleSubmit(async (values) => {
     } else {
       const response = await createTransaction({
         data,
+        counterpartyName: isNewCounterparty ? counterpartySearchQuery.value.trim() : undefined,
         options: {
           toastOptions: {
             loading: { message: "Criando transação..." },
@@ -161,6 +191,7 @@ const onSubmit = handleSubmit(async (values) => {
 
 const handleCancel = () => {
   resetForm();
+  handleClearCounterparty();
   emit("cancel");
 };
 </script>
@@ -183,11 +214,55 @@ const handleCancel = () => {
 
     <FormField name="categoryIds" label="Categorias" input-variant="multiple-select"
       placeholder="Selecione as categorias" :select-options="categoryOptions" />
-    <!-- <FormField name="categoryIds" label="Categorias" input-variant="select" placeholder="Selecione as categorias"
-      :select-options="categoryOptions" /> -->
 
-    <FormField name="counterpartyId" label="Terceiro (opcional)" input-variant="select"
-      placeholder="Selecione o terceiro" :select-options="counterpartyOptions" />
+    <div class="space-y-2">
+      <label class="text-sm font-medium leading-none">Terceiro (opcional)</label>
+      <UiCombobox :open="comboboxOpen" @update:open="comboboxOpen = $event">
+        <UiComboboxAnchor class="w-full">
+          <div class="relative flex items-center">
+            <UiComboboxInput
+              v-model="counterpartySearchQuery"
+              placeholder="Digite ou selecione o terceiro..."
+              class="w-full"
+              @focus="comboboxOpen = true"
+            />
+            <button
+              v-if="counterpartySearchQuery"
+              type="button"
+              class="absolute right-8 p-1 text-muted-foreground hover:text-foreground"
+              @click="handleClearCounterparty"
+            >
+              <XIcon class="h-3 w-3" />
+            </button>
+            <UiComboboxTrigger class="absolute right-1 p-1">
+              <ChevronsUpDownIcon class="h-4 w-4 text-muted-foreground" />
+            </UiComboboxTrigger>
+          </div>
+        </UiComboboxAnchor>
+        <UiComboboxList class="w-[var(--reka-combobox-trigger-width)]">
+          <UiComboboxViewport>
+            <UiComboboxEmpty>
+              <span v-if="counterpartySearchQuery.trim()">
+                "{{ counterpartySearchQuery.trim() }}" será criado automaticamente
+              </span>
+              <span v-else>Nenhum terceiro encontrado</span>
+            </UiComboboxEmpty>
+            <UiComboboxItem
+              v-for="cp in filteredCounterparties"
+              :key="cp.id"
+              :value="cp.id"
+              @select="handleSelectCounterparty(cp.id)"
+            >
+              <CheckIcon v-if="selectedCounterpartyId === cp.id" class="h-4 w-4 mr-2" />
+              <span :class="{ 'ml-6': selectedCounterpartyId !== cp.id }">{{ cp.name }}</span>
+            </UiComboboxItem>
+          </UiComboboxViewport>
+        </UiComboboxList>
+      </UiCombobox>
+      <p v-if="counterpartySearchQuery.trim() && !selectedCounterpartyId" class="text-xs text-muted-foreground">
+        Novo terceiro será criado automaticamente ao salvar
+      </p>
+    </div>
 
     <FormActions>
       <UiButton type="button" variant="outline" @click="handleCancel" :disabled="isLoading">

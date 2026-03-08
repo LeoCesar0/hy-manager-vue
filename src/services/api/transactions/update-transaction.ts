@@ -8,41 +8,48 @@ import type {
 import type { IAPIRequestCommon } from "../@types";
 import { firebaseUpdate } from "~/services/firebase/firebaseUpdate";
 import { getDefaultUpdateToastOptions } from "~/helpers/toast/get-default-update-toast-options";
-import { getOrCreateCreditor } from "../creditors/get-or-create-creditor";
+import { getOrCreateCounterparty } from "../counterparties/get-or-create-counterparty";
 
 type Item = ITransaction;
 
 export type IAPIUpdateTransaction = {
   id: string;
   data: IUpdateTransaction;
-  creditorName?: string;
+  counterpartyName?: string;
 } & IAPIRequestCommon<Item>;
 
-export const updateTransaction = async ({ 
+export const updateTransaction = async ({
   id,
-  data, 
-  creditorName,
-  options 
+  data,
+  counterpartyName,
+  options
 }: IAPIUpdateTransaction) => {
   const response = await handleAppRequest(
     async () => {
       let counterpartyId = data.counterpartyId;
+      let categoryIds = data.categoryIds || [];
 
-      if (creditorName && !counterpartyId) {
-        const categoryIds = data.categoryIds || [];
-        const creditorResult = await getOrCreateCreditor({
-          name: creditorName,
+      if (counterpartyName && !counterpartyId) {
+        const counterpartyResult = await getOrCreateCounterparty({
+          name: counterpartyName,
           userId: data.userId!,
           categoryIds: categoryIds.filter((id) => id),
         });
 
-        if (creditorResult.data) {
-          counterpartyId = creditorResult.data.id;
+        if (counterpartyResult.data) {
+          counterpartyId = counterpartyResult.data.id;
+
+          if (counterpartyResult.data.categoryIds?.length) {
+            categoryIds = [
+              ...new Set([...categoryIds, ...counterpartyResult.data.categoryIds])
+            ];
+          }
         }
       }
 
       const transactionData = {
         ...data,
+        categoryIds,
         counterpartyId: counterpartyId || null,
       };
 
@@ -59,4 +66,3 @@ export const updateTransaction = async ({
   );
   return response;
 };
-
