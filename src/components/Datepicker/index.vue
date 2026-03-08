@@ -45,24 +45,24 @@ const formatDate = (value: (typeof props)["modelValue"]) => {
 
 <template>
   <UiPopover v-slot="{ close }">
-    <div :class="cn('w-full max-w-[250px]', props.class)" v-bind="{
+    <div :class="cn('w-full max-w-[250px] min-w-0', props.class)" v-bind="{
       ...containerProps,
     }">
       <UiLabel v-if="label" class="mb-2" :labelInfo="labelInfo">
         {{ label }}
       </UiLabel>
-      <div class="flex items-center">
+      <div class="flex items-center min-w-0">
         <UiPopoverTrigger as-child :disabled="disabled">
           <UiButton variant="outline" :class="cn(
-            'w-full justify-start text-left font-normal',
+            'min-w-0 flex-1 justify-start text-left font-normal',
             !modelValue && 'text-muted-foreground',
             {
               'rounded-r-none': cleanButton,
             }
           )
             ">
-            <CalendarIcon class="mr-2 h-4 w-4" />
-            {{ modelValue ? formatDate(modelValue) : "Pick a date" }}
+            <CalendarIcon class="mr-2 h-4 w-4 shrink-0" />
+            <span class="truncate">{{ modelValue ? formatDate(modelValue) : "Pick a date" }}</span>
           </UiButton>
         </UiPopoverTrigger>
         <UiButton v-if="cleanButton" @click="
