@@ -1,10 +1,10 @@
 import {
   getDocs,
+  getCountFromServer,
   query,
   where,
   orderBy,
-  Query,
-  type DocumentData,
+  limit,
 } from "firebase/firestore";
 import type { IPaginationBody, IPaginationResult } from "~/@types/pagination";
 import { createCollectionRef } from "./createCollectionRef";
@@ -22,13 +22,9 @@ export const firebasePaginatedList = async <R>({
   pagination,
 }: IProps<R>): Promise<IPaginationResult<R>> => {
   const ref = createCollectionRef({ collectionName });
-  let whereList = filters.map(({ field, operator = "==", value }) =>
+  const whereList = filters.map(({ field, operator = "==", value }) =>
     where(field as string, operator, value)
   );
-
-  let snapShot;
-
-  let firebaseQuery: Query<DocumentData>;
 
   const orderByValues = pagination.orderBy ?? {
     field: "createdAt",
@@ -45,28 +41,25 @@ export const firebasePaginatedList = async <R>({
     );
   }
 
-  firebaseQuery = query(
-    ref,
-    ...whereList,
-    ...orderByParams
-    // orderBy(orderByValues.field, orderByValues.direction)
-  );
+  const baseQuery = query(ref, ...whereList, ...orderByParams);
 
-  snapShot = await getDocs(firebaseQuery);
-  let list: R[] = snapShot.docs.map((doc) => doc.data() as R);
+  const [countSnapshot, dataSnapshot] = await Promise.all([
+    getCountFromServer(baseQuery),
+    getDocs(query(baseQuery, limit(pagination.page * pagination.limit))),
+  ]);
 
-  const count = list.length;
+  const count = countSnapshot.data().count;
   const totalPages = Math.ceil(count / pagination.limit);
 
-  list = list.slice(
-    (pagination.page - 1) * pagination.limit,
-    pagination.page * pagination.limit
-  );
+  const docsToSkip = (pagination.page - 1) * pagination.limit;
+  const list: R[] = dataSnapshot.docs
+    .slice(docsToSkip)
+    .map((doc) => doc.data() as R);
 
   return {
-    count: count,
+    count,
     pages: totalPages,
-    list: list,
+    list,
     currentPage: pagination.page,
   };
 };

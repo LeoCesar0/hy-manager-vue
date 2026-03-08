@@ -72,3 +72,11 @@ Nuxt auto-imports from `src/composables/*.ts` and `src/composables/**/*.ts`. No 
 ### Suggestions
 
 If you have any concern or can view any problem on our plan or my suggestions, let me know. Let's discuss the changes and paths to forward.
+
+### Types
+
+- Avoid any types
+- Always try to type as best as possible
+- Reuse already defined types.
+- If an type or interface already exists are we should reference it, use it instead of duplicating code
+- When reusing already defined types, you can merge, extend or omit it.

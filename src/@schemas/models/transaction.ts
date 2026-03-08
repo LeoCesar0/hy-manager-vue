@@ -25,3 +25,4 @@ export type ITransactionBase = z.infer<typeof zTransactionBase>;
 export type ITransaction = z.infer<typeof zTransaction>;
 export type ICreateTransaction = z.infer<typeof zCreateTransaction>;
 export type IUpdateTransaction = z.infer<typeof zTransactionBase>;
+export type ITransactionType = z.infer<typeof zTransactionType>;

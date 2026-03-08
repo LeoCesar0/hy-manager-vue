@@ -60,10 +60,10 @@ const counterparty = computed(() => {
           />
         </div>
 
-        <div class="flex-1 min-w-0">
+        <div class="flex-1 min-w-0 w-full">
           <div class="flex items-start justify-between gap-2 mb-2">
             <div class="flex-1 min-w-0">
-              <p class="font-medium text-base truncate">
+              <p class="font-medium text-base truncate max-w-[80%]">
                 {{ transaction.description || 'Sem descrição' }}
               </p>
               <p class="text-sm text-muted-foreground">

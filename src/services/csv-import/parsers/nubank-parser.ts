@@ -1,6 +1,7 @@
 import Papa from "papaparse";
 import type { IBankStatementParser, IBankStatementRow } from "../@types";
-import { extractCounterpartyName } from "../extract-counterparty-name";
+import { extractCounterpartyName } from "./extract-counterparty-name";
+import { extractDescriptionParts } from "./extract-description-parts";
 
 const EXPECTED_HEADERS = ["data", "valor", "identificador", "descricao"];
 
@@ -79,16 +80,17 @@ export const nubankParser: IBankStatementParser = {
           `Linha ${i + 2}: data "${dateStr}" não é válida. Formato esperado: DD/MM/AAAA.`
         );
       }
+      const { transactionDescription, counterpartyName, details } = extractDescriptionParts({
+        description: description.trim(),
+      });
 
       rows.push({
         id,
         date,
         amount: Math.abs(valor),
         type: valor < 0 ? "expense" : "deposit",
-        description: description.trim(),
-        counterpartyName: extractCounterpartyName({
-          description: description.trim(),
-        }),
+        description: transactionDescription || '',
+        counterpartyName: counterpartyName || null,
       });
     }
 

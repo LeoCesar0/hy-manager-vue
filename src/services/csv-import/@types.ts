@@ -1,8 +1,10 @@
+import type { ITransactionType } from "~/@schemas/models/transaction";
+
 export type IBankStatementRow = {
   id: string;
   date: Date;
   amount: number;
-  type: "deposit" | "expense";
+  type: ITransactionType
   description: string;
   counterpartyName: string | null;
 };
