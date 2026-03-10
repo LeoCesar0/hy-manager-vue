@@ -65,6 +65,12 @@ Global middleware (`src/middleware/auth.global.ts`) listens to `onAuthStateChang
 - Services: verb-noun pattern (`create-transaction.ts`, `get-categories.ts`)
 - Components: PascalCase directories matching domain (Dashboard/, Transactions/)
 
+### Form inputs
+
+- **Always use `Form/Field/DatePicker`** (`src/components/Form/Field/DatePicker.vue`) for date inputs.
+- **Inside forms**: Use `FormField` with `inputVariant` (e.g., `inputVariant="datepicker"`) to get label, validation, and form integration for free.
+- **Outside forms** (filters, standalone controls): Import the specific `Form/Field/*` component directly (e.g., `DatePicker`, `MultipleSelect`).
+
 ### Auto-imports
 
 Nuxt auto-imports from `src/composables/*.ts` and `src/composables/**/*.ts`. No need to manually import composables or Vue APIs.

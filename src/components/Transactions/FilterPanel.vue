@@ -5,7 +5,7 @@ import type { IBankAccount } from "~/@schemas/models/bank-account";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { Timestamp } from "firebase/firestore";
 import SearchInput from "~/components/Dashboard/SearchInput.vue";
-import Datepicker from "~/components/Datepicker/index.vue";
+import DatePicker from "~/components/Form/Field/DatePicker.vue";
 
 type IFilters = {
   startDate: Timestamp | null;
@@ -111,22 +111,18 @@ const handleApply = () => {
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <div class="space-y-2">
           <label class="text-sm font-medium">Data Início</label>
-          <Datepicker 
-            :model-value="localFilters.startDate"
+          <DatePicker
+            :model-value="localFilters.startDate ?? undefined"
             @update:model-value="(value) => updateFilter('startDate', value)"
-            :clean-button="true"
-            :value-on-clean="null"
             class="max-w-full"
           />
         </div>
 
         <div class="space-y-2">
           <label class="text-sm font-medium">Data Fim</label>
-          <Datepicker 
-            :model-value="localFilters.endDate"
+          <DatePicker
+            :model-value="localFilters.endDate ?? undefined"
             @update:model-value="(value) => updateFilter('endDate', value)"
-            :clean-button="true"
-            :value-on-clean="null"
             class="max-w-full"
           />
         </div>
