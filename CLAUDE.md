@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-- **Dev server**: `npm run dev`
-- **Build**: `npm run build`
-- **Generate static**: `npm run generate`
-- **Preview build**: `npm run preview`
-- **Type check**: `npm run ts-check` (runs `vue-tsc --noEmit`)
+- **Dev server**: `pnpm run dev`
+- **Build**: `pnpm run build`
+- **Generate static**: `pnpm run generate`
+- **Preview build**: `pnpm run preview`
+- **Type check**: `pnpm run ts-check` (runs `vue-tsc --noEmit`)
 
 No test framework or linter is configured.
 
