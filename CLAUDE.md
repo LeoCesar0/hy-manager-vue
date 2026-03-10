@@ -80,3 +80,17 @@ If you have any concern or can view any problem on our plan or my suggestions, l
 - Reuse already defined types.
 - If an type or interface already exists are we should reference it, use it instead of duplicating code
 - When reusing already defined types, you can merge, extend or omit it.
+
+## Validating Request
+
+Always validate the current request. If that makes sense and possible flaws. You can always suggest changes if applicable.
+
+## Auto Improvement Action
+
+When user asks for auto improvement action, you must review the latest changes you did to learn and align patterns that we must keep in the app.
+When you notice important app patterns. Add it here in CLAUDE.md for future tasks.
+If there is not worth patterns or rules to be add, just reply the user that's all fine.
+
+The reasons is for memory and learning process, adapting the style to enhance the app patterns.
+
+You can also suggest any changes and improvements into current patterns (needs approvement from the user)
