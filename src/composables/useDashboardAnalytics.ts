@@ -35,6 +35,10 @@ export const useDashboardAnalytics = () => {
     endDate: Timestamp.fromDate(now),
   });
 
+  watch(filters, (filters) => {
+    console.log(`❗ filters -->`, filters);
+  }, { immediate: true })
+
   const totals = computed(() => calculateTotals(filteredTransactions.value));
 
   const expensesByCategory = computed(() => {
@@ -94,7 +98,7 @@ export const useDashboardAnalytics = () => {
     if (!currentUser.value || !currentBankAccount.value) return;
 
     const dateFilters = buildDateFilters();
-
+    console.log(`❗ dateFilters -->`, dateFilters);
     const transactionsRes = await getTransactions({
       userId: currentUser.value.id,
       bankAccountId: currentBankAccount.value.id,

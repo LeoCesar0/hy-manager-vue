@@ -1,0 +1,1 @@
+- update a counter party category must reflect into already created transactions and reports. Everything must already be synced.
