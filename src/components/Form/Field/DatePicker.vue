@@ -36,13 +36,24 @@ export type IDatePickerProps = {
     placeholder?: string;
     disabled?: boolean;
     locale?: string;
-    options?: DatePickerRootProps
+    _options?: DatePickerRootProps
+}
+
+const defaultOptions: DatePickerRootProps = {
+    granularity: 'day'
 }
 
 const props = withDefaults(defineProps<IDatePickerProps>(), {
     placeholder: 'Pick a date',
     locale: undefined,
 });
+
+const options = computed(() => {
+    return {
+        ...defaultOptions,
+        ...props._options ?? {}
+    }
+})
 
 const userLocale = computed(() => {
     if (props.locale) return props.locale;
@@ -120,7 +131,7 @@ const calendarValue = computed({
 </script>
 
 <template>
-    <DatePickerRoot v-model="calendarValue" :disabled="disabled" :locale="userLocale" v-bind="props.options">
+    <DatePickerRoot v-model="calendarValue" :disabled="disabled" :locale="userLocale" v-bind="options">
         <DatePickerField v-slot="{ segments }" :class="cn(
             'flex w-full select-none items-center rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-[color,box-shadow]',
             'focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]',
