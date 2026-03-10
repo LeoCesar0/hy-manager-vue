@@ -21,9 +21,9 @@ export const firebaseList = async <R>({
 
   filters = filters.reduce((acc, entry) => {
     // --------------------------
-    // Remove duplicates
+    // Remove duplicates by field + operator combination
     // --------------------------
-    if (!acc.find((filter) => filter.field === entry.field)) {
+    if (!acc.find((filter) => filter.field === entry.field && filter.operator === entry.operator)) {
       acc.push(entry);
     }
     return acc;

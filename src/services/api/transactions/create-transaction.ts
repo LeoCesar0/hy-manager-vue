@@ -9,6 +9,7 @@ import type { IAPIRequestCommon } from "../@types";
 import { firebaseCreate } from "~/services/firebase/firebaseCreate";
 import { getDefaultCreateToastOptions } from "~/helpers/toast/get-default-create-toast-options";
 import { getOrCreateCounterparty } from "../counterparties/get-or-create-counterparty";
+import { updateReport } from "../reports/update-report";
 
 type Item = ITransaction;
 
@@ -51,10 +52,18 @@ export const createTransaction = async ({
         counterpartyId: counterpartyId || null,
       };
 
-      return firebaseCreate({
+      const created = await firebaseCreate<typeof transactionData, ITransaction>({
         collection: "transactions",
         data: transactionData,
       });
+
+      updateReport({
+        userId: data.userId,
+        bankAccountId: data.bankAccountId,
+        newTransaction: created,
+      });
+
+      return created;
     },
     {
       toastOptions: getDefaultCreateToastOptions({ itemName: "Transação" }),

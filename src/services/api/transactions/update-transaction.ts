@@ -7,8 +7,10 @@ import type {
 } from "~/@schemas/models/transaction";
 import type { IAPIRequestCommon } from "../@types";
 import { firebaseUpdate } from "~/services/firebase/firebaseUpdate";
+import { firebaseGet } from "~/services/firebase/firebaseGet";
 import { getDefaultUpdateToastOptions } from "~/helpers/toast/get-default-update-toast-options";
 import { getOrCreateCounterparty } from "../counterparties/get-or-create-counterparty";
+import { updateReport } from "../reports/update-report";
 
 type Item = ITransaction;
 
@@ -26,6 +28,11 @@ export const updateTransaction = async ({
 }: IAPIUpdateTransaction) => {
   const response = await handleAppRequest(
     async () => {
+      const oldTransaction = await firebaseGet<ITransaction>({
+        collection: "transactions",
+        id,
+      });
+
       let counterpartyId = data.counterpartyId;
       let categoryIds = data.categoryIds || [];
 
@@ -53,11 +60,20 @@ export const updateTransaction = async ({
         counterpartyId: counterpartyId || null,
       };
 
-      return firebaseUpdate({
+      const updated = await firebaseUpdate<typeof transactionData, ITransaction>({
         collection: "transactions",
         id,
         data: transactionData,
       });
+
+      updateReport({
+        userId: updated.userId,
+        bankAccountId: updated.bankAccountId,
+        oldTransaction,
+        newTransaction: updated,
+      });
+
+      return updated;
     },
     {
       toastOptions: getDefaultUpdateToastOptions({ itemName: "Transação" }),

@@ -10,6 +10,7 @@ import { getTransactions } from "./get-transactions";
 import { createCounterparty } from "../counterparties/create-counterparty";
 import { slugify } from "~/helpers/slugify";
 import { chunk } from "~/helpers/chunk";
+import { updateReportBulk } from "../reports/update-report-bulk";
 
 const FIRESTORE_IN_LIMIT = 30;
 
@@ -125,7 +126,6 @@ export const importTransactions = async ({
         userId,
         bankAccountId,
       });
-      console.log(`❗ existingIds -->`, existingIds);
       const newRows = rows.filter((r) => !existingIds.has(r.id));
 
       if (newRows.length === 0) {
@@ -139,14 +139,10 @@ export const importTransactions = async ({
         .map((r) => r.counterpartyName)
         .filter((name): name is string => !!name);
 
-      console.log(`❗ counterpartyNames -->`, counterpartyNames);
-
       const counterpartyMap = await resolveCounterparties({
         names: counterpartyNames,
         userId,
       });
-
-      console.log(`❗ counterpartyMap -->`, counterpartyMap);
 
       const transactionsData = newRows.map((row) => {
         const counterparty = row.counterpartyName
@@ -167,14 +163,18 @@ export const importTransactions = async ({
         };
       });
 
-      console.log(`❗ transactionsData -->`, transactionsData);
-
       const created = await firebaseCreateMany<
         (typeof transactionsData)[number],
         ITransaction
       >({
         collection: "transactions",
         data: transactionsData,
+      });
+
+      updateReportBulk({
+        userId,
+        bankAccountId,
+        newTransactions: created,
       });
 
       return {
