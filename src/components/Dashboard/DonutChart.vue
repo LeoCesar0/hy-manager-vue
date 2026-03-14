@@ -17,11 +17,18 @@ type IProps = {
   data: DataItem[];
   loading?: boolean;
   emptyMessage?: string;
+  variant?: "expense" | "deposit";
 };
 
 const props = withDefaults(defineProps<IProps>(), {
   loading: false,
   emptyMessage: "Sem dados para exibir",
+});
+
+const accentClasses = computed(() => {
+  if (props.variant === "expense") return "border-l-4 border-expense";
+  if (props.variant === "deposit") return "border-l-4 border-deposit";
+  return "";
 });
 
 const chartConfig = computed<ChartConfig>(() => {
@@ -79,7 +86,7 @@ const tooltipTriggers = computed(() => ({
 </script>
 
 <template>
-  <UiCard class="p-6">
+  <UiCard class="p-6" :class="accentClasses">
     <h3 class="text-sm font-medium text-muted-foreground mb-4">{{ title }}</h3>
 
     <div v-if="loading" class="flex flex-col items-center gap-4">

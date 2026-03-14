@@ -10,11 +10,18 @@ type IProps = {
   comparison?: { label: string; value: string };
   icon?: Component;
   trend?: "up" | "down" | "neutral";
+  variant?: "expense" | "deposit";
   loading?: boolean;
 };
 
 const props = withDefaults(defineProps<IProps>(), {
   loading: false,
+});
+
+const accentClasses = computed(() => {
+  if (props.variant === "expense") return "border-l-4 border-expense";
+  if (props.variant === "deposit") return "border-l-4 border-deposit";
+  return "";
 });
 
 const trendIcon = computed(() => {
@@ -31,7 +38,7 @@ const trendColor = computed(() => {
 </script>
 
 <template>
-  <UiCard class="p-4">
+  <UiCard class="p-4" :class="accentClasses">
     <div class="flex items-start justify-between">
       <div class="space-y-1 min-w-0 flex-1">
         <p class="text-xs font-medium text-muted-foreground">{{ title }}</p>

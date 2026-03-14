@@ -27,7 +27,7 @@ const totals = computed<ITotals>(() => {
 
 <template>
   <div class="grid gap-4 md:grid-cols-3">
-    <UiCard class="p-6">
+    <UiCard class="p-6 border-l-4 border-deposit">
       <div class="flex items-center justify-between">
         <div class="space-y-1">
           <p class="text-sm font-medium text-muted-foreground">Total de Entradas</p>
@@ -42,7 +42,7 @@ const totals = computed<ITotals>(() => {
       </div>
     </UiCard>
 
-    <UiCard class="p-6">
+    <UiCard class="p-6 border-l-4 border-expense">
       <div class="flex items-center justify-between">
         <div class="space-y-1">
           <p class="text-sm font-medium text-muted-foreground">Total de Saídas</p>
@@ -57,24 +57,24 @@ const totals = computed<ITotals>(() => {
       </div>
     </UiCard>
 
-    <UiCard class="p-6">
+    <UiCard class="p-6 border-l-4" :class="totals.balance >= 0 ? 'border-deposit' : 'border-expense'">
       <div class="flex items-center justify-between">
         <div class="space-y-1">
           <p class="text-sm font-medium text-muted-foreground">Saldo</p>
           <p v-if="loading" class="h-8 w-32 bg-muted animate-pulse rounded" />
-          <p 
-            v-else 
+          <p
+            v-else
             class="text-2xl font-bold"
             :class="totals.balance >= 0 ? 'text-primary' : 'text-expense'"
           >
             {{ formatCurrency({ amount: totals.balance }) }}
           </p>
         </div>
-        <div 
+        <div
           class="h-12 w-12 rounded-full flex items-center justify-center"
           :class="totals.balance >= 0 ? 'bg-primary/10' : 'bg-expense/10'"
         >
-          <WalletIcon 
+          <WalletIcon
             class="h-6 w-6"
             :class="totals.balance >= 0 ? 'text-primary' : 'text-expense'"
           />

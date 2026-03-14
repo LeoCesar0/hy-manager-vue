@@ -29,6 +29,7 @@ const cards = computed(() => [
         }
       : undefined,
     icon: TagIcon,
+    variant: "expense" as const,
   },
   {
     title: "Maior entrada (categoria)",
@@ -43,6 +44,7 @@ const cards = computed(() => [
         }
       : undefined,
     icon: TagIcon,
+    variant: "deposit" as const,
   },
   {
     title: "Maior saída (terceiro)",
@@ -57,6 +59,7 @@ const cards = computed(() => [
         }
       : undefined,
     icon: UsersIcon,
+    variant: "expense" as const,
   },
   {
     title: "Maior entrada (terceiro)",
@@ -71,11 +74,13 @@ const cards = computed(() => [
         }
       : undefined,
     icon: UsersIcon,
+    variant: "deposit" as const,
   },
   {
     title: "Gasto médio mensal",
     value: formatAmount(props.insights.averageMonthlySpending),
     icon: BarChart3Icon,
+    variant: "expense" as const,
   },
   {
     title: "Proporção saídas/entradas",
@@ -108,6 +113,7 @@ const cards = computed(() => [
       ? "vs. mês anterior"
       : "Dados insuficientes",
     icon: TrendingDownIcon,
+    variant: "expense" as const,
   },
 ]);
 </script>
@@ -125,6 +131,7 @@ const cards = computed(() => [
         :comparison="card.comparison"
         :icon="card.icon"
         :trend="card.trend"
+        :variant="card.variant"
         :loading="loading"
       />
     </div>

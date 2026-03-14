@@ -75,24 +75,28 @@ onMounted(() => {
         :data="expensesByCategory"
         :loading="isLoading"
         empty-message="Nenhuma despesa no período"
+        variant="expense"
       />
       <DonutChart
         title="Saídas por Terceiro"
         :data="expensesByCounterparty"
         :loading="isLoading"
         empty-message="Nenhuma despesa com terceiro no período"
+        variant="expense"
       />
       <DonutChart
         title="Entradas por Categoria"
         :data="depositsByCategory"
         :loading="isLoading"
         empty-message="Nenhuma receita no período"
+        variant="deposit"
       />
       <DonutChart
         title="Entradas por Terceiro"
         :data="depositsByCounterparty"
         :loading="isLoading"
         empty-message="Nenhuma receita com terceiro no período"
+        variant="deposit"
       />
     </div>
 

@@ -211,6 +211,12 @@
   .bg-expense\/20 {
     background-color: color-mix(in oklch, var(--expense) 20%, transparent);
   }
+  .border-deposit {
+    border-color: var(--deposit);
+  }
+  .border-expense {
+    border-color: var(--expense);
+  }
 }
 
 body {
