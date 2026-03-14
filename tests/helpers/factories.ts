@@ -4,6 +4,7 @@ import type { IUser } from "~/@schemas/models/user";
 import type { ICategory } from "~/@schemas/models/category";
 import type { IBankAccount } from "~/@schemas/models/bank-account";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
+import type { IReportBase } from "~/@schemas/models/report";
 import type { ICommonDoc } from "~/@schemas/models/@common";
 
 // ---------------------------------------------------
@@ -89,5 +90,21 @@ export const makeCounterparty = (
   name: "Test Counterparty",
   categoryIds: ["cat-1"],
   userId: "user-1",
+  ...overrides,
+});
+
+export const makeReport = (
+  overrides?: Partial<IReportBase>
+): IReportBase => ({
+  userId: "user-1",
+  bankAccountId: "bank-1",
+  totalIncome: 0,
+  totalExpenses: 0,
+  transactionCount: 0,
+  expensesByCategory: {},
+  depositsByCategory: {},
+  expensesByCounterparty: {},
+  depositsByCounterparty: {},
+  monthlyBreakdown: {},
   ...overrides,
 });

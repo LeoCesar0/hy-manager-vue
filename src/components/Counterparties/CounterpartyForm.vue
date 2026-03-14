@@ -76,6 +76,7 @@ const onSubmit = handleSubmit(async (values) => {
     if (props.isEditMode) {
       const response = await updateCounterparty({
         id: (props.initialValues as ICounterparty).id || "",
+        userId: currentUser.value.id,
         data: {
           name: values.name,
           categoryIds: values.categoryIds || [],

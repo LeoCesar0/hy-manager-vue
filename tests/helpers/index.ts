@@ -7,5 +7,6 @@ export {
   makeCategory,
   makeTransaction,
   makeCounterparty,
+  makeReport,
   resetFactoryCounter,
 } from "./factories";

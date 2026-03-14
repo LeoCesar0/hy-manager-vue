@@ -73,9 +73,10 @@ const handleDelete = async (bankAccount: IBankAccount) => {
         confirm: {
             label: "Deletar",
             action: async () => {
-                if (!bankAccount?.id) return;
+                if (!bankAccount?.id || !currentUser.value?.id) return;
                 const response = await deleteBankAccount({
                     id: bankAccount.id,
+                    userId: currentUser.value.id,
                     options: {
                         toastOptions: {
                             loading: {

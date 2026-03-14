@@ -78,9 +78,10 @@ const handleDelete = () => {
     confirm: {
       label: "Deletar",
       action: async () => {
-        if (!counterparty.value?.id) return;
+        if (!counterparty.value?.id || !currentUser.value?.id) return;
         const response = await deleteCounterparty({
           id: counterparty.value.id,
+          userId: currentUser.value.id,
           options: {
             toastOptions: {
               loading: { message: "Deletando terceiro..." },

@@ -17,6 +17,8 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore();
+const { currentUser } = storeToRefs(userStore);
 const categoryId = route.params.id as string;
 
 const isLoadingData = ref(false);
@@ -54,9 +56,10 @@ const handleDelete = () => {
     confirm: {
       label: "Deletar",
       action: async () => {
-        if (!category.value?.id) return;
+        if (!category.value?.id || !currentUser.value?.id) return;
         const response = await deleteCategory({
           id: category.value.id,
+          userId: currentUser.value.id,
           options: {
             toastOptions: {
               loading: { message: "Deletando categoria..." },

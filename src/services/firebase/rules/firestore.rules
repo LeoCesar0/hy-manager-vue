@@ -17,7 +17,12 @@ service cloud.firestore {
       return isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
     }
 
-    // Match environment paths (development/production/test)
+    // Test environment - open access for integration tests
+    match /env/test/{collection}/{docId} {
+      allow read, write: if true;
+    }
+
+    // Match environment paths (development/production)
     match /env/{environment}/{document=**} {
 
       // Users collection - users can only access their own data

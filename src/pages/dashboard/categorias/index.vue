@@ -70,9 +70,10 @@ const handleDelete = (category: ICategory) => {
     confirm: {
       label: "Deletar",
       action: async () => {
-        if (!category.id) return;
+        if (!category.id || !currentUser.value?.id) return;
         const response = await deleteCategory({
           id: category.id,
+          userId: currentUser.value.id,
           options: {
             toastOptions: {
               loading: { message: "Deletando categoria..." },
