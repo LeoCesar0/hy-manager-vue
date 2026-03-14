@@ -71,25 +71,25 @@ onMounted(() => {
 
     <div class="grid gap-4 md:grid-cols-2">
       <DonutChart
-        title="Despesas por Categoria"
+        title="Saídas por Categoria"
         :data="expensesByCategory"
         :loading="isLoading"
         empty-message="Nenhuma despesa no período"
       />
       <DonutChart
-        title="Despesas por Terceiro"
+        title="Saídas por Terceiro"
         :data="expensesByCounterparty"
         :loading="isLoading"
         empty-message="Nenhuma despesa com terceiro no período"
       />
       <DonutChart
-        title="Receitas por Categoria"
+        title="Entradas por Categoria"
         :data="depositsByCategory"
         :loading="isLoading"
         empty-message="Nenhuma receita no período"
       />
       <DonutChart
-        title="Receitas por Terceiro"
+        title="Entradas por Terceiro"
         :data="depositsByCounterparty"
         :loading="isLoading"
         empty-message="Nenhuma receita com terceiro no período"

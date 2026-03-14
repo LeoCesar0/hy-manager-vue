@@ -30,7 +30,7 @@ const totals = computed<ITotals>(() => {
     <UiCard class="p-6">
       <div class="flex items-center justify-between">
         <div class="space-y-1">
-          <p class="text-sm font-medium text-muted-foreground">Total de Receitas</p>
+          <p class="text-sm font-medium text-muted-foreground">Total de Entradas</p>
           <p v-if="loading" class="h-8 w-32 bg-muted animate-pulse rounded" />
           <p v-else class="text-2xl font-bold text-deposit">
             {{ formatCurrency({ amount: totals.income }) }}
@@ -45,7 +45,7 @@ const totals = computed<ITotals>(() => {
     <UiCard class="p-6">
       <div class="flex items-center justify-between">
         <div class="space-y-1">
-          <p class="text-sm font-medium text-muted-foreground">Total de Despesas</p>
+          <p class="text-sm font-medium text-muted-foreground">Total de Saídas</p>
           <p v-if="loading" class="h-8 w-32 bg-muted animate-pulse rounded" />
           <p v-else class="text-2xl font-bold text-expense">
             {{ formatCurrency({ amount: totals.expenses }) }}

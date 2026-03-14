@@ -17,7 +17,7 @@ const formatAmount = (amount: number) => formatCurrency({ amount });
 
 const cards = computed(() => [
   {
-    title: "Maior despesa (categoria)",
+    title: "Maior saída (categoria)",
     value: props.insights.topExpenseCategory?.name ?? "—",
     subtitle: props.insights.topExpenseCategory
       ? formatAmount(props.insights.topExpenseCategory.amount)
@@ -31,7 +31,7 @@ const cards = computed(() => [
     icon: TagIcon,
   },
   {
-    title: "Maior receita (categoria)",
+    title: "Maior entrada (categoria)",
     value: props.insights.topDepositCategory?.name ?? "—",
     subtitle: props.insights.topDepositCategory
       ? formatAmount(props.insights.topDepositCategory.amount)
@@ -45,7 +45,7 @@ const cards = computed(() => [
     icon: TagIcon,
   },
   {
-    title: "Maior despesa (terceiro)",
+    title: "Maior saída (terceiro)",
     value: props.insights.topExpenseCounterparty?.name ?? "—",
     subtitle: props.insights.topExpenseCounterparty
       ? formatAmount(props.insights.topExpenseCounterparty.amount)
@@ -59,7 +59,7 @@ const cards = computed(() => [
     icon: UsersIcon,
   },
   {
-    title: "Maior receita (terceiro)",
+    title: "Maior entrada (terceiro)",
     value: props.insights.topDepositCounterparty?.name ?? "—",
     subtitle: props.insights.topDepositCounterparty
       ? formatAmount(props.insights.topDepositCounterparty.amount)
@@ -78,7 +78,7 @@ const cards = computed(() => [
     icon: BarChart3Icon,
   },
   {
-    title: "Proporção despesas/receitas",
+    title: "Proporção saídas/entradas",
     value: props.insights.expenseToIncomeRatio > 0
       ? `${(props.insights.expenseToIncomeRatio * 100).toFixed(0)}%`
       : "—",
