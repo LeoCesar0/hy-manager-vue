@@ -1,25 +1,30 @@
-import { writeBatch } from "firebase/firestore";
+import { writeBatch, WriteBatch } from "firebase/firestore";
 import type { FirebaseCollection } from "./collections";
-import { firebaseDelete } from "./firebaseDelete";
 import { firebaseBatchDelete } from "./firebaseBatchDelete";
 
-type IFirebaseDelete = {
+type IFirebaseDeleteMany = {
   collection: FirebaseCollection;
   ids: string[];
+  batch?: WriteBatch;
 };
+
 export const firebaseDeleteMany = async ({
   collection: collectionName,
   ids,
-}: IFirebaseDelete) => {
+  batch: _batch,
+}: IFirebaseDeleteMany) => {
   const { firebaseDB } = useFirebaseStore();
-  const batch = writeBatch(firebaseDB);
+  const batch = _batch || writeBatch(firebaseDB);
+
   for (const id of ids) {
     await firebaseBatchDelete({
       collection: collectionName,
       id,
       batch,
-    })
+    });
   }
-  await batch.commit();
-  return true
+
+  if (!_batch) await batch.commit();
+
+  return true;
 };

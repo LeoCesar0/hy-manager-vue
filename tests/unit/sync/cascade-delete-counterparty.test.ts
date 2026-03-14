@@ -7,10 +7,28 @@ import {
   resetFactoryCounter,
 } from "../../helpers";
 
+const mockBatch = {
+  commit: vi.fn().mockResolvedValue(undefined),
+  delete: vi.fn(),
+  update: vi.fn(),
+  set: vi.fn(),
+};
+
+vi.mock("firebase/firestore", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("firebase/firestore")>();
+  return {
+    ...actual,
+    writeBatch: vi.fn(() => mockBatch),
+    deleteField: vi.fn(() => "__deleteField__"),
+  };
+});
+
+vi.stubGlobal("useFirebaseStore", () => ({ firebaseDB: {} }));
+
 vi.mock("~/services/firebase/firebaseList", () => ({ firebaseList: firebaseMocks.firebaseList }));
 vi.mock("~/services/firebase/firebaseUpdateMany", () => ({ firebaseUpdateMany: firebaseMocks.firebaseUpdateMany }));
 vi.mock("~/services/firebase/firebaseGet", () => ({ firebaseGet: firebaseMocks.firebaseGet }));
-vi.mock("~/services/firebase/createDocRef", () => ({ createDocRef: vi.fn(() => ({ __mockRef: true })) }));
+vi.mock("~/services/firebase/createDocRef", () => ({ createDocRef: vi.fn(({ id }: { id: string }) => ({ __mockRef: true, id })) }));
 
 import { cascadeDeleteCounterparty } from "~/services/api/sync/cascade-delete-counterparty";
 
@@ -18,9 +36,13 @@ describe("cascadeDeleteCounterparty", () => {
   beforeEach(() => {
     resetFactoryCounter();
     resetFirebaseMocks();
+    mockBatch.commit.mockReset().mockResolvedValue(undefined);
+    mockBatch.delete.mockReset();
+    mockBatch.update.mockReset();
+    mockBatch.set.mockReset();
   });
 
-  it("nullifies counterpartyId on transactions and removes from reports", async () => {
+  it("nullifies counterpartyId on transactions and removes from reports in a single batch", async () => {
     const t1 = makeTransaction({ counterpartyId: "cp-1", bankAccountId: "bank-1" });
     const t2 = makeTransaction({ counterpartyId: "cp-1", bankAccountId: "bank-2" });
     const report1 = makeReport({ bankAccountId: "bank-1", expensesByCounterparty: { "cp-1": 100 } });
@@ -33,16 +55,20 @@ describe("cascadeDeleteCounterparty", () => {
 
     await cascadeDeleteCounterparty({ counterpartyId: "cp-1", userId: "user-1" });
 
-    expect(firebaseMocks.firebaseUpdateMany).toHaveBeenCalledWith({
-      collection: "transactions",
-      items: [
-        { id: t1.id, data: { counterpartyId: null } },
-        { id: t2.id, data: { counterpartyId: null } },
-      ],
-    });
+    expect(firebaseMocks.firebaseUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: "transactions",
+        items: [
+          { id: t1.id, data: { counterpartyId: null } },
+          { id: t2.id, data: { counterpartyId: null } },
+        ],
+        batch: mockBatch,
+      })
+    );
 
-    // Reports: firebaseGet called for each bank account (report update verified by integration tests)
-    expect(firebaseMocks.firebaseGet).toHaveBeenCalledTimes(2);
+    // Reports: batch.update called for each bank account
+    expect(mockBatch.update).toHaveBeenCalledTimes(2);
+    expect(mockBatch.commit).toHaveBeenCalledTimes(1);
   });
 
   it("does nothing when no transactions match", async () => {
@@ -52,6 +78,8 @@ describe("cascadeDeleteCounterparty", () => {
 
     expect(firebaseMocks.firebaseUpdateMany).not.toHaveBeenCalled();
     expect(firebaseMocks.firebaseGet).not.toHaveBeenCalled();
+    // batch.commit is still called (empty batch is a no-op)
+    expect(mockBatch.commit).toHaveBeenCalledTimes(1);
   });
 
   it("fetches transactions with counterpartyId filter", async () => {
@@ -78,5 +106,7 @@ describe("cascadeDeleteCounterparty", () => {
     await cascadeDeleteCounterparty({ counterpartyId: "cp-1", userId: "user-1" });
 
     expect(firebaseMocks.firebaseUpdateMany).toHaveBeenCalledTimes(1);
+    expect(mockBatch.update).not.toHaveBeenCalled();
+    expect(mockBatch.commit).toHaveBeenCalledTimes(1);
   });
 });

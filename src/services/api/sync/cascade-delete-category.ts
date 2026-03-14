@@ -3,8 +3,8 @@ import type { ICounterparty } from "~/@schemas/models/counterparty";
 import { firebaseList } from "~/services/firebase/firebaseList";
 import { firebaseUpdateMany } from "~/services/firebase/firebaseUpdateMany";
 import { firebaseGet } from "~/services/firebase/firebaseGet";
-import type { IReport, IReportBase } from "~/@schemas/models/report";
-import { deleteField, updateDoc, type FieldValue } from "firebase/firestore";
+import type { IReport } from "~/@schemas/models/report";
+import { deleteField, writeBatch } from "firebase/firestore";
 import { createDocRef } from "~/services/firebase/createDocRef";
 import { removeCategoryFromTransactions } from "./remove-category-from-transactions";
 import { removeCategoryFromCounterparties } from "./remove-category-from-counterparties";
@@ -15,6 +15,8 @@ type IProps = {
 };
 
 export const cascadeDeleteCategory = async ({ categoryId, userId }: IProps) => {
+  const { firebaseDB } = useFirebaseStore();
+
   const [transactions, counterparties] = await Promise.all([
     firebaseList<ITransaction>({
       collection: "transactions",
@@ -35,33 +37,29 @@ export const cascadeDeleteCategory = async ({ categoryId, userId }: IProps) => {
   const changedTransactions = removeCategoryFromTransactions({ categoryId, transactions });
   const changedCounterparties = removeCategoryFromCounterparties({ categoryId, counterparties });
 
-  const updatePromises: Promise<unknown>[] = [];
+  const batch = writeBatch(firebaseDB);
 
   if (changedTransactions.length > 0) {
-    updatePromises.push(
-      firebaseUpdateMany({
-        collection: "transactions",
-        items: changedTransactions.map((t) => ({
-          id: t.id,
-          data: { categoryIds: t.categoryIds },
-        })),
-      })
-    );
+    await firebaseUpdateMany({
+      collection: "transactions",
+      items: changedTransactions.map((t) => ({
+        id: t.id,
+        data: { categoryIds: t.categoryIds },
+      })),
+      batch,
+    });
   }
 
   if (changedCounterparties.length > 0) {
-    updatePromises.push(
-      firebaseUpdateMany({
-        collection: "creditors",
-        items: changedCounterparties.map((cp) => ({
-          id: cp.id,
-          data: { categoryIds: cp.categoryIds },
-        })),
-      })
-    );
+    await firebaseUpdateMany({
+      collection: "creditors",
+      items: changedCounterparties.map((cp) => ({
+        id: cp.id,
+        data: { categoryIds: cp.categoryIds },
+      })),
+      batch,
+    });
   }
-
-  await Promise.all(updatePromises);
 
   // Update reports for affected bank accounts
   // Use deleteField() to remove map keys — setDoc merge won't remove them otherwise
@@ -74,7 +72,7 @@ export const cascadeDeleteCategory = async ({ categoryId, userId }: IProps) => {
 
         const docRef = createDocRef({ collection: "reports", id: bankAccountId });
 
-        await updateDoc(docRef, {
+        batch.update(docRef, {
           [`expensesByCategory.${categoryId}`]: deleteField(),
           [`depositsByCategory.${categoryId}`]: deleteField(),
         });
@@ -83,4 +81,6 @@ export const cascadeDeleteCategory = async ({ categoryId, userId }: IProps) => {
       }
     })
   );
+
+  await batch.commit();
 };

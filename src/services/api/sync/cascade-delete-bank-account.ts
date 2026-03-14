@@ -1,3 +1,4 @@
+import { writeBatch } from "firebase/firestore";
 import type { ITransaction } from "~/@schemas/models/transaction";
 import { firebaseList } from "~/services/firebase/firebaseList";
 import { firebaseDeleteMany } from "~/services/firebase/firebaseDeleteMany";
@@ -9,6 +10,8 @@ type IProps = {
 };
 
 export const cascadeDeleteBankAccount = async ({ bankAccountId, userId }: IProps) => {
+  const { firebaseDB } = useFirebaseStore();
+
   const transactions = await firebaseList<ITransaction>({
     collection: "transactions",
     filters: [
@@ -17,15 +20,21 @@ export const cascadeDeleteBankAccount = async ({ bankAccountId, userId }: IProps
     ],
   });
 
+  const batch = writeBatch(firebaseDB);
+
   if (transactions.length > 0) {
     await firebaseDeleteMany({
       collection: "transactions",
       ids: transactions.map((t) => t.id),
+      batch,
     });
   }
 
   await firebaseDelete({
     collection: "reports",
     id: bankAccountId,
+    batch,
   });
+
+  await batch.commit();
 };

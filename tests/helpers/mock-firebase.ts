@@ -30,6 +30,7 @@ export const firebaseMocks = {
   firebaseUpdateMany: vi.fn(),
   firebaseDeleteMany: vi.fn(),
   firebaseBatchDelete: vi.fn(),
+  firebaseBatchUpdate: vi.fn(),
   firebasePaginatedList: vi.fn(),
   firebaseUpsertData: vi.fn(),
 };

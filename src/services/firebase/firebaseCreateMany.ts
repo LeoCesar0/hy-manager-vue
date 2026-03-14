@@ -44,7 +44,7 @@ export const firebaseCreateMany = async <T extends AnyObject, R = T>({
     documentsData.push(newData as unknown as R);
   }
 
-  await batch.commit();
+  if (!_batch) await batch.commit();
 
   return documentsData;
 };

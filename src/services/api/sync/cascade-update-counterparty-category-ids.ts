@@ -51,6 +51,7 @@ export const cascadeUpdateCounterpartyCategoryIds = async ({
   });
 
   // Rebuild reports for affected bank accounts
+  // Note: Not batched — rebuildReport goes through handleAppRequest/saveReport pipeline with its own reads+writes
   const bankAccountIds = [...new Set(changedTransactions.map((t) => t.bankAccountId))];
 
   await Promise.all(

@@ -1,4 +1,4 @@
-import { writeBatch, Timestamp } from "firebase/firestore";
+import { writeBatch, Timestamp, WriteBatch } from "firebase/firestore";
 import { createDocRef } from "./createDocRef";
 import { COLLECTION_SCHEMA, type FirebaseCollection } from "./collections";
 import type { AnyObject } from "~/@types/anyObject";
@@ -12,11 +12,13 @@ type UpdateItem<T extends AnyObject> = {
 type IFirebaseUpdateMany<T extends AnyObject> = {
   collection: FirebaseCollection;
   items: UpdateItem<T>[];
+  batch?: WriteBatch;
 };
 
 export const firebaseUpdateMany = async <T extends AnyObject, R = T>({
   collection: collectionName,
   items,
+  batch: _batch,
 }: IFirebaseUpdateMany<T>): Promise<{ id: string; data: R }[]> => {
   const { firebaseDB } = useFirebaseStore();
 
@@ -24,7 +26,7 @@ export const firebaseUpdateMany = async <T extends AnyObject, R = T>({
     return [];
   }
 
-  const batch = writeBatch(firebaseDB);
+  const batch = _batch || writeBatch(firebaseDB);
   const updatedItems: { id: string; data: R }[] = [];
   const schema = COLLECTION_SCHEMA[collectionName];
 
@@ -47,7 +49,7 @@ export const firebaseUpdateMany = async <T extends AnyObject, R = T>({
     updatedItems.push({ id, data: newData as R });
   }
 
-  await batch.commit();
+  if (!_batch) await batch.commit();
 
   return updatedItems;
 };
