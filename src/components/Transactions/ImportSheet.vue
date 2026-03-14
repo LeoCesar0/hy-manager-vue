@@ -37,6 +37,7 @@ const parsedRows = ref<IBankStatementRow[]>([]);
 const parseError = ref<string | null>(null);
 const isImporting = ref(false);
 const fileInputRef = ref<HTMLInputElement | null>(null);
+const selectedFileCount = ref(0);
 
 const selectClass =
   "flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
@@ -65,31 +66,66 @@ const summary = computed(() => {
   };
 });
 
-const handleFileChange = (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
+const readFileAsText = (props: { file: File }): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target?.result as string);
+    reader.onerror = () => reject(new Error(`Falha ao ler o arquivo "${props.file.name}".`));
+    reader.readAsText(props.file, "UTF-8");
+  });
+};
 
-  if (!file) return;
+const handleFileChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const files = input.files;
+
+  if (!files || files.length === 0) return;
 
   parseError.value = null;
   parsedRows.value = [];
+  selectedFileCount.value = files.length;
 
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const csvText = e.target?.result as string;
+  const errors: string[] = [];
+  const allRows: IBankStatementRow[] = [];
+
+  const fileArray = Array.from(files);
+  const contents = await Promise.all(
+    fileArray.map((file) => readFileAsText({ file }).catch(() => {
+      errors.push(`Falha ao ler "${file.name}".`);
+      return null;
+    }))
+  );
+
+  for (let i = 0; i < fileArray.length; i++) {
+    const csvText = contents[i];
+    if (!csvText) continue;
 
     try {
-      parsedRows.value = parseBankStatement({
+      const rows = parseBankStatement({
         formatKey: selectedFormat.value,
         csvText,
       });
+      allRows.push(...rows);
     } catch (err) {
-      parseError.value =
-        err instanceof Error ? err.message : "Erro ao processar o arquivo.";
+      const message = err instanceof Error ? err.message : "Erro desconhecido.";
+      errors.push(`${fileArray[i]!.name}: ${message}`);
     }
-  };
+  }
 
-  reader.readAsText(file, "UTF-8");
+  const seen = new Set<string>();
+  const deduplicated: IBankStatementRow[] = [];
+  for (const row of allRows) {
+    if (!seen.has(row.id)) {
+      seen.add(row.id);
+      deduplicated.push(row);
+    }
+  }
+
+  parsedRows.value = deduplicated;
+
+  if (errors.length > 0) {
+    parseError.value = errors.join("\n");
+  }
 };
 
 const handleContinue = () => {
@@ -123,6 +159,7 @@ const resetState = () => {
   step.value = "upload";
   parsedRows.value = [];
   parseError.value = null;
+  selectedFileCount.value = 0;
   if (fileInputRef.value) {
     fileInputRef.value.value = "";
   }
@@ -174,13 +211,20 @@ const handleClose = (value: boolean) => {
                 <div class="flex flex-col items-center justify-center pt-5 pb-6">
                   <UploadIcon class="w-8 h-8 mb-2 text-muted-foreground" />
                   <p class="text-sm text-muted-foreground">
-                    Clique para selecionar o arquivo CSV
+                    Clique para selecionar um ou mais arquivos CSV
+                  </p>
+                  <p
+                    v-if="selectedFileCount > 0"
+                    class="text-xs text-muted-foreground mt-1"
+                  >
+                    {{ selectedFileCount }} {{ selectedFileCount === 1 ? 'arquivo selecionado' : 'arquivos selecionados' }}
                   </p>
                 </div>
                 <input
                   ref="fileInputRef"
                   type="file"
                   accept=".csv"
+                  multiple
                   class="hidden"
                   @change="handleFileChange"
                 />
