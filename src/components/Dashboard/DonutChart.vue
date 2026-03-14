@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { VisSingleContainer, VisDonut, VisDonutSelectors } from "@unovis/vue";
+import { Switch as UiSwitch } from "~/components/ui/switch";
 import { ChartContainer, ChartTooltip, type ChartConfig } from "~/components/ui/chart";
 import { formatCurrency } from "~/helpers/formatCurrency";
 import { CATEGORY_PRESET_COLORS } from "~/static/category-colors";
 import { Skeleton as UiSkeleton } from "~/components/ui/skeleton";
+
+const UNASSIGNED_COLOR = "#9CA3AF";
 
 type DataItem = {
   id: string;
@@ -18,11 +21,24 @@ type IProps = {
   loading?: boolean;
   emptyMessage?: string;
   variant?: "expense" | "deposit";
+  unassignedId?: string;
+  toggleLabel?: string;
 };
 
 const props = withDefaults(defineProps<IProps>(), {
   loading: false,
   emptyMessage: "Sem dados para exibir",
+});
+
+const showUnassigned = ref(false);
+
+const hasUnassigned = computed(() =>
+  props.unassignedId ? props.data.some((item) => item.id === props.unassignedId) : false
+);
+
+const displayData = computed(() => {
+  if (!props.unassignedId || showUnassigned.value) return props.data;
+  return props.data.filter((item) => item.id !== props.unassignedId);
 });
 
 const accentClasses = computed(() => {
@@ -33,17 +49,18 @@ const accentClasses = computed(() => {
 
 const chartConfig = computed<ChartConfig>(() => {
   const config: ChartConfig = {};
-  props.data.forEach((item, index) => {
+  displayData.value.forEach((item, index) => {
+    const isUnassigned = item.id === props.unassignedId;
     config[item.id] = {
       label: item.name,
-      color: item.color || CATEGORY_PRESET_COLORS[index % CATEGORY_PRESET_COLORS.length]!,
+      color: isUnassigned ? UNASSIGNED_COLOR : (item.color || CATEGORY_PRESET_COLORS[index % CATEGORY_PRESET_COLORS.length]!),
     };
   });
   return config;
 });
 
 const total = computed(() =>
-  props.data.reduce((sum, item) => sum + item.amount, 0)
+  displayData.value.reduce((sum, item) => sum + item.amount, 0)
 );
 
 const colorAccessor = (_: DataItem, index: number) => {
@@ -87,7 +104,16 @@ const tooltipTriggers = computed(() => ({
 
 <template>
   <UiCard class="p-6" :class="accentClasses">
-    <h3 class="text-sm font-medium text-muted-foreground mb-4">{{ title }}</h3>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-sm font-medium text-muted-foreground">{{ title }}</h3>
+      <label
+        v-if="unassignedId && hasUnassigned"
+        class="flex items-center gap-2 cursor-pointer"
+      >
+        <span class="text-xs text-muted-foreground capitalize">{{ toggleLabel }}</span>
+        <UiSwitch v-model="showUnassigned" />
+      </label>
+    </div>
 
     <div v-if="loading" class="flex flex-col items-center gap-4">
       <UiSkeleton class="h-[200px] w-[200px] rounded-full" />
@@ -97,13 +123,13 @@ const tooltipTriggers = computed(() => ({
       </div>
     </div>
 
-    <div v-else-if="data.length === 0" class="flex items-center justify-center h-[200px]">
+    <div v-else-if="displayData.length === 0" class="flex items-center justify-center h-[200px]">
       <p class="text-sm text-muted-foreground">{{ emptyMessage }}</p>
     </div>
 
     <div v-else>
       <ChartContainer :config="chartConfig" class="h-[250px]">
-        <VisSingleContainer :data="data">
+        <VisSingleContainer :data="displayData">
           <VisDonut
             :value="(d: DataItem) => d.amount"
             :color="colorAccessor"
@@ -118,7 +144,7 @@ const tooltipTriggers = computed(() => ({
 
       <div class="flex flex-wrap items-center justify-center gap-3 mt-4">
         <div
-          v-for="(item, index) in data.slice(0, 8)"
+          v-for="(item, index) in displayData.slice(0, 8)"
           :key="item.id"
           class="flex items-center gap-1.5 text-xs"
         >
@@ -128,8 +154,8 @@ const tooltipTriggers = computed(() => ({
           />
           <span class="text-muted-foreground truncate max-w-[100px]">{{ item.name }}</span>
         </div>
-        <span v-if="data.length > 8" class="text-xs text-muted-foreground">
-          +{{ data.length - 8 }} mais
+        <span v-if="displayData.length > 8" class="text-xs text-muted-foreground">
+          +{{ displayData.length - 8 }} mais
         </span>
       </div>
     </div>

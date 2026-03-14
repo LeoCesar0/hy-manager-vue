@@ -76,6 +76,8 @@ onMounted(() => {
         :loading="isLoading"
         empty-message="Nenhuma despesa no período"
         variant="expense"
+        unassigned-id="uncategorized"
+        toggle-label="sem categoria"
       />
       <DonutChart
         title="Saídas por Terceiro"
@@ -83,6 +85,8 @@ onMounted(() => {
         :loading="isLoading"
         empty-message="Nenhuma despesa com terceiro no período"
         variant="expense"
+        unassigned-id="no-counterparty"
+        toggle-label="sem terceiro"
       />
       <DonutChart
         title="Entradas por Categoria"
@@ -90,6 +94,8 @@ onMounted(() => {
         :loading="isLoading"
         empty-message="Nenhuma receita no período"
         variant="deposit"
+        unassigned-id="uncategorized"
+        toggle-label="sem categoria"
       />
       <DonutChart
         title="Entradas por Terceiro"
@@ -97,6 +103,8 @@ onMounted(() => {
         :loading="isLoading"
         empty-message="Nenhuma receita com terceiro no período"
         variant="deposit"
+        unassigned-id="no-counterparty"
+        toggle-label="sem terceiro"
       />
     </div>
 

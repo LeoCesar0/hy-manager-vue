@@ -33,8 +33,11 @@ export type IInsights = {
   monthOverMonthChange: number | null;
 };
 
-const getTop = (items: { name: string; amount: number }[]): InsightItem => {
-  return items.length > 0 ? { name: items[0]!.name, amount: items[0]!.amount } : null;
+const SYNTHETIC_IDS = new Set(["uncategorized", "no-counterparty"]);
+
+const getTop = (items: { id: string; name: string; amount: number }[]): InsightItem => {
+  const filtered = items.filter((item) => !SYNTHETIC_IDS.has(item.id));
+  return filtered.length > 0 ? { name: filtered[0]!.name, amount: filtered[0]!.amount } : null;
 };
 
 const getTopFromMap = ({

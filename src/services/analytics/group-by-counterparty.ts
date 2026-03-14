@@ -9,20 +9,32 @@ export const groupByCounterparty = (
   const counterpartyMap = new Map(counterparties.map((c) => [c.id, c]));
   const grouped: Record<string, { name: string; amount: number }> = {};
 
-  transactions.forEach((transaction) => {
-    if (transaction.counterpartyId) {
-      const counterparty = counterpartyMap.get(transaction.counterpartyId);
-      const counterpartyName = counterparty?.name || "Unknown";
+  const NO_COUNTERPARTY_ID = "no-counterparty";
 
-      if (!grouped[transaction.counterpartyId]) {
-        grouped[transaction.counterpartyId] = {
-          name: counterpartyName,
+  transactions.forEach((transaction) => {
+    if (!transaction.counterpartyId) {
+      if (!grouped[NO_COUNTERPARTY_ID]) {
+        grouped[NO_COUNTERPARTY_ID] = {
+          name: "Sem terceiro",
           amount: 0,
         };
       }
 
-      grouped[transaction.counterpartyId]!.amount = roundCurrency({ value: grouped[transaction.counterpartyId]!.amount + Math.abs(transaction.amount) });
+      grouped[NO_COUNTERPARTY_ID]!.amount = roundCurrency({ value: grouped[NO_COUNTERPARTY_ID]!.amount + Math.abs(transaction.amount) });
+      return;
     }
+
+    const counterparty = counterpartyMap.get(transaction.counterpartyId);
+    const counterpartyName = counterparty?.name || "Unknown";
+
+    if (!grouped[transaction.counterpartyId]) {
+      grouped[transaction.counterpartyId] = {
+        name: counterpartyName,
+        amount: 0,
+      };
+    }
+
+    grouped[transaction.counterpartyId]!.amount = roundCurrency({ value: grouped[transaction.counterpartyId]!.amount + Math.abs(transaction.amount) });
   });
 
   return Object.entries(grouped)
