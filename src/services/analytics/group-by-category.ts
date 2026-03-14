@@ -1,5 +1,6 @@
 import type { ITransaction } from "~/@schemas/models/transaction";
 import type { ICategory } from "~/@schemas/models/category";
+import { roundCurrency } from "~/helpers/roundCurrency";
 
 export const groupByCategory = (
   transactions: ITransaction[],
@@ -21,7 +22,7 @@ export const groupByCategory = (
         };
       }
 
-      grouped[categoryId]!.amount += Math.abs(transaction.amount);
+      grouped[categoryId]!.amount = roundCurrency({ value: grouped[categoryId]!.amount + Math.abs(transaction.amount) });
     });
   });
 

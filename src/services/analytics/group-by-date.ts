@@ -1,4 +1,5 @@
 import type { ITransaction } from "~/@schemas/models/transaction";
+import { roundCurrency } from "~/helpers/roundCurrency";
 
 type GroupingPeriod = "daily" | "weekly" | "monthly";
 
@@ -39,9 +40,9 @@ export const groupByDate = (
     }
 
     if (transaction.type === "deposit") {
-      grouped[key]!.income += Math.abs(transaction.amount);
+      grouped[key]!.income = roundCurrency({ value: grouped[key]!.income + Math.abs(transaction.amount) });
     } else {
-      grouped[key]!.expenses += Math.abs(transaction.amount);
+      grouped[key]!.expenses = roundCurrency({ value: grouped[key]!.expenses + Math.abs(transaction.amount) });
     }
   });
 

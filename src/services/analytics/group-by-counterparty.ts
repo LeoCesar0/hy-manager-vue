@@ -1,5 +1,6 @@
 import type { ITransaction } from "~/@schemas/models/transaction";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
+import { roundCurrency } from "~/helpers/roundCurrency";
 
 export const groupByCounterparty = (
   transactions: ITransaction[],
@@ -20,7 +21,7 @@ export const groupByCounterparty = (
         };
       }
 
-      grouped[transaction.counterpartyId]!.amount += Math.abs(transaction.amount);
+      grouped[transaction.counterpartyId]!.amount = roundCurrency({ value: grouped[transaction.counterpartyId]!.amount + Math.abs(transaction.amount) });
     }
   });
 

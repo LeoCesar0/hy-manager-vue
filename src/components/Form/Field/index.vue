@@ -134,6 +134,7 @@ const showPass = ref(false);
             <UiInput v-if="inputVariant === 'number'" class="!mt-0" :placeholder="placeholder ?? ''" v-bind="{
               ...componentField,
               disabled,
+              step: '0.01',
               ...(props.inputProps ?? {}),
               type: 'number',
             }" />

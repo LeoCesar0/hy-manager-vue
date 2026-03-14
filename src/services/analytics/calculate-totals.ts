@@ -1,4 +1,5 @@
 import type { ITransaction } from "~/@schemas/models/transaction";
+import { roundCurrency } from "~/helpers/roundCurrency";
 
 export const calculateTotals = (transactions: ITransaction[]) => {
   let totalIncome = 0;
@@ -13,8 +14,8 @@ export const calculateTotals = (transactions: ITransaction[]) => {
   });
 
   return {
-    income: totalIncome,
-    expenses: totalExpenses,
-    balance: totalIncome - totalExpenses,
+    income: roundCurrency({ value: totalIncome }),
+    expenses: roundCurrency({ value: totalExpenses }),
+    balance: roundCurrency({ value: totalIncome - totalExpenses }),
   };
 };

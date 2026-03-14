@@ -7,7 +7,7 @@ const zTransactionType = z.enum(["deposit", "expense"]);
 
 export const zTransactionBase = z.object({
   type: zTransactionType,
-  amount: z.coerce.number(),
+  amount: z.coerce.number().transform(v => Math.round(v * 100) / 100),
   description: z.string(),
   date: zTimestamp,
   categoryIds: zStringNotEmpty.array(),

@@ -15,6 +15,7 @@ import {
 } from "~/services/csv-import/parse-bank-statement";
 import { importTransactions } from "~/services/api/transactions/import-transactions";
 import { formatCurrency } from "~/helpers/formatCurrency";
+import { roundCurrency } from "~/helpers/roundCurrency";
 
 type IProps = {
   isOpen: boolean;
@@ -54,11 +55,11 @@ const summary = computed(() => {
     total: rows.length,
     deposits: {
       count: deposits.length,
-      sum: deposits.reduce((acc, r) => acc + r.amount, 0),
+      sum: roundCurrency({ value: deposits.reduce((acc, r) => acc + r.amount, 0) }),
     },
     expenses: {
       count: expenses.length,
-      sum: expenses.reduce((acc, r) => acc + r.amount, 0),
+      sum: roundCurrency({ value: expenses.reduce((acc, r) => acc + r.amount, 0) }),
     },
     counterparties: counterpartyNames.size,
   };
