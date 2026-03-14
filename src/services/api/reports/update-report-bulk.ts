@@ -11,10 +11,6 @@ type IProps = {
 };
 
 export const updateReportBulk = async ({ userId, bankAccountId, newTransactions }: IProps) => {
-  console.log(`------------- 🟢 START UPDATE REPORT BULK -------------`);
-  console.log(`❗ userId -->`, userId);
-  console.log(`❗ bankAccountId -->`, bankAccountId);
-  console.log(`❗ newTransactions.length -->`, newTransactions.length);
   try {
     if (newTransactions.length === 0) return;
 
@@ -23,8 +19,6 @@ export const updateReportBulk = async ({ userId, bankAccountId, newTransactions 
       bankAccountId,
       options: { toastOptions: undefined },
     });
-    console.log(`❗ reportResult -->`, reportResult);
-
     if (!reportResult.data) return;
 
     const initialReport: IReportBase = reportResult.data;

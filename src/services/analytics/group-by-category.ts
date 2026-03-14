@@ -5,11 +5,12 @@ export const groupByCategory = (
   transactions: ITransaction[],
   categories: ICategory[]
 ) => {
+  const categoryMap = new Map(categories.map((c) => [c.id, c]));
   const grouped: Record<string, { name: string; amount: number; color?: string }> = {};
 
   transactions.forEach((transaction) => {
     transaction.categoryIds.forEach((categoryId) => {
-      const category = categories.find((c) => c.id === categoryId);
+      const category = categoryMap.get(categoryId);
       const categoryName = category?.name || "Sem categoria";
 
       if (!grouped[categoryId]) {

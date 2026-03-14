@@ -16,6 +16,7 @@ const { currentBankAccount } = storeToRefs(dashboardStore);
 const {
   filters,
   isLoading,
+  totals,
   expensesByCategory,
   depositsByCategory,
   expensesByCounterparty,
@@ -62,7 +63,7 @@ onMounted(() => {
       />
     </template>
 
-    <SummaryCards :transactions="filteredTransactions" :loading="isLoading" />
+    <SummaryCards :totals="totals" :loading="isLoading" />
 
     <div class="grid gap-4 md:grid-cols-2">
       <DonutChart

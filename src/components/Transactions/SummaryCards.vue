@@ -4,8 +4,11 @@ import type { ITransaction } from "~/@schemas/models/transaction";
 import { calculateTotals } from "~/services/analytics/calculate-totals";
 import { formatCurrency } from "~/helpers/formatCurrency";
 
+type ITotals = { income: number; expenses: number; balance: number };
+
 type IProps = {
-  transactions: ITransaction[];
+  transactions?: ITransaction[];
+  totals?: ITotals;
   loading?: boolean;
 };
 
@@ -13,7 +16,8 @@ const props = withDefaults(defineProps<IProps>(), {
   loading: false,
 });
 
-const totals = computed(() => {
+const totals = computed<ITotals>(() => {
+  if (props.totals) return props.totals;
   if (!props.transactions || props.transactions.length === 0) {
     return { income: 0, expenses: 0, balance: 0 };
   }

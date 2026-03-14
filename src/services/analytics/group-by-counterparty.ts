@@ -5,11 +5,12 @@ export const groupByCounterparty = (
   transactions: ITransaction[],
   counterparties: ICounterparty[]
 ) => {
+  const counterpartyMap = new Map(counterparties.map((c) => [c.id, c]));
   const grouped: Record<string, { name: string; amount: number }> = {};
 
   transactions.forEach((transaction) => {
     if (transaction.counterpartyId) {
-      const counterparty = counterparties.find((c) => c.id === transaction.counterpartyId);
+      const counterparty = counterpartyMap.get(transaction.counterpartyId);
       const counterpartyName = counterparty?.name || "Unknown";
 
       if (!grouped[transaction.counterpartyId]) {

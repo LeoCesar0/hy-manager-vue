@@ -28,38 +28,34 @@ export const useDashboardAnalytics = () => {
   const isLoading = ref(false);
 
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const twoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1);
 
   const filters = ref<{ startDate: Timestamp | null; endDate: Timestamp | null }>({
-    startDate: Timestamp.fromDate(startOfMonth),
+    startDate: Timestamp.fromDate(twoMonthsAgo),
     endDate: Timestamp.fromDate(now),
   });
 
-  watch(filters, (filters) => {
-    console.log(`❗ filters -->`, filters);
-  }, { immediate: true })
-
   const totals = computed(() => calculateTotals(filteredTransactions.value));
 
-  const expensesByCategory = computed(() => {
-    const expenses = filterByType({ transactions: filteredTransactions.value, type: "expense" });
-    return groupByCategory(expenses, categories.value);
-  });
+  const filteredExpenses = computed(() =>
+    filterByType({ transactions: filteredTransactions.value, type: "expense" })
+  );
+  const filteredDeposits = computed(() =>
+    filterByType({ transactions: filteredTransactions.value, type: "deposit" })
+  );
 
-  const depositsByCategory = computed(() => {
-    const deposits = filterByType({ transactions: filteredTransactions.value, type: "deposit" });
-    return groupByCategory(deposits, categories.value);
-  });
-
-  const expensesByCounterparty = computed(() => {
-    const expenses = filterByType({ transactions: filteredTransactions.value, type: "expense" });
-    return groupByCounterparty(expenses, counterparties.value);
-  });
-
-  const depositsByCounterparty = computed(() => {
-    const deposits = filterByType({ transactions: filteredTransactions.value, type: "deposit" });
-    return groupByCounterparty(deposits, counterparties.value);
-  });
+  const expensesByCategory = computed(() =>
+    groupByCategory(filteredExpenses.value, categories.value)
+  );
+  const depositsByCategory = computed(() =>
+    groupByCategory(filteredDeposits.value, categories.value)
+  );
+  const expensesByCounterparty = computed(() =>
+    groupByCounterparty(filteredExpenses.value, counterparties.value)
+  );
+  const depositsByCounterparty = computed(() =>
+    groupByCounterparty(filteredDeposits.value, counterparties.value)
+  );
 
   const insights = computed<IInsights>(() =>
     calculateInsights({
@@ -98,7 +94,6 @@ export const useDashboardAnalytics = () => {
     if (!currentUser.value || !currentBankAccount.value) return;
 
     const dateFilters = buildDateFilters();
-    console.log(`❗ dateFilters -->`, dateFilters);
     const transactionsRes = await getTransactions({
       userId: currentUser.value.id,
       bankAccountId: currentBankAccount.value.id,
@@ -113,9 +108,6 @@ export const useDashboardAnalytics = () => {
 
   const loadData = async () => {
     if (!currentUser.value || !currentBankAccount.value) return;
-    console.log(`------------- 🟢 START SESSION LOAD DATA -------------`);
-    console.log(`❗ currentBankAccount.value.id -->`, currentBankAccount.value.id);
-
     isLoading.value = true;
     try {
       const [transactionsRes, categoriesRes, counterpartiesRes, reportRes] = await Promise.all([
@@ -140,11 +132,6 @@ export const useDashboardAnalytics = () => {
         }),
       ]);
 
-      console.log(`❗ transactionsRes -->`, transactionsRes);
-      console.log(`❗ categoriesRes -->`, categoriesRes);
-      console.log(`❗ counterpartiesRes -->`, counterpartiesRes);
-      console.log(`❗ reportRes -->`, reportRes);
-
       if (transactionsRes.data) {
         filteredTransactions.value = transactionsRes.data;
       }
@@ -164,8 +151,8 @@ export const useDashboardAnalytics = () => {
 
   const clearFilters = () => {
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    filters.value.startDate = Timestamp.fromDate(startOfMonth);
+    const twoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    filters.value.startDate = Timestamp.fromDate(twoMonthsAgo);
     filters.value.endDate = Timestamp.fromDate(now);
   };
 
