@@ -9,8 +9,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Generate static**: `pnpm run generate`
 - **Preview build**: `pnpm run preview`
 - **Type check**: `pnpm run ts-check` (runs `vue-tsc --noEmit`)
+- **Test (watch)**: `pnpm test`
+- **Test (run once)**: `pnpm test:run`
+- **Test unit only**: `pnpm test:unit`
+- **Test integration only**: `pnpm test:integration`
+- **Test coverage**: `pnpm test:coverage`
 
-No test framework or linter is configured.
+No linter is configured.
 
 ## Architecture
 
