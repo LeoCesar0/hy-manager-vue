@@ -15,6 +15,8 @@ const { currentBankAccount } = storeToRefs(dashboardStore);
 
 const {
   filters,
+  selectedPeriod,
+  handleSelectPeriod,
   isLoading,
   totals,
   expensesByCategory,
@@ -55,8 +57,10 @@ onMounted(() => {
   >
     <template #filters>
       <DashboardFilterBar
+        :selected-period="selectedPeriod"
         :start-date="filters.startDate"
         :end-date="filters.endDate"
+        :on-select-period="handleSelectPeriod"
         :on-update-start-date="handleUpdateStartDate"
         :on-update-end-date="handleUpdateEndDate"
         :on-clear="clearFilters"

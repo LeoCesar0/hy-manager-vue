@@ -15,6 +15,51 @@ import { calculateInsights } from "~/services/analytics/calculate-insights";
 import type { IInsights } from "~/services/analytics/calculate-insights";
 import type { FirebaseFilterFor } from "~/services/firebase/@type";
 
+export type PeriodKey = "1w" | "2w" | "1m" | "2m" | "6m" | "custom";
+
+export type IPeriodOption = {
+  key: PeriodKey;
+  label: string;
+};
+
+export const PERIOD_OPTIONS: IPeriodOption[] = [
+  { key: "1w", label: "1 sem" },
+  { key: "2w", label: "2 sem" },
+  { key: "1m", label: "1 mês" },
+  { key: "2m", label: "2 meses" },
+  { key: "6m", label: "6 meses" },
+  { key: "custom", label: "Personalizado" },
+];
+
+const DEFAULT_PERIOD: PeriodKey = "2m";
+
+const computePeriodDates = (key: PeriodKey): { startDate: Date; endDate: Date } => {
+  const now = new Date();
+  const startDate = new Date(now);
+
+  switch (key) {
+    case "1w":
+      startDate.setDate(now.getDate() - 7);
+      break;
+    case "2w":
+      startDate.setDate(now.getDate() - 14);
+      break;
+    case "1m":
+      startDate.setMonth(now.getMonth() - 1, 1);
+      break;
+    case "2m":
+      startDate.setMonth(now.getMonth() - 2, 1);
+      break;
+    case "6m":
+      startDate.setMonth(now.getMonth() - 6, 1);
+      break;
+    default:
+      startDate.setMonth(now.getMonth() - 2, 1);
+  }
+
+  return { startDate, endDate: now };
+};
+
 export const useDashboardAnalytics = () => {
   const userStore = useUserStore();
   const { currentUser } = storeToRefs(userStore);
@@ -27,13 +72,22 @@ export const useDashboardAnalytics = () => {
   const report = ref<IReport | null>(null);
   const isLoading = ref(false);
 
-  const now = new Date();
-  const twoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+  const selectedPeriod = ref<PeriodKey>(DEFAULT_PERIOD);
+
+  const { startDate: initialStart, endDate: initialEnd } = computePeriodDates(DEFAULT_PERIOD);
 
   const filters = ref<{ startDate: Timestamp | null; endDate: Timestamp | null }>({
-    startDate: Timestamp.fromDate(twoMonthsAgo),
-    endDate: Timestamp.fromDate(now),
+    startDate: Timestamp.fromDate(initialStart),
+    endDate: Timestamp.fromDate(initialEnd),
   });
+
+  const handleSelectPeriod = (key: PeriodKey) => {
+    selectedPeriod.value = key;
+    if (key === "custom") return;
+    const { startDate, endDate } = computePeriodDates(key);
+    filters.value.startDate = Timestamp.fromDate(startDate);
+    filters.value.endDate = Timestamp.fromDate(endDate);
+  };
 
   const totals = computed(() => calculateTotals(filteredTransactions.value));
 
@@ -150,10 +204,7 @@ export const useDashboardAnalytics = () => {
   };
 
   const clearFilters = () => {
-    const now = new Date();
-    const twoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-    filters.value.startDate = Timestamp.fromDate(twoMonthsAgo);
-    filters.value.endDate = Timestamp.fromDate(now);
+    handleSelectPeriod(DEFAULT_PERIOD);
   };
 
   watch(
@@ -166,6 +217,8 @@ export const useDashboardAnalytics = () => {
 
   return {
     filters,
+    selectedPeriod,
+    handleSelectPeriod,
     isLoading,
     totals,
     expensesByCategory,
