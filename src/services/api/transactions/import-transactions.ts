@@ -11,6 +11,8 @@ import { createCounterparty } from "../counterparties/create-counterparty";
 import { slugify } from "~/helpers/slugify";
 import { chunk } from "~/helpers/chunk";
 import { updateReportBulk } from "../reports/update-report-bulk";
+import type { ICategory } from "~/@schemas/models/category";
+import { resolveAutoCategoryId } from "~/services/csv-import/resolve-auto-category-id";
 
 const FIRESTORE_IN_LIMIT = 30;
 
@@ -66,9 +68,13 @@ const checkExistingTransactions = async ({
 const resolveCounterparties = async ({
   names,
   userId,
+  userCategories,
+  selfDerivedNames,
 }: {
   names: string[];
   userId: string;
+  userCategories: ICategory[];
+  selfDerivedNames: Set<string>;
 }): Promise<Map<string, ICounterparty>> => {
   const counterpartyMap = new Map<string, ICounterparty>();
 
@@ -88,11 +94,17 @@ const resolveCounterparties = async ({
   ];
 
   for (const name of uniqueNewNames) {
+    const categoryIds = resolveAutoCategoryId({
+      counterpartyName: name,
+      userCategories,
+      enableKeywordMatch: selfDerivedNames.has(slugify(name)),
+    });
+
     const result = await createCounterparty({
       data: {
         name: name.trim(),
         userId,
-        categoryIds: [],
+        categoryIds,
       },
       options: {
         toastOptions: {
@@ -139,9 +151,22 @@ export const importTransactions = async ({
         .map((r) => r.counterpartyName)
         .filter((name): name is string => !!name);
 
+      const selfDerivedNames = new Set(
+        newRows
+          .filter((r) => r.counterpartyName && r.counterpartyName === r.description)
+          .map((r) => slugify(r.counterpartyName!))
+      );
+
+      const userCategories = await firebaseList<ICategory>({
+        collection: "categories",
+        filters: [{ field: "userId", operator: "==", value: userId }],
+      });
+
       const counterpartyMap = await resolveCounterparties({
         names: counterpartyNames,
         userId,
+        userCategories,
+        selfDerivedNames,
       });
 
       const transactionsData = newRows.map((row) => {
