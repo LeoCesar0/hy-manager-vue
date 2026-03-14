@@ -63,7 +63,7 @@ const colorAccessor = (_: DataItem, index: number) => {
 
     <div v-else>
       <ChartContainer :config="chartConfig" class="h-[250px]">
-        <VisSingleContainer :data="{ data }">
+        <VisSingleContainer :data="data">
           <VisDonut
             :value="(d: DataItem) => d.amount"
             :color="colorAccessor"
