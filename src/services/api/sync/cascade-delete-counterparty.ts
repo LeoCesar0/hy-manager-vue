@@ -3,16 +3,17 @@ import { firebaseList } from "~/services/firebase/firebaseList";
 import { firebaseUpdateMany } from "~/services/firebase/firebaseUpdateMany";
 import { firebaseGet } from "~/services/firebase/firebaseGet";
 import type { IReport } from "~/@schemas/models/report";
-import { deleteField, writeBatch } from "firebase/firestore";
+import { deleteField, writeBatch, type WriteBatch } from "firebase/firestore";
 import { createDocRef } from "~/services/firebase/createDocRef";
 import { removeCounterpartyFromTransactions } from "./remove-counterparty-from-transactions";
 
 type IProps = {
   counterpartyId: string;
   userId: string;
+  batch?: WriteBatch;
 };
 
-export const cascadeDeleteCounterparty = async ({ counterpartyId, userId }: IProps) => {
+export const cascadeDeleteCounterparty = async ({ counterpartyId, userId, batch: _batch }: IProps) => {
   const { firebaseDB } = useFirebaseStore();
 
   const transactions = await firebaseList<ITransaction>({
@@ -25,7 +26,7 @@ export const cascadeDeleteCounterparty = async ({ counterpartyId, userId }: IPro
 
   const changedTransactions = removeCounterpartyFromTransactions({ counterpartyId, transactions });
 
-  const batch = writeBatch(firebaseDB);
+  const batch = _batch || writeBatch(firebaseDB);
 
   if (changedTransactions.length > 0) {
     await firebaseUpdateMany({
@@ -59,5 +60,5 @@ export const cascadeDeleteCounterparty = async ({ counterpartyId, userId }: IPro
     })
   );
 
-  await batch.commit();
+  if (!_batch) await batch.commit();
 };

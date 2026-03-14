@@ -1,3 +1,4 @@
+import { writeBatch } from "firebase/firestore";
 import {
   handleAppRequest,
 } from "../@handlers/handle-app-request";
@@ -14,12 +15,18 @@ export type IAPIDeleteCounterparty = {
 export const deleteCounterparty = async ({ id, userId, options }: IAPIDeleteCounterparty) => {
   const response = await handleAppRequest(
     async () => {
-      await cascadeDeleteCounterparty({ counterpartyId: id, userId });
+      const { firebaseDB } = useFirebaseStore();
+      const batch = writeBatch(firebaseDB);
+
+      await cascadeDeleteCounterparty({ counterpartyId: id, userId, batch });
 
       await firebaseDelete({
         collection: "creditors",
         id,
+        batch,
       });
+
+      await batch.commit();
 
       return true;
     },

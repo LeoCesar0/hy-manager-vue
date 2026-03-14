@@ -1,4 +1,4 @@
-import { writeBatch } from "firebase/firestore";
+import { writeBatch, type WriteBatch } from "firebase/firestore";
 import type { ITransaction } from "~/@schemas/models/transaction";
 import { firebaseList } from "~/services/firebase/firebaseList";
 import { firebaseDeleteMany } from "~/services/firebase/firebaseDeleteMany";
@@ -7,9 +7,10 @@ import { firebaseDelete } from "~/services/firebase/firebaseDelete";
 type IProps = {
   bankAccountId: string;
   userId: string;
+  batch?: WriteBatch;
 };
 
-export const cascadeDeleteBankAccount = async ({ bankAccountId, userId }: IProps) => {
+export const cascadeDeleteBankAccount = async ({ bankAccountId, userId, batch: _batch }: IProps) => {
   const { firebaseDB } = useFirebaseStore();
 
   const transactions = await firebaseList<ITransaction>({
@@ -20,7 +21,7 @@ export const cascadeDeleteBankAccount = async ({ bankAccountId, userId }: IProps
     ],
   });
 
-  const batch = writeBatch(firebaseDB);
+  const batch = _batch || writeBatch(firebaseDB);
 
   if (transactions.length > 0) {
     await firebaseDeleteMany({
@@ -36,5 +37,5 @@ export const cascadeDeleteBankAccount = async ({ bankAccountId, userId }: IProps
     batch,
   });
 
-  await batch.commit();
+  if (!_batch) await batch.commit();
 };

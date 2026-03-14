@@ -7,15 +7,36 @@ import {
   deleteDoc,
   type Firestore,
 } from "firebase/firestore";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const parseEnvFile = (filePath: string): Record<string, string> => {
+  const content = readFileSync(filePath, "utf-8");
+  const env: Record<string, string> = {};
+
+  for (const line of content.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eqIndex = trimmed.indexOf("=");
+    if (eqIndex === -1) continue;
+    const key = trimmed.slice(0, eqIndex).trim();
+    const value = trimmed.slice(eqIndex + 1).trim().replace(/^["']|["']$/g, "");
+    env[key] = value;
+  }
+
+  return env;
+};
+
+const env = parseEnvFile(resolve(process.cwd(), ".env.test"));
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD9_VI7y4eueZ54TzyPXxr-r7cMX6sOZt8",
-  authDomain: "hyfinances-1532e.firebaseapp.com",
-  projectId: "hyfinances-1532e",
-  storageBucket: "hyfinances-1532e.firebasestorage.app",
-  messagingSenderId: "632145740844",
-  appId: "1:632145740844:web:05563195d95236b85ffd89",
-  measurementId: "G-JPBBW1LKVF",
+  apiKey: env.NUXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: env.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: env.NUXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: env.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: env.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: env.NUXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: env.NUXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 let app: FirebaseApp;

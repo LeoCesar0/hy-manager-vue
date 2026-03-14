@@ -1,3 +1,4 @@
+import { writeBatch } from "firebase/firestore";
 import {
   handleAppRequest,
 } from "../@handlers/handle-app-request";
@@ -14,12 +15,18 @@ export type IAPIDeleteBankAccount = {
 export const deleteBankAccount = async ({ id, userId, options }: IAPIDeleteBankAccount) => {
   const response = await handleAppRequest(
     async () => {
-      await cascadeDeleteBankAccount({ bankAccountId: id, userId });
+      const { firebaseDB } = useFirebaseStore();
+      const batch = writeBatch(firebaseDB);
+
+      await cascadeDeleteBankAccount({ bankAccountId: id, userId, batch });
 
       await firebaseDelete({
         collection: "bankAccounts",
         id,
+        batch,
       });
+
+      await batch.commit();
 
       return true;
     },

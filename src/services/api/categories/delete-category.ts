@@ -1,3 +1,4 @@
+import { writeBatch } from "firebase/firestore";
 import {
   handleAppRequest,
 } from "../@handlers/handle-app-request";
@@ -14,14 +15,20 @@ export type IAPIDeleteCategory = {
 export const deleteCategory = async ({ id, userId, options }: IAPIDeleteCategory) => {
   const response = await handleAppRequest(
     async () => {
-      await cascadeDeleteCategory({ categoryId: id, userId });
+      const { firebaseDB } = useFirebaseStore();
+      const batch = writeBatch(firebaseDB);
+
+      await cascadeDeleteCategory({ categoryId: id, userId, batch });
 
       await firebaseDelete({
         collection: "categories",
         id,
+        batch,
       });
 
-      return true
+      await batch.commit();
+
+      return true;
     },
     {
       toastOptions: getDefaultDeleteToastOptions({ itemName: "Categoria" }),

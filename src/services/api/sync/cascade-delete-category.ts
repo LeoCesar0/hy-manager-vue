@@ -4,7 +4,7 @@ import { firebaseList } from "~/services/firebase/firebaseList";
 import { firebaseUpdateMany } from "~/services/firebase/firebaseUpdateMany";
 import { firebaseGet } from "~/services/firebase/firebaseGet";
 import type { IReport } from "~/@schemas/models/report";
-import { deleteField, writeBatch } from "firebase/firestore";
+import { deleteField, writeBatch, type WriteBatch } from "firebase/firestore";
 import { createDocRef } from "~/services/firebase/createDocRef";
 import { removeCategoryFromTransactions } from "./remove-category-from-transactions";
 import { removeCategoryFromCounterparties } from "./remove-category-from-counterparties";
@@ -12,9 +12,10 @@ import { removeCategoryFromCounterparties } from "./remove-category-from-counter
 type IProps = {
   categoryId: string;
   userId: string;
+  batch?: WriteBatch;
 };
 
-export const cascadeDeleteCategory = async ({ categoryId, userId }: IProps) => {
+export const cascadeDeleteCategory = async ({ categoryId, userId, batch: _batch }: IProps) => {
   const { firebaseDB } = useFirebaseStore();
 
   const [transactions, counterparties] = await Promise.all([
@@ -37,7 +38,7 @@ export const cascadeDeleteCategory = async ({ categoryId, userId }: IProps) => {
   const changedTransactions = removeCategoryFromTransactions({ categoryId, transactions });
   const changedCounterparties = removeCategoryFromCounterparties({ categoryId, counterparties });
 
-  const batch = writeBatch(firebaseDB);
+  const batch = _batch || writeBatch(firebaseDB);
 
   if (changedTransactions.length > 0) {
     await firebaseUpdateMany({
@@ -82,5 +83,5 @@ export const cascadeDeleteCategory = async ({ categoryId, userId }: IProps) => {
     })
   );
 
-  await batch.commit();
+  if (!_batch) await batch.commit();
 };
