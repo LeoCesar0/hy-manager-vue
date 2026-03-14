@@ -49,27 +49,30 @@ const tooltipTriggers = computed(() => ({
     const item = d.data;
     const color = colorAccessor(item, d.index);
     const amount = formatCurrency({ amount: item.amount });
+    const percentage = total.value > 0
+      ? ((item.amount / total.value) * 100).toFixed(1)
+      : "0.0";
 
     return `<div style="
       background: var(--background, hsl(0 0% 100%));
       border: 1px solid color-mix(in oklch, var(--border, hsl(240 5.9% 90%)) 50%, transparent);
       border-radius: 0.5rem;
-      padding: 0.375rem 0.625rem;
-      font-size: 0.75rem;
+      overflow: hidden;
       box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
       display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      align-items: stretch;
+      font-size: 0.75rem;
     ">
-      <div style="
-        width: 0.625rem;
-        height: 0.625rem;
-        border-radius: 2px;
-        background: ${color};
-        flex-shrink: 0;
-      "></div>
-      <span style="color: var(--muted-foreground, hsl(240 3.8% 46.1%));">${item.name}</span>
-      <span style="font-weight: 500; font-family: ui-monospace, monospace; margin-left: auto;">${amount}</span>
+      <div style="width: 4px; background: ${color}; flex-shrink: 0;"></div>
+      <div style="padding: 0.375rem 0.625rem; display: flex; align-items: center; gap: 0.625rem;">
+        <span style="color: var(--foreground, hsl(240 10% 3.9%)); font-weight: 500;">${item.name}</span>
+        <span style="font-weight: 600; font-family: ui-monospace, monospace; white-space: nowrap;">${amount}</span>
+        <span style="
+          color: var(--muted-foreground, hsl(240 3.8% 46.1%));
+          font-family: ui-monospace, monospace;
+          font-size: 0.6875rem;
+        ">${percentage}%</span>
+      </div>
     </div>`;
   },
 }));
