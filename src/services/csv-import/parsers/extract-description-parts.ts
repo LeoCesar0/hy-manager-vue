@@ -19,7 +19,7 @@ export const extractDescriptionParts = ({
 
   return {
     transactionDescription: transactionDescription || null,
-    counterpartyName: counterpartyName || null,
+    counterpartyName: counterpartyName || transactionDescription || null,
     details: details.join(" - ") || null,
   };
 };
