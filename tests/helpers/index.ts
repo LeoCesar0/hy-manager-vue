@@ -8,5 +8,7 @@ export {
   makeTransaction,
   makeCounterparty,
   makeReport,
+  makeMonthlyEntry,
+  makeBudget,
   resetFactoryCounter,
 } from "./factories";

@@ -5,6 +5,10 @@ import { zCommonDoc } from "./@common";
 const zMonthlyEntry = z.object({
   income: z.number(),
   expenses: z.number(),
+  expensesByCategory: z.record(z.string(), z.number()).default({}),
+  depositsByCategory: z.record(z.string(), z.number()).default({}),
+  expensesByCounterparty: z.record(z.string(), z.number()).default({}),
+  depositsByCounterparty: z.record(z.string(), z.number()).default({}),
 });
 
 export const zReportBase = z.object({

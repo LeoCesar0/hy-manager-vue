@@ -65,12 +65,59 @@ export const applyTransactionToReport = ({ report, transaction, direction }: IPr
   }
 
   const monthlyBreakdown = { ...updated.monthlyBreakdown };
-  const monthEntry = monthlyBreakdown[monthKey] ?? { income: 0, expenses: 0 };
+  const monthEntry = monthlyBreakdown[monthKey] ?? {
+    income: 0,
+    expenses: 0,
+    expensesByCategory: {},
+    depositsByCategory: {},
+    expensesByCounterparty: {},
+    depositsByCounterparty: {},
+  };
 
   if (isDeposit) {
     monthEntry.income = roundCurrency({ value: Math.max(0, monthEntry.income + amount * direction) });
   } else {
     monthEntry.expenses = roundCurrency({ value: Math.max(0, monthEntry.expenses + amount * direction) });
+  }
+
+  const monthCategoryMap = isDeposit
+    ? { ...(monthEntry.depositsByCategory ?? {}) }
+    : { ...(monthEntry.expensesByCategory ?? {}) };
+
+  for (const categoryId of transaction.categoryIds) {
+    const current = monthCategoryMap[categoryId] ?? 0;
+    const newValue = roundCurrency({ value: Math.max(0, current + amount * direction) });
+    if (newValue === 0) {
+      delete monthCategoryMap[categoryId];
+    } else {
+      monthCategoryMap[categoryId] = newValue;
+    }
+  }
+
+  if (isDeposit) {
+    monthEntry.depositsByCategory = monthCategoryMap;
+  } else {
+    monthEntry.expensesByCategory = monthCategoryMap;
+  }
+
+  if (transaction.counterpartyId) {
+    const monthCounterpartyMap = isDeposit
+      ? { ...(monthEntry.depositsByCounterparty ?? {}) }
+      : { ...(monthEntry.expensesByCounterparty ?? {}) };
+
+    const current = monthCounterpartyMap[transaction.counterpartyId] ?? 0;
+    const newValue = roundCurrency({ value: Math.max(0, current + amount * direction) });
+    if (newValue === 0) {
+      delete monthCounterpartyMap[transaction.counterpartyId];
+    } else {
+      monthCounterpartyMap[transaction.counterpartyId] = newValue;
+    }
+
+    if (isDeposit) {
+      monthEntry.depositsByCounterparty = monthCounterpartyMap;
+    } else {
+      monthEntry.expensesByCounterparty = monthCounterpartyMap;
+    }
   }
 
   monthlyBreakdown[monthKey] = monthEntry;

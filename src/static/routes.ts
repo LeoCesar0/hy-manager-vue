@@ -1,9 +1,10 @@
-import  { 
-  LayoutDashboardIcon, 
-  ArrowLeftRightIcon, 
-  FolderIcon, 
-  UsersIcon, 
-  WalletIcon 
+import  {
+  LayoutDashboardIcon,
+  ArrowLeftRightIcon,
+  FolderIcon,
+  UsersIcon,
+  WalletIcon,
+  BarChart3Icon,
 } from "lucide-vue-next";
 
 type AppIcon =  typeof LayoutDashboardIcon
@@ -45,6 +46,7 @@ export const ROUTES = [
     'counterpartyId',
     'bankAccounts',
     'bankAccountId',
+    'reports',
 ] as const
 export type Route =  typeof ROUTES[number]
 
@@ -138,5 +140,14 @@ export const ROUTE = {
         path: (id: string) => `/dashboard/contas-bancarias/${id}`,
         name: 'bankAccountId',
         label: 'Conta Bancária',
+    },
+    reports: {
+        path: () => '/dashboard/relatorios',
+        name: 'reports',
+        label: 'Relatórios',
+        menu: {
+            icon: BarChart3Icon,
+            group: 'overview',
+        },
     },
 } satisfies Record<Route, IRoute>

@@ -1,5 +1,6 @@
 import { z, ZodObject } from "zod";
 import { zBankAccount } from "~/@schemas/models/bank-account";
+import { zBudget } from "~/@schemas/models/budget";
 import { zCategory } from "~/@schemas/models/category";
 import { zCounterparty } from "~/@schemas/models/counterparty";
 import { zFile } from "~/@schemas/models/file";
@@ -15,6 +16,7 @@ export const zFirebaseCollection = z.enum([
   "files",
   "categories",
   "reports",
+  "budgets",
 ]);
 
 export type FirebaseCollection = z.infer<typeof zFirebaseCollection>;
@@ -27,4 +29,5 @@ export const COLLECTION_SCHEMA: Record<FirebaseCollection, ZodObject> = {
   files: zFile,
   categories: zCategory,
   reports: zReport,
+  budgets: zBudget,
 };

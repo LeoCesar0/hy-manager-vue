@@ -58,6 +58,10 @@ describe("report double-counting bug", () => {
     expect(rebuilt.totalExpenses).toBe(300);
     expect(rebuilt.totalIncome).toBe(1000);
     expect(rebuilt.transactionCount).toBe(3);
-    expect(rebuilt.monthlyBreakdown["2024-03"]).toEqual({ income: 1000, expenses: 300 });
+    expect(rebuilt.monthlyBreakdown["2024-03"]).toEqual({
+      income: 1000, expenses: 300,
+      expensesByCategory: { "cat-1": 300 }, depositsByCategory: { "cat-2": 1000 },
+      expensesByCounterparty: {}, depositsByCounterparty: {},
+    });
   });
 });
