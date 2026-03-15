@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PlusIcon, DownloadIcon, UploadIcon } from "lucide-vue-next";
+import { PlusIcon, DownloadIcon, UploadIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-vue-next";
 import { Timestamp } from "firebase/firestore";
 import type { ITransaction, ICreateTransaction } from "~/@schemas/models/transaction";
 import type { ICategory } from "~/@schemas/models/category";
@@ -36,14 +36,13 @@ const counterparties = ref<ICounterparty[]>([]);
 
 const bankAccounts = computed(() => storeBankAccounts.value);
 
-const { paginationBody } = usePagination({ limit: 20 })
+const { paginationBody } = usePagination({ limit: 20, orderBy: { field: 'date', direction: 'desc' } })
 
 const filters = ref<{
   startDate: Timestamp | null;
   endDate: Timestamp | null;
   type: 'deposit' | 'expense' | null;
   categoryId: string | null;
-  bankAccountId: string | null;
   counterpartyId: string | null;
   search: string;
 }>({
@@ -51,10 +50,26 @@ const filters = ref<{
   endDate: null,
   type: null,
   categoryId: null,
-  bankAccountId: null,
   counterpartyId: null,
   search: '',
 });
+
+const sortDirection = computed(() => paginationBody.value.orderBy?.direction ?? 'desc');
+
+const toggleSortDirection = () => {
+  const newDirection = sortDirection.value === 'desc' ? 'asc' : 'desc';
+  paginationBody.value.orderBy = { field: 'date', direction: newDirection };
+  paginationBody.value.page = 1;
+  loadTransactions();
+};
+
+const pageSizeOptions = [10, 20, 30] as const;
+
+const handlePageSizeChange = (value: unknown) => {
+  paginationBody.value.limit = Number(String(value));
+  paginationBody.value.page = 1;
+  loadTransactions();
+};
 
 const isCreateSheetOpen = ref(false);
 const isUpdateSheetOpen = ref(false);
@@ -126,7 +141,7 @@ const loadTransactions = async () => {
       endDate: filters.value.endDate || undefined,
       type: filters.value.type || undefined,
       categoryId: filters.value.categoryId || undefined,
-      bankAccountId: currentBankAccount.value?.id || filters.value.bankAccountId || undefined,
+      bankAccountId: currentBankAccount.value?.id || undefined,
       counterpartyId: filters.value.counterpartyId || undefined,
       pagination: paginationBody.value,
     });
@@ -260,7 +275,6 @@ watch(
 );
 
 onMounted(() => {
-  console.log('❗  on mounted currentBankAccount.value -->', currentBankAccount.value);
   loadAuxiliaryData();
   loadTransactions();
 });
@@ -286,8 +300,34 @@ onMounted(() => {
 
     <template #filters>
       <SummaryCards :transactions="allTransactionsForSummary" :loading="isLoadingData" />
-      <FilterPanel v-model="filters" :categories="categories" :bank-accounts="bankAccounts"
+      <FilterPanel v-model="filters" :categories="categories"
         :counterparties="counterparties" @apply="handleApplyFilters" @clear="handleClearFilters" />
+
+      <div class="flex items-center gap-3">
+        <UiButton variant="outline" size="sm" @click="toggleSortDirection">
+          <ArrowDownIcon v-if="sortDirection === 'desc'" class="h-4 w-4 mr-2" />
+          <ArrowUpIcon v-else class="h-4 w-4 mr-2" />
+          {{ sortDirection === 'desc' ? 'Mais recentes' : 'Mais antigos' }}
+        </UiButton>
+
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-muted-foreground">Exibir</span>
+          <UiSelect
+            :model-value="String(paginationBody.limit)"
+            @update:model-value="handlePageSizeChange"
+          >
+            <UiSelectTrigger class="w-[70px] h-8">
+              <UiSelectValue />
+            </UiSelectTrigger>
+            <UiSelectContent>
+              <UiSelectItem v-for="size in pageSizeOptions" :key="size" :value="String(size)">
+                {{ size }}
+              </UiSelectItem>
+            </UiSelectContent>
+          </UiSelect>
+          <span class="text-sm text-muted-foreground">por página</span>
+        </div>
+      </div>
     </template>
 
     <EmptyState v-if="filteredTransactions.length === 0 && !isLoadingData" title="Nenhuma transação encontrada"

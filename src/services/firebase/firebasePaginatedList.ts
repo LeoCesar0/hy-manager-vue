@@ -35,7 +35,7 @@ export const firebasePaginatedList = async <R>({
 
   const differentFilter = filters.find((filter) => filter.operator != "==");
 
-  if (differentFilter) {
+  if (differentFilter && differentFilter.field !== orderByValues.field) {
     orderByParams.unshift(
       orderBy(differentFilter.field as string, orderByValues.direction)
     );

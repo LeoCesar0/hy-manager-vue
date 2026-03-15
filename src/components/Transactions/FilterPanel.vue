@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import { FilterIcon, XIcon } from "lucide-vue-next";
 import type { ICategory } from "~/@schemas/models/category";
-import type { IBankAccount } from "~/@schemas/models/bank-account";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { Timestamp } from "firebase/firestore";
 import SearchInput from "~/components/Dashboard/SearchInput.vue";
 import DatePicker from "~/components/Form/Field/DatePicker.vue";
+import { getCategoryIcon } from "~/static/category-icons";
 
 type IFilters = {
   startDate: Timestamp | null;
   endDate: Timestamp | null;
   type: 'deposit' | 'expense' | null;
   categoryId: string | null;
-  bankAccountId: string | null;
   counterpartyId: string | null;
   search: string;
 };
@@ -20,7 +19,6 @@ type IFilters = {
 type IProps = {
   modelValue: IFilters;
   categories: ICategory[];
-  bankAccounts: IBankAccount[];
   counterparties: ICounterparty[];
 };
 
@@ -51,7 +49,6 @@ const hasActiveFilters = computed(() => {
     props.modelValue.endDate ||
     props.modelValue.type ||
     props.modelValue.categoryId ||
-    props.modelValue.bankAccountId ||
     props.modelValue.counterpartyId ||
     props.modelValue.search
   );
@@ -63,7 +60,6 @@ const handleClear = () => {
     endDate: null,
     type: null,
     categoryId: null,
-    bankAccountId: null,
     counterpartyId: null,
     search: '',
   });
@@ -74,20 +70,21 @@ const handleApply = () => {
   emit('apply');
   isExpanded.value = false;
 };
+
 </script>
 
 <template>
   <div class="space-y-4">
     <div class="flex items-center gap-2">
-      <SearchInput 
+      <SearchInput
         :model-value="localFilters.search"
         @update:model-value="(value) => updateFilter('search', value)"
         placeholder="Buscar por descrição..."
         max-width="max-w-md"
       />
-      
-      <UiButton 
-        variant="outline" 
+
+      <UiButton
+        variant="outline"
         @click="isExpanded = !isExpanded"
         :class="hasActiveFilters ? 'border-primary' : ''"
       >
@@ -96,9 +93,9 @@ const handleApply = () => {
         <span v-if="hasActiveFilters" class="ml-2 h-2 w-2 rounded-full bg-primary" />
       </UiButton>
 
-      <UiButton 
+      <UiButton
         v-if="hasActiveFilters"
-        variant="ghost" 
+        variant="ghost"
         size="icon"
         @click="handleClear"
         title="Limpar filtros"
@@ -129,69 +126,63 @@ const handleApply = () => {
 
         <div class="space-y-2">
           <label class="text-sm font-medium">Tipo</label>
-          <select 
-            :value="localFilters.type || ''"
-            @change="(e) => updateFilter('type', (e.target as HTMLSelectElement).value || null)"
-            class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          <UiSelect
+            :model-value="localFilters.type || 'all'"
+            @update:model-value="(v) => updateFilter('type', v === 'all' ? null : v)"
           >
-            <option value="">Todos</option>
-            <option value="deposit">Receitas</option>
-            <option value="expense">Despesas</option>
-          </select>
+            <UiSelectTrigger class="w-full">
+              <UiSelectValue placeholder="Todos" />
+            </UiSelectTrigger>
+            <UiSelectContent>
+              <UiSelectItem value="all">Todos</UiSelectItem>
+              <UiSelectItem value="deposit">Entradas</UiSelectItem>
+              <UiSelectItem value="expense">Saídas</UiSelectItem>
+            </UiSelectContent>
+          </UiSelect>
         </div>
 
         <div class="space-y-2">
           <label class="text-sm font-medium">Categoria</label>
-          <select 
-            :value="localFilters.categoryId || ''"
-            @change="(e) => updateFilter('categoryId', (e.target as HTMLSelectElement).value || null)"
-            class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          <UiSelect
+            :model-value="localFilters.categoryId || 'all'"
+            @update:model-value="(v) => updateFilter('categoryId', v === 'all' ? null : v)"
           >
-            <option value="">Todas</option>
-            <option 
-              v-for="category in categories" 
-              :key="category.id" 
-              :value="category.id"
-            >
-              {{ category.icon }} {{ category.name }}
-            </option>
-          </select>
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-medium">Conta Bancária</label>
-          <select 
-            :value="localFilters.bankAccountId || ''"
-            @change="(e) => updateFilter('bankAccountId', (e.target as HTMLSelectElement).value || null)"
-            class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <option value="">Todas</option>
-            <option 
-              v-for="account in bankAccounts" 
-              :key="account.id" 
-              :value="account.id"
-            >
-              {{ account.name }}
-            </option>
-          </select>
+            <UiSelectTrigger class="w-full">
+              <UiSelectValue placeholder="Todas" />
+            </UiSelectTrigger>
+            <UiSelectContent>
+              <UiSelectItem value="all">Todas</UiSelectItem>
+              <UiSelectItem
+                v-for="category in categories"
+                :key="category.id"
+                :value="category.id"
+              >
+                {{ getCategoryIcon(category.icon) }} {{ category.name }}
+              </UiSelectItem>
+            </UiSelectContent>
+          </UiSelect>
         </div>
 
         <div class="space-y-2">
           <label class="text-sm font-medium">Terceiro</label>
-          <select 
-            :value="localFilters.counterpartyId || ''"
-            @change="(e) => updateFilter('counterpartyId', (e.target as HTMLSelectElement).value || null)"
-            class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          <UiSelect
+            :model-value="localFilters.counterpartyId || 'all'"
+            @update:model-value="(v) => updateFilter('counterpartyId', v === 'all' ? null : v)"
           >
-            <option value="">Todos</option>
-            <option 
-              v-for="counterparty in counterparties" 
-              :key="counterparty.id" 
-              :value="counterparty.id"
-            >
-              {{ counterparty.name }}
-            </option>
-          </select>
+            <UiSelectTrigger class="w-full">
+              <UiSelectValue placeholder="Todos" />
+            </UiSelectTrigger>
+            <UiSelectContent>
+              <UiSelectItem value="all">Todos</UiSelectItem>
+              <UiSelectItem
+                v-for="counterparty in counterparties"
+                :key="counterparty.id"
+                :value="counterparty.id"
+              >
+                {{ counterparty.name }}
+              </UiSelectItem>
+            </UiSelectContent>
+          </UiSelect>
         </div>
       </div>
 

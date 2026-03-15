@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check authentication
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Helper for read: allow if doc doesn't exist (returns empty) or user owns it
+    function isResourceOwner() {
+      return isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+    }
+
+    // Test environment - open access for integration tests
+    match /env/test/{collection}/{docId} {
+      allow read, write: if true;
+    }
+
+    // Match environment paths (development/production)
+    match /env/{environment}/{document=**} {
+
+      // Users collection - users can only access their own data
+      match /users/{userId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /bankAccounts/{accountId} {
+        allow read: if isResourceOwner();
+        allow update, delete: if isSignedIn() &&
+                                    resource.data.userId == request.auth.uid;
+        allow create: if isSignedIn() &&
+                         request.resource.data.userId == request.auth.uid;
+      }
+
+      // Transactions - users can only access their own
+      match /transactions/{transactionId} {
+        allow read: if isResourceOwner();
+        allow update, delete: if isSignedIn() &&
+                                    resource.data.userId == request.auth.uid;
+        allow create: if isSignedIn() &&
+                         request.resource.data.userId == request.auth.uid;
+      }
+
+      // Categories - users can only access their own
+      match /categories/{categoryId} {
+        allow read: if isResourceOwner();
+        allow update, delete: if isSignedIn() &&
+                                    resource.data.userId == request.auth.uid;
+        allow create: if isSignedIn() &&
+                         request.resource.data.userId == request.auth.uid;
+      }
+
+      // Creditors - users can only access their own
+      match /creditors/{creditorId} {
+        allow read: if isResourceOwner();
+        allow update, delete: if isSignedIn() &&
+                                    resource.data.userId == request.auth.uid;
+        allow create: if isSignedIn() &&
+                         request.resource.data.userId == request.auth.uid;
+      }
+
+      // Files - users can only access their own
+      match /files/{fileId} {
+        allow read: if isResourceOwner();
+        allow update, delete: if isSignedIn() &&
+                                    resource.data.userId == request.auth.uid;
+        allow create: if isSignedIn() &&
+                         request.resource.data.userId == request.auth.uid;
+      }
+
+      // Reports - users can only access their own
+      match /reports/{reportId} {
+        allow read: if isResourceOwner();
+        allow update, delete: if isSignedIn() &&
+                                    resource.data.userId == request.auth.uid;
+        allow create: if isSignedIn() &&
+                         request.resource.data.userId == request.auth.uid;
+      }
+    }
+
+    // Deny all other paths by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
