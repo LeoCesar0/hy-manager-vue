@@ -1,14 +1,14 @@
 import { onAuthStateChanged } from "firebase/auth";
 import { handleInitializeUser } from "~/services/api/@handlers/handle-initialize-user";
 
-export default defineNuxtRouteMiddleware(async (to, from) => {
-  const firebaseStore = useFirebaseStore();
-  console.log(`------------- 🟢 START SESSION MIDDLEWARE -------------`);
+const AUTH_ROUTES = ["/sign-in", "/sign-up", "/esqueci-minha-senha"];
 
+export default defineNuxtRouteMiddleware(async (to) => {
+  const firebaseStore = useFirebaseStore();
   const userStore = useUserStore();
   const { currentUser } = storeToRefs(userStore);
 
-  new Promise<void>((resolve) => {
+  await new Promise<void>((resolve) => {
     const unsubscribe = onAuthStateChanged(
       firebaseStore.firebaseAuth,
       async (firebaseUser) => {
@@ -18,7 +18,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
           currentUser.value = res.data;
         }
         if (!firebaseUser) {
-          currentUser.value = null
+          currentUser.value = null;
         }
         unsubscribe();
         resolve();
@@ -26,5 +26,14 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     );
   });
 
-  //   handleInitializeUser
+  const isAuthRoute = AUTH_ROUTES.includes(to.path);
+  const isDashboardRoute = to.path.startsWith("/dashboard");
+
+  if (!currentUser.value && isDashboardRoute) {
+    return navigateTo("/sign-in");
+  }
+
+  if (currentUser.value && isAuthRoute) {
+    return navigateTo("/dashboard");
+  }
 });

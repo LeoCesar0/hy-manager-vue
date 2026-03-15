@@ -15,6 +15,13 @@ export const useDashboardStore = defineStore(makeStoreKey("dashboard"), () => {
     () => !currentUser.value || !currentBankAccount.value,
   );
 
+  const hasNoBankAccounts = computed(
+    () =>
+      !!currentUser.value &&
+      !isLoadingBankAccounts.value &&
+      bankAccounts.value.length === 0,
+  );
+
   const lastSelectedBankAccountId = useLocalStorage<string | null>(
     "lastSelectedBankAccountId",
     null,
@@ -76,17 +83,22 @@ export const useDashboardStore = defineStore(makeStoreKey("dashboard"), () => {
     isLoadingBankAccounts.value = false;
   };
 
-  watch(currentUser, (currentUser) => {
-    if (currentUser) {
-      loadBankAccounts();
-    }
-  });
+  watch(
+    currentUser,
+    (currentUser) => {
+      if (currentUser) {
+        loadBankAccounts();
+      }
+    },
+    { immediate: true },
+  );
 
   return {
     bankAccounts,
     currentBankAccount,
     isLoadingBankAccounts,
     isLoadingDashboard,
+    hasNoBankAccounts,
     loadBankAccounts,
     setCurrentBankAccount,
     resetStore,

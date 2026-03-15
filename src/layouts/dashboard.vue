@@ -59,7 +59,7 @@ const menuGroups = computed(() => {
 });
 
 const dashboardStore = useDashboardStore();
-const { isLoadingDashboard, bankAccounts, currentBankAccount, isLoadingBankAccounts } = storeToRefs(dashboardStore);
+const { isLoadingDashboard, hasNoBankAccounts, bankAccounts, currentBankAccount, isLoadingBankAccounts } = storeToRefs(dashboardStore);
 
 const bankAccountOptions = computed<ISelectOption[]>(() => {
   return [
@@ -89,7 +89,19 @@ const selectedBankAccountId = computed({
 </script>
 
 <template>
-  <GlobalLoadingPage v-if="isLoadingDashboard" />
+  <GlobalLoadingPage v-if="isLoadingDashboard && !hasNoBankAccounts" />
+  <div v-else-if="hasNoBankAccounts" class="flex items-center justify-center min-h-screen">
+    <div class="text-center max-w-md space-y-4 p-6">
+      <WalletIcon class="h-16 w-16 mx-auto text-muted-foreground" />
+      <h2 class="text-2xl font-semibold">Nenhuma conta bancária</h2>
+      <p class="text-muted-foreground">
+        Para começar a usar o dashboard, crie sua primeira conta bancária.
+      </p>
+      <NuxtLink :to="ROUTE.bankAccounts.path()">
+        <UiButton class="mt-2">Criar conta bancária</UiButton>
+      </NuxtLink>
+    </div>
+  </div>
   <UiSidebarProvider v-else>
     <UiSidebar>
       <UiSidebarHeader class="border-b p-4">
