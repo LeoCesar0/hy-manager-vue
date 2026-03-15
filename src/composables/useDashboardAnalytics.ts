@@ -7,6 +7,7 @@ import { getTransactions } from "~/services/api/transactions/get-transactions";
 import { getCategories } from "~/services/api/categories/get-categories";
 import { getCounterparties } from "~/services/api/counterparties/get-counterparties";
 import { getOrCreateReport } from "~/services/api/reports/get-or-create-report";
+import { rebuildReport } from "~/services/api/reports/rebuild-report";
 import { calculateTotals } from "~/services/analytics/calculate-totals";
 import { groupByCategory } from "~/services/analytics/group-by-category";
 import { groupByCounterparty } from "~/services/analytics/group-by-counterparty";
@@ -71,6 +72,7 @@ export const useDashboardAnalytics = () => {
   const counterparties = ref<ICounterparty[]>([]);
   const report = ref<IReport | null>(null);
   const isLoading = ref(false);
+  const isRebuilding = ref(false);
 
   const selectedPeriod = ref<PeriodKey>(DEFAULT_PERIOD);
 
@@ -186,6 +188,8 @@ export const useDashboardAnalytics = () => {
         }),
       ]);
 
+      console.log('❗ loadData reportRes -->', reportRes);
+
       if (transactionsRes.data) {
         filteredTransactions.value = transactionsRes.data;
       }
@@ -200,6 +204,30 @@ export const useDashboardAnalytics = () => {
       }
     } finally {
       isLoading.value = false;
+    }
+  };
+
+  const handleRebuildReport = async () => {
+    if (!currentUser.value || !currentBankAccount.value) return;
+    isRebuilding.value = true;
+    try {
+      const result = await rebuildReport({
+        userId: currentUser.value.id,
+        bankAccountId: currentBankAccount.value.id,
+        options: {
+          toastOptions: {
+            loading: { message: "Recalculando relatório..." },
+            success: { message: "Relatório recalculado com sucesso!" },
+            error: true,
+          },
+        },
+      });
+
+      if (result?.data) {
+        report.value = result.data;
+      }
+    } finally {
+      isRebuilding.value = false;
     }
   };
 
@@ -220,6 +248,8 @@ export const useDashboardAnalytics = () => {
     selectedPeriod,
     handleSelectPeriod,
     isLoading,
+    isRebuilding,
+    handleRebuildReport,
     totals,
     expensesByCategory,
     depositsByCategory,

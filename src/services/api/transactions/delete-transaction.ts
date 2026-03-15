@@ -28,7 +28,7 @@ export const deleteTransaction = async ({
         id,
       });
 
-      updateReport({
+      await updateReport({
         userId: oldTransaction.userId,
         bankAccountId: oldTransaction.bankAccountId,
         oldTransaction,

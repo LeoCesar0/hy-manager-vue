@@ -196,7 +196,7 @@ export const importTransactions = async ({
         data: transactionsData,
       });
 
-      updateReportBulk({
+      await updateReportBulk({
         userId,
         bankAccountId,
         newTransactions: created,

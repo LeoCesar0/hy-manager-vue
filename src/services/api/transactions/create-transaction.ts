@@ -57,7 +57,7 @@ export const createTransaction = async ({
         data: transactionData,
       });
 
-      updateReport({
+      await updateReport({
         userId: data.userId,
         bankAccountId: data.bankAccountId,
         newTransaction: created,

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Timestamp } from "firebase/firestore";
+import { RefreshCwIcon } from "lucide-vue-next";
 import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
 import DashboardFilterBar from "~/components/Dashboard/DashboardFilterBar.vue";
 import SummaryCards from "~/components/Transactions/SummaryCards.vue";
@@ -18,6 +19,8 @@ const {
   selectedPeriod,
   handleSelectPeriod,
   isLoading,
+  isRebuilding,
+  handleRebuildReport,
   totals,
   expensesByCategory,
   depositsByCategory,
@@ -55,6 +58,18 @@ onMounted(() => {
     subtitle="Visão geral das suas finanças"
     :loading="isLoading && filteredTransactions.length === 0"
   >
+    <template #actions>
+      <UiButton
+        variant="outline"
+        size="sm"
+        :disabled="isRebuilding"
+        @click="handleRebuildReport"
+      >
+        <RefreshCwIcon class="h-4 w-4 mr-1" :class="{ 'animate-spin': isRebuilding }" />
+        Recalcular
+      </UiButton>
+    </template>
+
     <template #filters>
       <DashboardFilterBar
         :selected-period="selectedPeriod"
