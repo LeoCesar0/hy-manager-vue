@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { PlusIcon } from "lucide-vue-next";
+import { watchDebounced } from "@vueuse/core";
+import { PlusIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-vue-next";
 import type { ICounterparty, ICreateCounterparty } from "~/@schemas/models/counterparty";
 import type { ICategory } from "~/@schemas/models/category";
-import { getCounterparties } from "~/services/api/counterparties/get-counterparties";
+import type { IPaginationResult } from "~/@types/pagination";
+import { paginateCounterparties } from "~/services/api/counterparties/paginate-counterparties";
 import { getCategories } from "~/services/api/categories/get-categories";
 import { deleteCounterparty } from "~/services/api/counterparties/delete-counterparty";
 import { ROUTE } from "~/static/routes";
@@ -11,6 +13,7 @@ import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
 import SearchInput from "~/components/Dashboard/SearchInput.vue";
 import EmptyState from "~/components/Dashboard/EmptyState.vue";
 import CardGrid from "~/components/Dashboard/CardGrid.vue";
+import TablePagination from "~/components/Table/Pagination.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -21,9 +24,29 @@ const { currentUser } = storeToRefs(userStore);
 const router = useRouter();
 
 const isLoadingData = ref(false);
-const counterparties = ref<ICounterparty[]>([]);
+const counterparties = ref<IPaginationResult<ICounterparty> | null>(null);
 const categories = ref<ICategory[]>([]);
 const searchQuery = ref("");
+const categoryFilter = ref<string | null>(null);
+
+const { paginationBody } = usePagination({ limit: 50, orderBy: { field: 'name', direction: 'asc' } });
+
+const pageSizeOptions = [20, 50, 100] as const;
+
+const sortDirection = computed(() => paginationBody.value.orderBy?.direction ?? 'asc');
+
+const toggleSortDirection = () => {
+  const newDirection = sortDirection.value === 'asc' ? 'desc' : 'asc';
+  paginationBody.value.orderBy = { field: 'name', direction: newDirection };
+  paginationBody.value.page = 1;
+  loadCounterparties();
+};
+
+const handlePageSizeChange = (value: unknown) => {
+  paginationBody.value.limit = Number(String(value));
+  paginationBody.value.page = 1;
+  loadCounterparties();
+};
 
 const isCreateSheetOpen = ref(false);
 const isUpdateSheetOpen = ref(false);
@@ -39,33 +62,34 @@ const createCounterpartyInitialValues = computed<ICreateCounterparty>(() => ({
   userId: currentUser.value?.id || "",
 }));
 
-const filteredCounterparties = computed(() => {
-  const q = searchQuery.value.toLowerCase().trim();
-  if (!q) return counterparties.value;
-  return counterparties.value.filter((c) => c.name.toLowerCase().includes(q));
-});
+const counterpartiesList = computed(() => counterparties.value?.list ?? []);
 
-const loadData = async () => {
+const loadAuxiliaryData = async () => {
+  if (!currentUser.value) return;
+
+  const categoriesRes = await getCategories({
+    userId: currentUser.value.id,
+    options: { toastOptions: undefined },
+  });
+
+  if (categoriesRes.data) {
+    categories.value = categoriesRes.data;
+  }
+};
+
+const loadCounterparties = async () => {
   if (!currentUser.value) return;
 
   isLoadingData.value = true;
   try {
-    const [counterpartiesRes, categoriesRes] = await Promise.all([
-      getCounterparties({
-        userId: currentUser.value.id,
-        options: { toastOptions: undefined },
-      }),
-      getCategories({
-        userId: currentUser.value.id,
-        options: { toastOptions: undefined },
-      }),
-    ]);
-
-    if (counterpartiesRes.data) {
-      counterparties.value = counterpartiesRes.data.sort((a, b) => a.name.localeCompare(b.name));
-    }
-    if (categoriesRes.data) {
-      categories.value = categoriesRes.data;
+    const response = await paginateCounterparties({
+      userId: currentUser.value.id,
+      search: searchQuery.value || undefined,
+      categoryId: categoryFilter.value || undefined,
+      pagination: paginationBody.value,
+    });
+    if (response.data) {
+      counterparties.value = response.data;
     }
   } finally {
     isLoadingData.value = false;
@@ -94,7 +118,7 @@ const handleDelete = (counterparty: ICounterparty) => {
           },
         });
         if (response.data !== undefined) {
-          loadData();
+          loadCounterparties();
         }
       },
     },
@@ -116,17 +140,42 @@ const handleCreate = () => {
 
 const handleCreateSuccess = () => {
   isCreateSheetOpen.value = false;
-  loadData();
+  loadCounterparties();
 };
 
 const handleUpdateSuccess = () => {
   updatingCounterparty.value = null;
   isUpdateSheetOpen.value = false;
-  loadData();
+  loadCounterparties();
 };
 
+watch(
+  () => paginationBody.value.page,
+  () => {
+    loadCounterparties();
+  }
+);
+
+watch(
+  () => categoryFilter.value,
+  () => {
+    paginationBody.value.page = 1;
+    loadCounterparties();
+  }
+);
+
+watchDebounced(
+  () => searchQuery.value,
+  () => {
+    paginationBody.value.page = 1;
+    loadCounterparties();
+  },
+  { debounce: 400 }
+);
+
 onMounted(() => {
-  loadData();
+  loadAuxiliaryData();
+  loadCounterparties();
 });
 </script>
 
@@ -134,7 +183,7 @@ onMounted(() => {
   <DashboardSection
     title="Terceiros"
     subtitle="Gerencie seus terceiros"
-    :loading="isLoadingData"
+    :loading="isLoadingData && !counterparties"
   >
     <template #actions>
       <UiButton @click="handleCreate">
@@ -148,20 +197,64 @@ onMounted(() => {
         v-model="searchQuery"
         placeholder="Buscar terceiros..."
       />
+
+      <div class="flex items-center gap-3 flex-wrap">
+        <UiButton variant="outline" size="sm" @click="toggleSortDirection">
+          <ArrowDownIcon v-if="sortDirection === 'desc'" class="h-4 w-4 mr-2" />
+          <ArrowUpIcon v-else class="h-4 w-4 mr-2" />
+          {{ sortDirection === 'asc' ? 'A-Z' : 'Z-A' }}
+        </UiButton>
+
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-muted-foreground">Categoria</span>
+          <UiSelect
+            :model-value="categoryFilter ?? 'all'"
+            @update:model-value="(v: unknown) => categoryFilter = String(v) === 'all' ? null : String(v)"
+          >
+            <UiSelectTrigger class="w-[180px] h-8">
+              <UiSelectValue />
+            </UiSelectTrigger>
+            <UiSelectContent>
+              <UiSelectItem value="all">Todas</UiSelectItem>
+              <UiSelectItem v-for="cat in categories" :key="cat.id" :value="cat.id">
+                {{ cat.name }}
+              </UiSelectItem>
+            </UiSelectContent>
+          </UiSelect>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-muted-foreground">Exibir</span>
+          <UiSelect
+            :model-value="String(paginationBody.limit)"
+            @update:model-value="handlePageSizeChange"
+          >
+            <UiSelectTrigger class="w-[70px] h-8">
+              <UiSelectValue />
+            </UiSelectTrigger>
+            <UiSelectContent>
+              <UiSelectItem v-for="size in pageSizeOptions" :key="size" :value="String(size)">
+                {{ size }}
+              </UiSelectItem>
+            </UiSelectContent>
+          </UiSelect>
+          <span class="text-sm text-muted-foreground">por página</span>
+        </div>
+      </div>
     </template>
 
     <EmptyState
-      v-if="filteredCounterparties.length === 0"
+      v-if="counterpartiesList.length === 0 && !isLoadingData"
       title="Nenhum terceiro encontrado"
-      :description="searchQuery ? 'Tente buscar por outro termo.' : 'Crie seu primeiro terceiro clicando no botão acima.'"
-      :show-create-button="!searchQuery"
+      :description="searchQuery || categoryFilter ? 'Tente ajustar os filtros ou buscar por outro termo.' : 'Crie seu primeiro terceiro clicando no botão acima.'"
+      :show-create-button="!searchQuery && !categoryFilter"
       create-button-label="Novo Terceiro"
       :on-create="handleCreate"
     />
 
     <CardGrid v-else>
       <CounterpartyCard
-        v-for="counterparty in filteredCounterparties"
+        v-for="counterparty in counterpartiesList"
         :key="counterparty.id"
         :counterparty="counterparty"
         :categories="categories"
@@ -170,6 +263,10 @@ onMounted(() => {
         :handle-delete="handleDelete"
       />
     </CardGrid>
+
+    <div v-if="counterparties" class="mt-6">
+      <TablePagination :pagination-body="paginationBody" :pagination-result="counterparties" />
+    </div>
 
     <CounterpartiesCreateSheet
       v-model:is-open="isCreateSheetOpen"

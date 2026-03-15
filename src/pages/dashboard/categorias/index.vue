@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { PlusIcon } from "lucide-vue-next";
+import { watchDebounced } from "@vueuse/core";
+import { PlusIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-vue-next";
 import type { ICategory, ICreateCategory } from "~/@schemas/models/category";
-import { getCategories } from "~/services/api/categories/get-categories";
+import type { IPaginationResult } from "~/@types/pagination";
+import { paginateCategories } from "~/services/api/categories/paginate-categories";
 import { deleteCategory } from "~/services/api/categories/delete-category";
 import { ROUTE } from "~/static/routes";
 import CategoryCard from "~/components/Categories/CategoryCard.vue";
@@ -10,6 +12,7 @@ import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
 import SearchInput from "~/components/Dashboard/SearchInput.vue";
 import EmptyState from "~/components/Dashboard/EmptyState.vue";
 import CardGrid from "~/components/Dashboard/CardGrid.vue";
+import TablePagination from "~/components/Table/Pagination.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -20,8 +23,27 @@ const { currentUser } = storeToRefs(userStore);
 const router = useRouter();
 
 const isLoadingData = ref(false);
-const categories = ref<ICategory[]>([]);
+const categories = ref<IPaginationResult<ICategory> | null>(null);
 const searchQuery = ref("");
+
+const { paginationBody } = usePagination({ limit: 50, orderBy: { field: 'name', direction: 'asc' } });
+
+const pageSizeOptions = [20, 50, 100] as const;
+
+const sortDirection = computed(() => paginationBody.value.orderBy?.direction ?? 'asc');
+
+const toggleSortDirection = () => {
+  const newDirection = sortDirection.value === 'asc' ? 'desc' : 'asc';
+  paginationBody.value.orderBy = { field: 'name', direction: newDirection };
+  paginationBody.value.page = 1;
+  loadCategories();
+};
+
+const handlePageSizeChange = (value: unknown) => {
+  paginationBody.value.limit = Number(String(value));
+  paginationBody.value.page = 1;
+  loadCategories();
+};
 
 const isCreateSheetOpen = ref(false);
 const isUpdateSheetOpen = ref(false);
@@ -38,23 +60,20 @@ const createCategoryInitialValues = computed<ICreateCategory>(() => ({
   userId: currentUser.value?.id || "",
 }));
 
-const filteredCategories = computed(() => {
-  const q = searchQuery.value.toLowerCase().trim();
-  if (!q) return categories.value;
-  return categories.value.filter((c) => c.name.toLowerCase().includes(q));
-});
+const categoriesList = computed(() => categories.value?.list ?? []);
 
 const loadCategories = async () => {
   if (!currentUser.value) return;
 
   isLoadingData.value = true;
   try {
-    const response = await getCategories({
+    const response = await paginateCategories({
       userId: currentUser.value.id,
-      options: { toastOptions: undefined },
+      search: searchQuery.value || undefined,
+      pagination: paginationBody.value,
     });
     if (response.data) {
-      categories.value = response.data.sort((a, b) => a.name.localeCompare(b.name));
+      categories.value = response.data;
     }
   } finally {
     isLoadingData.value = false;
@@ -114,6 +133,22 @@ const handleUpdateSuccess = () => {
   loadCategories();
 };
 
+watch(
+  () => paginationBody.value.page,
+  () => {
+    loadCategories();
+  }
+);
+
+watchDebounced(
+  () => searchQuery.value,
+  () => {
+    paginationBody.value.page = 1;
+    loadCategories();
+  },
+  { debounce: 400 }
+);
+
 onMounted(() => {
   loadCategories();
 });
@@ -161,10 +196,10 @@ const handleCreateDefaultCategories = async () => {
 </script>
 
 <template>
-  <DashboardSection 
-    title="Categorias" 
+  <DashboardSection
+    title="Categorias"
     subtitle="Gerencie suas categorias de transações"
-    :loading="isLoadingData"
+    :loading="isLoadingData && !categories"
   >
     <template #actions>
       <UiButton @click="handleCreateDefaultCategories" :disabled="isLoadingData" variant="outline">
@@ -177,25 +212,55 @@ const handleCreateDefaultCategories = async () => {
     </template>
 
     <template #filters>
-      <SearchInput 
-        v-model="searchQuery" 
-        placeholder="Buscar categorias..." 
+      <SearchInput
+        v-model="searchQuery"
+        placeholder="Buscar categorias..."
       />
+
+      <div class="flex items-center gap-3">
+        <UiButton variant="outline" size="sm" @click="toggleSortDirection">
+          <ArrowDownIcon v-if="sortDirection === 'desc'" class="h-4 w-4 mr-2" />
+          <ArrowUpIcon v-else class="h-4 w-4 mr-2" />
+          {{ sortDirection === 'asc' ? 'A-Z' : 'Z-A' }}
+        </UiButton>
+
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-muted-foreground">Exibir</span>
+          <UiSelect
+            :model-value="String(paginationBody.limit)"
+            @update:model-value="handlePageSizeChange"
+          >
+            <UiSelectTrigger class="w-[70px] h-8">
+              <UiSelectValue />
+            </UiSelectTrigger>
+            <UiSelectContent>
+              <UiSelectItem v-for="size in pageSizeOptions" :key="size" :value="String(size)">
+                {{ size }}
+              </UiSelectItem>
+            </UiSelectContent>
+          </UiSelect>
+          <span class="text-sm text-muted-foreground">por página</span>
+        </div>
+      </div>
     </template>
 
-    <EmptyState 
-      v-if="filteredCategories.length === 0"
+    <EmptyState
+      v-if="categoriesList.length === 0 && !isLoadingData"
       title="Nenhuma categoria encontrada"
-      :description="searchQuery ? 'Tente buscar por outro termo.' : 'Crie sua primeira categoria clicando no botão acima.'"
+      :description="searchQuery ? 'Tente ajustar os filtros ou buscar por outro termo.' : 'Crie sua primeira categoria clicando no botão acima.'"
       :show-create-button="!searchQuery"
       create-button-label="Nova Categoria"
       :on-create="handleCreate"
     />
 
     <CardGrid v-else>
-      <CategoryCard v-for="category in filteredCategories" :key="category.id" :category="category"
+      <CategoryCard v-for="category in categoriesList" :key="category.id" :category="category"
         :handle-view="handleView" :handle-edit="handleEdit" :handle-delete="handleDelete" />
     </CardGrid>
+
+    <div v-if="categories" class="mt-6">
+      <TablePagination :pagination-body="paginationBody" :pagination-result="categories" />
+    </div>
 
     <CategoriesCreateSheet v-model:is-open="isCreateSheetOpen" :initial-values="createCategoryInitialValues"
       :on-success="handleCreateSuccess" :on-cancel="() => { isCreateSheetOpen = false }" />
