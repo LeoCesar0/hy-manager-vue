@@ -56,6 +56,8 @@ Global middleware (`src/middleware/auth.global.ts`) listens to `onAuthStateChang
 - **Descriptive functions over emits**: Prefer passing callback functions as props over Vue emits.
 - **Type-safe mutations**: Always type the value object before passing to model create/update operations.
 - **Avoid `any`**: Use proper types; only use `any` as a last resort.
+- **Never use Firebase services directly in UI**: Always go through the API layer (`src/services/api/`).
+- **Paginate services with search**: `paginate*` services accept optional `search` param; when present, they fetch all matching docs via `firebaseList`, apply text filtering in the service layer, and return `IPaginationResult` — same shape as the non-search path.
 
 ### Styling
 

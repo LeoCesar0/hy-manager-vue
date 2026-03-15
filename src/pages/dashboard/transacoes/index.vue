@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { watchDebounced } from "@vueuse/core";
 import { PlusIcon, DownloadIcon, UploadIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-vue-next";
 import { Timestamp } from "firebase/firestore";
 import type { ITransaction, ICreateTransaction } from "~/@schemas/models/transaction";
@@ -91,22 +92,7 @@ const createTransactionInitialValues = computed<ICreateTransaction>(() => ({
   bankAccountId: currentBankAccount.value?.id || '',
 }));
 
-const allTransactionsForSummary = computed(() => {
-  return transactions.value?.list || [];
-});
-
-const filteredTransactions = computed(() => {
-  let result = transactions.value?.list || [];
-
-  if (filters.value.search) {
-    const searchLower = filters.value.search.toLowerCase();
-    result = result.filter(t =>
-      t.description?.toLowerCase().includes(searchLower)
-    );
-  }
-
-  return result;
-});
+const transactionsList = computed(() => transactions.value?.list || []);
 
 const loadAuxiliaryData = async () => {
   if (!currentUser.value) return;
@@ -137,6 +123,7 @@ const loadTransactions = async () => {
   try {
     const response = await paginateTransactions({
       userId: currentUser.value.id,
+      search: filters.value.search || undefined,
       startDate: filters.value.startDate || undefined,
       endDate: filters.value.endDate || undefined,
       type: filters.value.type || undefined,
@@ -215,7 +202,7 @@ const handleClearFilters = () => {
 };
 
 const handleExport = () => {
-  const data = filteredTransactions.value;
+  const data = transactionsList.value;
   if (!data || data.length === 0) {
     return;
   }
@@ -274,6 +261,15 @@ watch(
   }
 );
 
+watchDebounced(
+  () => filters.value.search,
+  () => {
+    paginationBody.value.page = 1;
+    loadTransactions();
+  },
+  { debounce: 400 }
+);
+
 onMounted(() => {
   loadAuxiliaryData();
   loadTransactions();
@@ -284,7 +280,7 @@ onMounted(() => {
   <DashboardSection title="Transações" subtitle="Gerencie suas receitas e despesas"
     :loading="isLoadingData && !transactions">
     <template #actions>
-      <UiButton @click="handleExport" variant="outline" :disabled="!filteredTransactions.length">
+      <UiButton @click="handleExport" variant="outline" :disabled="!transactionsList.length">
         <DownloadIcon class="h-4 w-4 mr-2" />
         Exportar
       </UiButton>
@@ -299,7 +295,7 @@ onMounted(() => {
     </template>
 
     <template #filters>
-      <SummaryCards :transactions="allTransactionsForSummary" :loading="isLoadingData" />
+      <SummaryCards :transactions="transactionsList" :loading="isLoadingData" />
       <FilterPanel v-model="filters" :categories="categories"
         :counterparties="counterparties" @apply="handleApplyFilters" @clear="handleClearFilters" />
 
@@ -330,13 +326,13 @@ onMounted(() => {
       </div>
     </template>
 
-    <EmptyState v-if="filteredTransactions.length === 0 && !isLoadingData" title="Nenhuma transação encontrada"
+    <EmptyState v-if="transactionsList.length === 0 && !isLoadingData" title="Nenhuma transação encontrada"
       :description="filters.search || filters.type || filters.categoryId ? 'Tente ajustar os filtros.' : 'Crie sua primeira transação clicando no botão acima.'"
       :show-create-button="!filters.search && !filters.type" create-button-label="Nova Transação"
       :on-create="handleCreate" />
 
     <div v-else class="space-y-3">
-      <TransactionCard v-for="transaction in filteredTransactions" :key="transaction.id" :transaction="transaction"
+      <TransactionCard v-for="transaction in transactionsList" :key="transaction.id" :transaction="transaction"
         :categories="categories" :bank-accounts="bankAccounts" :counterparties="counterparties" :on-view="handleView"
         :on-edit="handleEdit" :on-delete="handleDelete" />
     </div>
