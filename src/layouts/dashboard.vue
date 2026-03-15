@@ -63,7 +63,7 @@ const { isLoadingDashboard, bankAccounts, currentBankAccount, isLoadingBankAccou
 
 const bankAccountOptions = computed<ISelectOption[]>(() => {
   return [
-    { value: 'all', label: 'Todas as Contas' },
+    // { value: 'all', label: 'Todas as Contas' },
     ...bankAccounts.value.map(acc => ({
       value: acc.id,
       label: acc.name,

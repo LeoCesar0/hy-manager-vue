@@ -11,17 +11,27 @@ export const useDashboardStore = defineStore(makeStoreKey("dashboard"), () => {
   const currentBankAccount = ref<IBankAccount | null>(null);
   const isLoadingBankAccounts = ref(false);
 
-  const isLoadingDashboard = computed(() => !currentUser.value);
+  const isLoadingDashboard = computed(
+    () => !currentUser.value || !currentBankAccount.value,
+  );
 
-  const lastSelectedBankAccountId = useLocalStorage<string | null>('lastSelectedBankAccountId', null, {
-    serializer: StorageSerializers.string,
-  });
+  const lastSelectedBankAccountId = useLocalStorage<string | null>(
+    "lastSelectedBankAccountId",
+    null,
+    {
+      serializer: StorageSerializers.string,
+    },
+  );
 
-  watch(currentBankAccount, (currentBankAccount) => {
-    if (currentBankAccount) {
-      lastSelectedBankAccountId.value = currentBankAccount.id;
-    }
-  }, { immediate: true })
+  watch(
+    currentBankAccount,
+    (currentBankAccount) => {
+      if (currentBankAccount) {
+        lastSelectedBankAccountId.value = currentBankAccount.id;
+      }
+    },
+    { immediate: true },
+  );
 
   const loadBankAccounts = async () => {
     if (!currentUser.value) return;
@@ -37,11 +47,15 @@ export const useDashboardStore = defineStore(makeStoreKey("dashboard"), () => {
       if (response.data?.list) {
         bankAccounts.value = response.data.list;
         if (bankAccounts.value.length > 0) {
-          const foundStoredAccount = bankAccounts.value.find(account => account.id === lastSelectedBankAccountId.value)
+          const foundStoredAccount = bankAccounts.value.find(
+            (account) => account.id === lastSelectedBankAccountId.value,
+          );
           if (!foundStoredAccount) {
             lastSelectedBankAccountId.value = null;
           }
-          const preSelected = foundStoredAccount ? foundStoredAccount : bankAccounts.value[0];
+          const preSelected = foundStoredAccount
+            ? foundStoredAccount
+            : bankAccounts.value[0];
           if (preSelected && !currentBankAccount.value) {
             currentBankAccount.value = preSelected;
           }
@@ -66,7 +80,7 @@ export const useDashboardStore = defineStore(makeStoreKey("dashboard"), () => {
     if (currentUser && !isLoadingDashboard.value) {
       loadBankAccounts();
     }
-  })
+  });
 
   return {
     bankAccounts,

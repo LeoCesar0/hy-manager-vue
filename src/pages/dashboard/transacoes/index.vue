@@ -130,7 +130,6 @@ const loadTransactions = async () => {
       counterpartyId: filters.value.counterpartyId || undefined,
       pagination: paginationBody.value,
     });
-
     if (response.data) {
       transactions.value = response.data;
     }
@@ -261,6 +260,7 @@ watch(
 );
 
 onMounted(() => {
+  console.log('❗  on mounted currentBankAccount.value -->', currentBankAccount.value);
   loadAuxiliaryData();
   loadTransactions();
 });

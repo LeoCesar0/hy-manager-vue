@@ -1,6 +1,4 @@
-import {
-  handleAppRequest,
-} from "../@handlers/handle-app-request";
+import { handleAppRequest } from "../@handlers/handle-app-request";
 import type { ITransaction } from "~/@schemas/models/transaction";
 import type { Timestamp } from "firebase/firestore";
 import type { FirebaseFilterFor } from "~/services/firebase/@type";
@@ -31,7 +29,7 @@ export const paginateTransactions = async ({
   bankAccountId,
   type,
   pagination,
-  options
+  options,
 }: IAPIPaginateTransactions) => {
   const response = await handleAppRequest(
     async () => {
@@ -94,14 +92,13 @@ export const paginateTransactions = async ({
       return await firebasePaginatedList<Item>({
         collection: "transactions",
         filters,
-        pagination
+        pagination,
       });
     },
     {
       toastOptions: getDefaultGetToastOptions({ itemName: "Transações" }),
       ...options,
-    }
+    },
   );
   return response;
 };
-
