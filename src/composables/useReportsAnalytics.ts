@@ -12,6 +12,11 @@ import { compareMonths, type IMonthlyComparison } from "~/services/analytics/com
 import { calculateBudgetProgress, type IBudgetProgress } from "~/services/analytics/calculate-budget-progress";
 import { calculateReportInsights, type IReportInsights } from "~/services/analytics/calculate-report-insights";
 
+export type IMonthBudgetProgress = {
+  monthKey: string;
+  progress: IBudgetProgress;
+};
+
 const getDefaultMonths = (count: number): string[] => {
   const months: string[] = [];
   const now = new Date();
@@ -34,20 +39,26 @@ export const useReportsAnalytics = () => {
   const budget = ref<IBudget | null>(null);
   const categories = ref<ICategory[]>([]);
   const counterparties = ref<ICounterparty[]>([]);
-  const selectedMonths = ref<string[]>(getDefaultMonths(3));
+  const selectedMonths = ref<string[]>([]);
   const selectedCategoryId = ref<string | null>(null);
   const isLoading = ref(false);
   const isRebuilding = ref(false);
+  const hasInitializedSelection = ref(false);
 
   const availableMonths = computed(() => {
     if (!report.value) return [];
     return Object.keys(report.value.monthlyBreakdown).sort();
   });
 
+  const effectiveMonths = computed(() => {
+    const available = new Set(availableMonths.value);
+    return [...selectedMonths.value].filter((m) => available.has(m)).sort();
+  });
+
   const selectedMonthData = computed<Record<string, IMonthlyEntry>>(() => {
     if (!report.value) return {};
     const result: Record<string, IMonthlyEntry> = {};
-    for (const key of selectedMonths.value) {
+    for (const key of effectiveMonths.value) {
       const entry = report.value.monthlyBreakdown[key];
       if (entry) {
         result[key] = entry;
@@ -57,8 +68,7 @@ export const useReportsAnalytics = () => {
   });
 
   const overviewChartData = computed(() => {
-    const sorted = [...selectedMonths.value].sort();
-    return sorted.map((key) => {
+    return effectiveMonths.value.map((key) => {
       const entry = report.value?.monthlyBreakdown[key];
       const [year, month] = key.split("-");
       return {
@@ -79,9 +89,9 @@ export const useReportsAnalytics = () => {
   });
 
   const monthlyComparison = computed<IMonthlyComparison | null>(() => {
-    if (!report.value || selectedMonths.value.length < 2) return null;
+    if (!report.value || effectiveMonths.value.length < 2) return null;
     return compareMonths({
-      monthKeys: selectedMonths.value,
+      monthKeys: effectiveMonths.value,
       monthlyBreakdown: report.value.monthlyBreakdown,
       categories: categories.value,
       counterparties: counterparties.value,
@@ -90,7 +100,7 @@ export const useReportsAnalytics = () => {
 
   const categoryDrillDown = computed(() => {
     if (!report.value || !selectedCategoryId.value) return null;
-    const sorted = [...selectedMonths.value].sort();
+    const sorted = effectiveMonths.value;
     const catId = selectedCategoryId.value;
     const cat = categories.value.find((c) => c.id === catId);
 
@@ -125,44 +135,37 @@ export const useReportsAnalytics = () => {
     };
   });
 
-  const currentMonthKey = computed(() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    return `${year}-${month}`;
-  });
+  const budgetProgressPerMonth = computed<IMonthBudgetProgress[]>(() => {
+    if (!budget.value || !report.value) return [];
 
-  const budgetProgress = computed<IBudgetProgress | null>(() => {
-    if (!budget.value || !report.value) return null;
+    return effectiveMonths.value
+      .map((monthKey) => {
+        const monthData = report.value!.monthlyBreakdown[monthKey];
+        if (!monthData) return null;
 
-    const monthData = report.value.monthlyBreakdown[currentMonthKey.value] ?? {
-      income: 0,
-      expenses: 0,
-      expensesByCategory: {},
-      depositsByCategory: {},
-      expensesByCounterparty: {},
-      depositsByCounterparty: {},
-    };
+        const progress = calculateBudgetProgress({
+          budget: budget.value!,
+          monthData,
+          categories: categories.value,
+        });
 
-    return calculateBudgetProgress({
-      budget: budget.value,
-      monthData,
-      categories: categories.value,
-    });
+        return { monthKey, progress };
+      })
+      .filter((item): item is IMonthBudgetProgress => item !== null);
   });
 
   const enhancedInsights = computed<IReportInsights | null>(() => {
     if (!report.value) return null;
     return calculateReportInsights({
       report: report.value,
-      selectedMonths: selectedMonths.value,
+      selectedMonths: effectiveMonths.value,
       categories: categories.value,
     });
   });
 
   const categoryList = computed(() => {
     if (!report.value) return [];
-    const sorted = [...selectedMonths.value].sort();
+    const sorted = effectiveMonths.value;
     const categoryTotals = new Map<string, number>();
 
     for (const key of sorted) {
@@ -230,6 +233,14 @@ export const useReportsAnalytics = () => {
       if (counterpartiesRes.data) counterparties.value = counterpartiesRes.data;
       if (reportRes.data) report.value = reportRes.data;
       if (budgetRes.data) budget.value = budgetRes.data;
+
+      if (!hasInitializedSelection.value && report.value) {
+        const months = Object.keys(report.value.monthlyBreakdown).sort();
+        if (months.length > 0) {
+          selectedMonths.value = [months[months.length - 1]!];
+        }
+        hasInitializedSelection.value = true;
+      }
     } finally {
       isLoading.value = false;
     }
@@ -279,15 +290,15 @@ export const useReportsAnalytics = () => {
     isLoading,
     isRebuilding,
     availableMonths,
+    effectiveMonths,
     selectedMonthData,
     overviewChartData,
     balanceTrendData,
     monthlyComparison,
     categoryDrillDown,
-    budgetProgress,
+    budgetProgressPerMonth,
     enhancedInsights,
     categoryList,
-    currentMonthKey,
     handleSelectPreset,
     handleSelectYear,
     loadData,

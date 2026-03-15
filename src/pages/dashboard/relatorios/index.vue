@@ -25,11 +25,12 @@ const {
   isLoading,
   isRebuilding,
   availableMonths,
+  effectiveMonths,
   overviewChartData,
   balanceTrendData,
   monthlyComparison,
   categoryDrillDown,
-  budgetProgress,
+  budgetProgressPerMonth,
   enhancedInsights,
   categoryList,
   handleSelectPreset,
@@ -61,7 +62,7 @@ watch(
   () => currentBankAccount.value?.id,
   () => {
     loadData();
-  }
+  },
 );
 
 onMounted(() => {
@@ -82,7 +83,10 @@ onMounted(() => {
         :disabled="isRebuilding"
         @click="handleRebuildReport"
       >
-        <RefreshCwIcon class="h-4 w-4 mr-1" :class="{ 'animate-spin': isRebuilding }" />
+        <RefreshCwIcon
+          class="h-4 w-4 mr-1"
+          :class="{ 'animate-spin': isRebuilding }"
+        />
         Recalcular
       </UiButton>
     </template>
@@ -105,9 +109,9 @@ onMounted(() => {
       />
 
       <ReportsMonthlyComparison
-        v-if="monthlyComparison && selectedMonths.length >= 2"
+        v-if="monthlyComparison && effectiveMonths.length >= 2"
         :comparison="monthlyComparison"
-        :selected-months="selectedMonths"
+        :selected-months="effectiveMonths"
         :loading="isLoading"
       />
 
@@ -120,15 +124,12 @@ onMounted(() => {
       />
 
       <ReportsBudgetTracking
-        :budget-progress="budgetProgress"
+        :budget-progress-per-month="budgetProgressPerMonth"
         :loading="isLoading"
         :on-open-settings="handleOpenBudgetSettings"
       />
 
-      <ReportsInsightsKPIs
-        :insights="enhancedInsights"
-        :loading="isLoading"
-      />
+      <ReportsInsightsKPIs :insights="enhancedInsights" :loading="isLoading" />
     </div>
 
     <BudgetSettingsDialog

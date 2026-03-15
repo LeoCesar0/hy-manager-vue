@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { SettingsIcon } from "lucide-vue-next";
 import BudgetProgressBar from "~/components/Charts/BudgetProgressBar.vue";
-import type { IBudgetProgress } from "~/services/analytics/calculate-budget-progress";
+import type { IMonthBudgetProgress } from "~/composables/useReportsAnalytics";
 
 type IProps = {
-  budgetProgress: IBudgetProgress | null;
+  budgetProgressPerMonth: IMonthBudgetProgress[];
   loading?: boolean;
   onOpenSettings: () => void;
 };
@@ -14,13 +14,23 @@ const props = withDefaults(defineProps<IProps>(), {
 });
 
 const hasBudget = computed(() => {
-  if (!props.budgetProgress) return false;
-  return (
-    props.budgetProgress.overallExpense !== null ||
-    props.budgetProgress.overallIncome !== null ||
-    props.budgetProgress.categoryItems.length > 0
+  return props.budgetProgressPerMonth.some(
+    ({ progress }) =>
+      progress.overallExpense !== null ||
+      progress.overallIncome !== null ||
+      progress.categoryItems.length > 0,
   );
 });
+
+const monthNames = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+const formatMonthLabel = (monthKey: string) => {
+  const [year, month] = monthKey.split("-");
+  return `${monthNames[parseInt(month!) - 1]} ${year}`;
+};
 </script>
 
 <template>
@@ -43,35 +53,45 @@ const hasBudget = computed(() => {
     </div>
 
     <div v-else class="space-y-6">
-      <BudgetProgressBar
-        v-if="budgetProgress?.overallExpense"
-        :label="budgetProgress.overallExpense.label"
-        :current="budgetProgress.overallExpense.current"
-        :target="budgetProgress.overallExpense.target"
-        variant="expense"
-      />
-
-      <BudgetProgressBar
-        v-if="budgetProgress?.overallIncome"
-        :label="budgetProgress.overallIncome.label"
-        :current="budgetProgress.overallIncome.current"
-        :target="budgetProgress.overallIncome.target"
-        variant="deposit"
-      />
-
-      <div v-if="budgetProgress && budgetProgress.categoryItems.length > 0">
-        <h4 class="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
-          Por Categoria
+      <div
+        v-for="{ monthKey, progress } in budgetProgressPerMonth"
+        :key="monthKey"
+        class="space-y-4"
+      >
+        <h4 class="text-xs font-medium text-muted-foreground uppercase tracking-wider border-b pb-2">
+          {{ formatMonthLabel(monthKey) }}
         </h4>
-        <div class="space-y-4">
-          <BudgetProgressBar
-            v-for="item in budgetProgress.categoryItems"
-            :key="item.label"
-            :label="item.label"
-            :current="item.current"
-            :target="item.target"
-            :variant="item.variant"
-          />
+
+        <BudgetProgressBar
+          v-if="progress.overallExpense"
+          :label="progress.overallExpense.label"
+          :current="progress.overallExpense.current"
+          :target="progress.overallExpense.target"
+          variant="expense"
+        />
+
+        <BudgetProgressBar
+          v-if="progress.overallIncome"
+          :label="progress.overallIncome.label"
+          :current="progress.overallIncome.current"
+          :target="progress.overallIncome.target"
+          variant="deposit"
+        />
+
+        <div v-if="progress.categoryItems.length > 0">
+          <h4 class="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+            Por Categoria
+          </h4>
+          <div class="space-y-4">
+            <BudgetProgressBar
+              v-for="item in progress.categoryItems"
+              :key="item.label"
+              :label="item.label"
+              :current="item.current"
+              :target="item.target"
+              :variant="item.variant"
+            />
+          </div>
         </div>
       </div>
     </div>
