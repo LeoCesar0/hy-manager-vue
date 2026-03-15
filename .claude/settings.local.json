@@ -1,8 +1,19 @@
 {
   "permissions": {
     "allow": [
+      "Read",
+      "Glob",
+      "Grep",
       "Bash(find:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(ls*)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(which *)",
+      "Bash(pnpm test*)",
+      "Bash(pnpm run ts-check*)"
     ]
   }
 }
