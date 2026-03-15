@@ -82,6 +82,15 @@ service cloud.firestore {
         allow create: if isSignedIn() &&
                          request.resource.data.userId == request.auth.uid;
       }
+
+      // Budgets - users can only access their own
+      match /budgets/{budgetId} {
+        allow read: if isResourceOwner();
+        allow update, delete: if isSignedIn() &&
+                                    resource.data.userId == request.auth.uid;
+        allow create: if isSignedIn() &&
+                         request.resource.data.userId == request.auth.uid;
+      }
     }
 
     // Deny all other paths by default

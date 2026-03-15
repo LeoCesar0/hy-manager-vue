@@ -14,6 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Test unit only**: `pnpm test:unit`
 - **Test integration only**: `pnpm test:integration`
 - **Test coverage**: `pnpm test:coverage`
+- **Deploy Firestore indexes**: `pnpm deploy:indexes`
+- **Deploy Firestore rules**: `pnpm deploy:rules`
 
 No linter is configured.
 
@@ -65,7 +67,8 @@ Global middleware (`src/middleware/auth.global.ts`) listens to `onAuthStateChang
 - **Internal services** (reports/, sync/) are building blocks called from within UI-facing services. They do NOT use `handleAppRequest()` to avoid double-wrapping. They use try-catch or throw directly.
 - **Toast options helpers**: Use `getDefaultCreateToastOptions`, `getDefaultUpdateToastOptions`, `getDefaultDeleteToastOptions`, `getDefaultGetToastOptions` from `src/helpers/toast/` for standard CRUD messages. Custom messages only for domain-specific operations (import, upload).
 - **Type naming**: `IAPI{Verb}{Entity}` (e.g., `IAPICreateTransaction`, `IAPIGetCategory`, `IAPIPaginateTransactions`).
-- **Collection naming**: Use the Firebase collection constants — `"transactions"`, `"categories"`, `"bankAccounts"`, `"creditors"` (counterparties), `"users"`, `"files"`, `"reports"`.
+- **Collection naming**: Use the Firebase collection constants — `"transactions"`, `"categories"`, `"bankAccounts"`, `"creditors"` (counterparties), `"users"`, `"files"`, `"reports"`, `"budgets"`.
+- **New collection checklist**: When adding a new Firestore collection, always: (1) create the Zod schema in `src/@schemas/models/`, (2) register it in `src/services/firebase/collections.ts` (enum + schema map), (3) add security rules in `firestore.rules`.
 
 ### Styling
 

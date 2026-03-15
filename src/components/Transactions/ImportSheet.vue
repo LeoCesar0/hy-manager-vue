@@ -39,9 +39,6 @@ const isImporting = ref(false);
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const selectedFileCount = ref(0);
 
-const selectClass =
-  "flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
-
 const summary = computed(() => {
   const rows = parsedRows.value;
   if (rows.length === 0) return null;
@@ -189,15 +186,23 @@ const handleClose = (value: boolean) => {
         <div v-if="step === 'upload'" class="space-y-6">
           <div class="space-y-2">
             <label class="text-sm font-medium">Formato do banco</label>
-            <select v-model="selectedFormat" :class="selectClass">
-              <option
-                v-for="format in AVAILABLE_FORMATS"
-                :key="format.key"
-                :value="format.key"
-              >
-                {{ format.label }}
-              </option>
-            </select>
+            <UiSelect
+              :model-value="selectedFormat"
+              @update:model-value="(v) => selectedFormat = v as string"
+            >
+              <UiSelectTrigger class="w-full">
+                <UiSelectValue />
+              </UiSelectTrigger>
+              <UiSelectContent>
+                <UiSelectItem
+                  v-for="format in AVAILABLE_FORMATS"
+                  :key="format.key"
+                  :value="format.key"
+                >
+                  {{ format.label }}
+                </UiSelectItem>
+              </UiSelectContent>
+            </UiSelect>
           </div>
 
           <div class="space-y-2">

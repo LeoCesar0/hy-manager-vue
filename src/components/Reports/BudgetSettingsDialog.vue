@@ -1,15 +1,8 @@
 <script setup lang="ts">
 import { PlusIcon, TrashIcon } from "lucide-vue-next";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "~/components/ui/dialog";
 import type { IBudget, ICategoryBudget } from "~/@schemas/models/budget";
 import type { ICategory } from "~/@schemas/models/category";
+import { getCategoryIcon } from "~/static/category-icons";
 
 type IProps = {
   open: boolean;
@@ -50,6 +43,12 @@ const availableCategories = computed(() => {
   return props.categories.filter((c) => !usedIds.has(c.id));
 });
 
+const selectableCategoriesFor = (currentId: string) => {
+  const current = props.categories.find((c) => c.id === currentId);
+  const list = current ? [current, ...availableCategories.value] : [...availableCategories.value];
+  return list.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+};
+
 const addCategoryBudget = () => {
   if (availableCategories.value.length === 0) return;
   categoryBudgets.value.push({
@@ -61,10 +60,6 @@ const addCategoryBudget = () => {
 
 const removeCategoryBudget = (index: number) => {
   categoryBudgets.value.splice(index, 1);
-};
-
-const getCategoryName = (id: string) => {
-  return props.categories.find((c) => c.id === id)?.name ?? "—";
 };
 
 const handleSave = async () => {
@@ -94,14 +89,14 @@ const handleSave = async () => {
 </script>
 
 <template>
-  <Dialog :open="open" @update:open="(v) => !v && onClose()">
-    <DialogContent class="max-w-lg max-h-[80vh] overflow-y-auto">
-      <DialogHeader>
-        <DialogTitle>Configurar Orçamento</DialogTitle>
-        <DialogDescription>
+  <UiDialog :open="open" @update:open="(v) => !v && onClose()">
+    <UiDialogContent class="max-w-lg max-h-[80vh] overflow-y-auto overflow-x-hidden">
+      <UiDialogHeader>
+        <UiDialogTitle>Configurar Orçamento</UiDialogTitle>
+        <UiDialogDescription>
           Defina limites de gastos e metas de receita para o mês atual.
-        </DialogDescription>
-      </DialogHeader>
+        </UiDialogDescription>
+      </UiDialogHeader>
 
       <div class="space-y-6 py-4">
         <div class="space-y-2">
@@ -143,36 +138,46 @@ const handleSave = async () => {
           <div
             v-for="(cb, index) in categoryBudgets"
             :key="index"
-            class="flex items-end gap-2 p-3 rounded-lg border"
+            class="flex items-end gap-2 p-3 rounded-lg border min-w-0"
           >
-            <div class="flex-1 space-y-1">
+            <div class="flex-1 min-w-0 space-y-1">
               <label class="text-xs text-muted-foreground">Categoria</label>
-              <select
-                v-model="cb.categoryId"
-                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+              <UiSelect
+                :model-value="cb.categoryId"
+                @update:model-value="(v) => cb.categoryId = v as string"
               >
-                <option
-                  v-for="cat in [...categories.filter((c) => c.id === cb.categoryId), ...availableCategories]"
-                  :key="cat.id"
-                  :value="cat.id"
-                >
-                  {{ cat.name }}
-                </option>
-              </select>
+                <UiSelectTrigger class="w-full">
+                  <UiSelectValue placeholder="Selecione" />
+                </UiSelectTrigger>
+                <UiSelectContent>
+                  <UiSelectItem
+                    v-for="cat in selectableCategoriesFor(cb.categoryId)"
+                    :key="cat.id"
+                    :value="cat.id"
+                  >
+                    {{ getCategoryIcon(cat.icon) }} {{ cat.name }}
+                  </UiSelectItem>
+                </UiSelectContent>
+              </UiSelect>
             </div>
 
-            <div class="w-28 space-y-1">
+            <div class="w-24 shrink-0 space-y-1">
               <label class="text-xs text-muted-foreground">Tipo</label>
-              <select
-                v-model="cb.type"
-                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+              <UiSelect
+                :model-value="cb.type"
+                @update:model-value="(v) => cb.type = v as 'expense' | 'deposit'"
               >
-                <option value="expense">Saída</option>
-                <option value="deposit">Entrada</option>
-              </select>
+                <UiSelectTrigger class="w-full">
+                  <UiSelectValue />
+                </UiSelectTrigger>
+                <UiSelectContent>
+                  <UiSelectItem value="expense">Saída</UiSelectItem>
+                  <UiSelectItem value="deposit">Entrada</UiSelectItem>
+                </UiSelectContent>
+              </UiSelect>
             </div>
 
-            <div class="w-32 space-y-1">
+            <div class="w-24 shrink-0 space-y-1">
               <label class="text-xs text-muted-foreground">Valor (R$)</label>
               <UiInput
                 v-model="cb.amount"
@@ -202,12 +207,12 @@ const handleSave = async () => {
         </div>
       </div>
 
-      <DialogFooter>
+      <UiDialogFooter>
         <UiButton variant="outline" @click="onClose">Cancelar</UiButton>
         <UiButton :disabled="isSaving" @click="handleSave">
           Salvar
         </UiButton>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+      </UiDialogFooter>
+    </UiDialogContent>
+  </UiDialog>
 </template>

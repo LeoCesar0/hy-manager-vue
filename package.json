@@ -14,7 +14,8 @@
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:coverage": "vitest run --coverage",
-    "deploy:indexes": "firebase deploy --only firestore:indexes"
+    "deploy:indexes": "firebase deploy --only firestore:indexes",
+    "deploy:rules": "firebase deploy --only firestore:rules"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.18",
