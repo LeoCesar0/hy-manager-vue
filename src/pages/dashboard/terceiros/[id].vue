@@ -2,7 +2,7 @@
 import { ArrowLeftIcon } from "lucide-vue-next";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { ICategory } from "~/@schemas/models/category";
-import { firebaseGet } from "~/services/firebase/firebaseGet";
+import { getCounterparty } from "~/services/api/counterparties/get-counterparty";
 import { getCategories } from "~/services/api/categories/get-categories";
 import { deleteCounterparty } from "~/services/api/counterparties/delete-counterparty";
 import { formatDate } from "~/helpers/formatDate";
@@ -40,10 +40,10 @@ const loadData = async () => {
 
   isLoadingData.value = true;
   try {
-    const [counterpartyData, categoriesRes] = await Promise.all([
-      firebaseGet<ICounterparty>({
-        collection: "creditors",
+    const [counterpartyRes, categoriesRes] = await Promise.all([
+      getCounterparty({
         id: counterpartyId,
+        options: { toastOptions: undefined },
       }),
       currentUser.value
         ? getCategories({
@@ -53,15 +53,14 @@ const loadData = async () => {
         : Promise.resolve({ data: null }),
     ]);
 
-    if (counterpartyData) {
-      counterparty.value = counterpartyData;
+    if (counterpartyRes.data) {
+      counterparty.value = counterpartyRes.data;
+    } else {
+      router.push(ROUTE.counterparties.path());
     }
     if (categoriesRes?.data) {
       categories.value = categoriesRes.data;
     }
-  } catch (error) {
-    console.error("Error loading counterparty:", error);
-    router.push(ROUTE.counterparties.path());
   } finally {
     isLoadingData.value = false;
   }

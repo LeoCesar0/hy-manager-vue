@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeftIcon } from "lucide-vue-next";
 import type { ICategory } from "~/@schemas/models/category";
-import { firebaseGet } from "~/services/firebase/firebaseGet";
+import { getCategory } from "~/services/api/categories/get-category";
 import { deleteCategory } from "~/services/api/categories/delete-category";
 import { formatDate } from "~/helpers/formatDate";
 import { ROUTE } from "~/static/routes";
@@ -30,16 +30,15 @@ const loadCategory = async () => {
 
   isLoadingData.value = true;
   try {
-    const response = await firebaseGet<ICategory>({
-      collection: "categories",
+    const response = await getCategory({
       id: categoryId,
+      options: { toastOptions: undefined },
     });
-    if (response) {
-      category.value = response;
+    if (response.data) {
+      category.value = response.data;
+    } else {
+      router.push(ROUTE.categories.path());
     }
-  } catch (error) {
-    console.error("Error loading category:", error);
-    router.push(ROUTE.categories.path());
   } finally {
     isLoadingData.value = false;
   }

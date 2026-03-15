@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { WalletIcon, ArrowLeftIcon } from "lucide-vue-next";
 import type { IBankAccount } from "~/@schemas/models/bank-account";
-import { firebaseGet } from "~/services/firebase/firebaseGet";
+import { getBankAccount } from "~/services/api/bank-accounts/get-bank-account";
 import { deleteBankAccount } from "~/services/api/bank-accounts/delete-bank-account";
 import { formatDate } from "~/helpers/formatDate";
 import { ROUTE } from "~/static/routes";
@@ -31,17 +31,15 @@ const loadBankAccount = async () => {
 
   isLoadingData.value = true;
   try {
-    const response = await firebaseGet<IBankAccount>({
-      collection: "bankAccounts",
+    const response = await getBankAccount({
       id: bankAccountId,
+      options: { toastOptions: undefined },
     });
-
-    if (response) {
-      bankAccount.value = response;
+    if (response.data) {
+      bankAccount.value = response.data;
+    } else {
+      router.push(ROUTE.bankAccounts.path());
     }
-  } catch (error) {
-    console.error("Error loading bank account:", error);
-    router.push(ROUTE.bankAccounts.path());
   } finally {
     isLoadingData.value = false;
   }
