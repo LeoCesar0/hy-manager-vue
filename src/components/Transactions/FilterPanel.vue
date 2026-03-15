@@ -20,6 +20,7 @@ type IProps = {
   modelValue: IFilters;
   categories: ICategory[];
   counterparties: ICounterparty[];
+  hiddenFilters?: string[];
 };
 
 const props = defineProps<IProps>();
@@ -43,13 +44,15 @@ const updateFilter = (key: keyof IFilters, value: any) => {
   emit('update:modelValue', { ...props.modelValue, [key]: value });
 };
 
+const isFilterHidden = (key: string) => props.hiddenFilters?.includes(key);
+
 const hasActiveFilters = computed(() => {
   return !!(
     props.modelValue.startDate ||
     props.modelValue.endDate ||
     props.modelValue.type ||
     props.modelValue.categoryIds.length > 0 ||
-    props.modelValue.counterpartyId ||
+    (!isFilterHidden('counterparty') && props.modelValue.counterpartyId) ||
     props.modelValue.search
   );
 });
@@ -60,7 +63,7 @@ const handleClear = () => {
     endDate: null,
     type: null,
     categoryIds: [],
-    counterpartyId: null,
+    counterpartyId: isFilterHidden('counterparty') ? props.modelValue.counterpartyId : null,
     search: '',
   });
   emit('clear');
@@ -150,7 +153,7 @@ const handleApply = () => {
           />
         </div>
 
-        <div class="space-y-2">
+        <div v-if="!isFilterHidden('counterparty')" class="space-y-2">
           <label class="text-sm font-medium">Terceiro</label>
           <UiSelect
             :model-value="localFilters.counterpartyId || 'all'"

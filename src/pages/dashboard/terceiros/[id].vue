@@ -11,6 +11,7 @@ import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
 import DetailCard from "~/components/Dashboard/DetailCard.vue";
 import DetailField from "~/components/Dashboard/DetailField.vue";
 import ActionButtons from "~/components/Dashboard/ActionButtons.vue";
+import TransactionListSection from "~/components/Transactions/TransactionListSection.vue";
 import { getCategoryIcon } from "~/static/category-icons";
 
 definePageMeta({
@@ -190,5 +191,16 @@ onMounted(() => {
       :on-success="handleEditSuccess"
       :on-cancel="() => { isSheetOpen = false }"
     />
+
+    <div v-if="counterparty" class="mt-8">
+      <h3 class="text-xl font-semibold mb-4">Transações</h3>
+      <TransactionListSection
+        :fixed-counterparty-id="counterpartyId"
+        :show-actions="false"
+        :show-fab="false"
+        :show-summary-cards="true"
+        pagination-query-key="txPage"
+      />
+    </div>
   </DashboardSection>
 </template>
