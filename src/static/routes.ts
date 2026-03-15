@@ -151,3 +151,9 @@ export const ROUTE = {
         },
     },
 } satisfies Record<Route, IRoute>
+
+export const AUTH_ROUTES: string[] = [
+    ROUTE['sign-in'].path(),
+    ROUTE['sign-up'].path(),
+    ROUTE['forgot-password'].path(),
+]

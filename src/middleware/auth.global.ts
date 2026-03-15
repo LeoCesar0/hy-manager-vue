@@ -1,7 +1,6 @@
 import { onAuthStateChanged } from "firebase/auth";
 import { handleInitializeUser } from "~/services/api/@handlers/handle-initialize-user";
-
-const AUTH_ROUTES = ["/sign-in", "/sign-up", "/esqueci-minha-senha"];
+import { AUTH_ROUTES } from "~/static/routes";
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const firebaseStore = useFirebaseStore();
