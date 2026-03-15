@@ -59,6 +59,14 @@ Global middleware (`src/middleware/auth.global.ts`) listens to `onAuthStateChang
 - **Never use Firebase services directly in UI**: Always go through the API layer (`src/services/api/`).
 - **Paginate services with search**: `paginate*` services accept optional `search` param; when present, they fetch all matching docs via `firebaseList`, apply text filtering in the service layer, and return `IPaginationResult` — same shape as the non-search path.
 
+### API Service Layer (`src/services/api/`)
+
+- **UI-facing services** use `handleAppRequest()` for error normalization, toast notifications, and loading state. These are what pages/components import (e.g., `createTransaction`, `deleteCategory`, `getBankAccount`).
+- **Internal services** (reports/, sync/) are building blocks called from within UI-facing services. They do NOT use `handleAppRequest()` to avoid double-wrapping. They use try-catch or throw directly.
+- **Toast options helpers**: Use `getDefaultCreateToastOptions`, `getDefaultUpdateToastOptions`, `getDefaultDeleteToastOptions`, `getDefaultGetToastOptions` from `src/helpers/toast/` for standard CRUD messages. Custom messages only for domain-specific operations (import, upload).
+- **Type naming**: `IAPI{Verb}{Entity}` (e.g., `IAPICreateTransaction`, `IAPIGetCategory`, `IAPIPaginateTransactions`).
+- **Collection naming**: Use the Firebase collection constants — `"transactions"`, `"categories"`, `"bankAccounts"`, `"creditors"` (counterparties), `"users"`, `"files"`, `"reports"`.
+
 ### Styling
 
 - Use shadcn-tailwind color tokens (primary, secondary, accent, border, background, etc.).

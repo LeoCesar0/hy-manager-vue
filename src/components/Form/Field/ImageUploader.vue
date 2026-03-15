@@ -5,7 +5,7 @@ import { cn } from "~/lib/utils";
 import type { AvatarProps } from "~/components/Avatar/Avatar.vue";
 import type { IFile, IFileMin } from "~/@schemas/models/file";
 import type { Nullish } from "~/@types/helpers";
-import { uploadFiles } from "~/services/api/files";
+import { uploadFiles } from "~/services/api/files/upload-files";
 
 export type IImageUploaderProps = {
   showPreview?: boolean;

@@ -4,7 +4,8 @@ import { XIcon, UploadIcon, FileIcon } from "lucide-vue-next";
 import { cn } from "~/lib/utils";
 import type { IFile } from "~/@schemas/models/file";
 import type { Nullish } from "~/@types/helpers";
-import { uploadFiles, listFiles } from "~/services/api/files";
+import { uploadFiles } from "~/services/api/files/upload-files";
+import { listFiles } from "~/services/api/files/list-files";
 
 export type IFileUploaderProps = {
   showPreview?: boolean;

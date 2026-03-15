@@ -52,11 +52,11 @@ export const getOrCreateCounterparty = async ({
           categoryIds,
         },
         options: {
-          toastOptions:{
-            error:true,
-            loading:false,
-            success: false
-          }
+          toastOptions: {
+            error: true,
+            loading: false,
+            success: false,
+          },
         }
       });
 
