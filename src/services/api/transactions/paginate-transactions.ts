@@ -15,7 +15,7 @@ export type IAPIPaginateTransactions = {
   search?: string;
   startDate?: Timestamp;
   endDate?: Timestamp;
-  categoryId?: string;
+  categoryIds?: string[];
   counterpartyId?: string;
   bankAccountId?: string;
   type?: "deposit" | "expense";
@@ -26,7 +26,7 @@ const buildFilters = (props: {
   userId: string;
   startDate?: Timestamp;
   endDate?: Timestamp;
-  categoryId?: string;
+  categoryIds?: string[];
   counterpartyId?: string;
   bankAccountId?: string;
   type?: "deposit" | "expense";
@@ -43,8 +43,10 @@ const buildFilters = (props: {
     filters.push({ field: "date", operator: "<=", value: props.endDate });
   }
 
-  if (props.categoryId) {
-    filters.push({ field: "categoryIds", operator: "array-contains", value: props.categoryId });
+  if (props.categoryIds?.length === 1) {
+    filters.push({ field: "categoryIds", operator: "array-contains", value: props.categoryIds[0] });
+  } else if (props.categoryIds && props.categoryIds.length > 1) {
+    filters.push({ field: "categoryIds", operator: "array-contains-any", value: props.categoryIds });
   }
 
   if (props.counterpartyId) {
@@ -108,7 +110,7 @@ export const paginateTransactions = async ({
   search,
   startDate,
   endDate,
-  categoryId,
+  categoryIds,
   counterpartyId,
   bankAccountId,
   type,
@@ -121,7 +123,7 @@ export const paginateTransactions = async ({
         userId,
         startDate,
         endDate,
-        categoryId,
+        categoryIds,
         counterpartyId,
         bankAccountId,
         type,

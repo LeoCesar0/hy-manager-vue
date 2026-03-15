@@ -5,13 +5,13 @@ import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { Timestamp } from "firebase/firestore";
 import SearchInput from "~/components/Dashboard/SearchInput.vue";
 import DatePicker from "~/components/Form/Field/DatePicker.vue";
-import { getCategoryIcon } from "~/static/category-icons";
+import CategorySelect from "~/components/Categories/CategorySelect.vue";
 
 type IFilters = {
   startDate: Timestamp | null;
   endDate: Timestamp | null;
   type: 'deposit' | 'expense' | null;
-  categoryId: string | null;
+  categoryIds: string[];
   counterpartyId: string | null;
   search: string;
 };
@@ -48,7 +48,7 @@ const hasActiveFilters = computed(() => {
     props.modelValue.startDate ||
     props.modelValue.endDate ||
     props.modelValue.type ||
-    props.modelValue.categoryId ||
+    props.modelValue.categoryIds.length > 0 ||
     props.modelValue.counterpartyId ||
     props.modelValue.search
   );
@@ -59,7 +59,7 @@ const handleClear = () => {
     startDate: null,
     endDate: null,
     type: null,
-    categoryId: null,
+    categoryIds: [],
     counterpartyId: null,
     search: '',
   });
@@ -143,24 +143,11 @@ const handleApply = () => {
 
         <div class="space-y-2">
           <label class="text-sm font-medium">Categoria</label>
-          <UiSelect
-            :model-value="localFilters.categoryId || 'all'"
-            @update:model-value="(v) => updateFilter('categoryId', v === 'all' ? null : v)"
-          >
-            <UiSelectTrigger class="w-full">
-              <UiSelectValue placeholder="Todas" />
-            </UiSelectTrigger>
-            <UiSelectContent>
-              <UiSelectItem value="all">Todas</UiSelectItem>
-              <UiSelectItem
-                v-for="category in categories"
-                :key="category.id"
-                :value="category.id"
-              >
-                {{ getCategoryIcon(category.icon) }} {{ category.name }}
-              </UiSelectItem>
-            </UiSelectContent>
-          </UiSelect>
+          <CategorySelect
+            :categories="categories"
+            :model-value="localFilters.categoryIds"
+            @update:model-value="(value) => updateFilter('categoryIds', value)"
+          />
         </div>
 
         <div class="space-y-2">

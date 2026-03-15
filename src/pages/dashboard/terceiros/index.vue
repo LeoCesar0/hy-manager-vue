@@ -14,6 +14,7 @@ import SearchInput from "~/components/Dashboard/SearchInput.vue";
 import EmptyState from "~/components/Dashboard/EmptyState.vue";
 import CardGrid from "~/components/Dashboard/CardGrid.vue";
 import TablePagination from "~/components/Table/Pagination.vue";
+import CategorySelect from "~/components/Categories/CategorySelect.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -27,7 +28,7 @@ const isLoadingData = ref(false);
 const counterparties = ref<IPaginationResult<ICounterparty> | null>(null);
 const categories = ref<ICategory[]>([]);
 const searchQuery = ref("");
-const categoryFilter = ref<string | null>(null);
+const categoryFilter = ref<string[]>([]);
 
 const { paginationBody } = usePagination({ limit: 50, orderBy: { field: 'name', direction: 'asc' } });
 
@@ -85,7 +86,7 @@ const loadCounterparties = async () => {
     const response = await paginateCounterparties({
       userId: currentUser.value.id,
       search: searchQuery.value || undefined,
-      categoryId: categoryFilter.value || undefined,
+      categoryIds: categoryFilter.value.length > 0 ? categoryFilter.value : undefined,
       pagination: paginationBody.value,
     });
     if (response.data) {
@@ -161,7 +162,8 @@ watch(
   () => {
     paginationBody.value.page = 1;
     loadCounterparties();
-  }
+  },
+  { deep: true }
 );
 
 watchDebounced(
@@ -207,20 +209,11 @@ onMounted(() => {
 
         <div class="flex items-center gap-2">
           <span class="text-sm text-muted-foreground">Categoria</span>
-          <UiSelect
-            :model-value="categoryFilter ?? 'all'"
-            @update:model-value="(v: unknown) => categoryFilter = String(v) === 'all' ? null : String(v)"
-          >
-            <UiSelectTrigger class="w-[180px] h-8">
-              <UiSelectValue />
-            </UiSelectTrigger>
-            <UiSelectContent>
-              <UiSelectItem value="all">Todas</UiSelectItem>
-              <UiSelectItem v-for="cat in categories" :key="cat.id" :value="cat.id">
-                {{ cat.name }}
-              </UiSelectItem>
-            </UiSelectContent>
-          </UiSelect>
+          <CategorySelect
+            :categories="categories"
+            v-model="categoryFilter"
+            class="w-[220px]"
+          />
         </div>
 
         <div class="flex items-center gap-2">
@@ -246,8 +239,8 @@ onMounted(() => {
     <EmptyState
       v-if="counterpartiesList.length === 0 && !isLoadingData"
       title="Nenhum terceiro encontrado"
-      :description="searchQuery || categoryFilter ? 'Tente ajustar os filtros ou buscar por outro termo.' : 'Crie seu primeiro terceiro clicando no botão acima.'"
-      :show-create-button="!searchQuery && !categoryFilter"
+      :description="searchQuery || categoryFilter.length > 0 ? 'Tente ajustar os filtros ou buscar por outro termo.' : 'Crie seu primeiro terceiro clicando no botão acima.'"
+      :show-create-button="!searchQuery && categoryFilter.length === 0"
       create-button-label="Novo Terceiro"
       :on-create="handleCreate"
     />

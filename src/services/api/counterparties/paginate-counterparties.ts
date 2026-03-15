@@ -12,20 +12,22 @@ type Item = ICounterparty;
 export type IAPIPaginateCounterparties = {
   userId: string;
   search?: string;
-  categoryId?: string;
+  categoryIds?: string[];
   pagination: IPaginationBody;
 } & IAPIRequestCommon<IPaginationResult<Item>>;
 
 const buildFilters = (props: {
   userId: string;
-  categoryId?: string;
+  categoryIds?: string[];
 }): FirebaseFilterFor<ICounterparty>[] => {
   const filters: FirebaseFilterFor<ICounterparty>[] = [
     { field: "userId", operator: "==", value: props.userId },
   ];
 
-  if (props.categoryId) {
-    filters.push({ field: "categoryIds", operator: "array-contains", value: props.categoryId });
+  if (props.categoryIds?.length === 1) {
+    filters.push({ field: "categoryIds", operator: "array-contains", value: props.categoryIds[0] });
+  } else if (props.categoryIds && props.categoryIds.length > 1) {
+    filters.push({ field: "categoryIds", operator: "array-contains-any", value: props.categoryIds });
   }
 
   return filters;
@@ -75,13 +77,13 @@ const paginateWithSearch = async (props: {
 export const paginateCounterparties = async ({
   userId,
   search,
-  categoryId,
+  categoryIds,
   pagination,
   options,
 }: IAPIPaginateCounterparties) => {
   const response = await handleAppRequest(
     async () => {
-      const filters = buildFilters({ userId, categoryId });
+      const filters = buildFilters({ userId, categoryIds });
 
       if (search) {
         return await paginateWithSearch({ filters, search, pagination });

@@ -43,14 +43,14 @@ const filters = ref<{
   startDate: Timestamp | null;
   endDate: Timestamp | null;
   type: 'deposit' | 'expense' | null;
-  categoryId: string | null;
+  categoryIds: string[];
   counterpartyId: string | null;
   search: string;
 }>({
   startDate: null,
   endDate: null,
   type: null,
-  categoryId: null,
+  categoryIds: [],
   counterpartyId: null,
   search: '',
 });
@@ -127,7 +127,7 @@ const loadTransactions = async () => {
       startDate: filters.value.startDate || undefined,
       endDate: filters.value.endDate || undefined,
       type: filters.value.type || undefined,
-      categoryId: filters.value.categoryId || undefined,
+      categoryIds: filters.value.categoryIds.length > 0 ? filters.value.categoryIds : undefined,
       bankAccountId: currentBankAccount.value?.id || undefined,
       counterpartyId: filters.value.counterpartyId || undefined,
       pagination: paginationBody.value,
@@ -327,7 +327,7 @@ onMounted(() => {
     </template>
 
     <EmptyState v-if="transactionsList.length === 0 && !isLoadingData" title="Nenhuma transação encontrada"
-      :description="filters.search || filters.type || filters.categoryId ? 'Tente ajustar os filtros.' : 'Crie sua primeira transação clicando no botão acima.'"
+      :description="filters.search || filters.type || filters.categoryIds.length > 0 ? 'Tente ajustar os filtros.' : 'Crie sua primeira transação clicando no botão acima.'"
       :show-create-button="!filters.search && !filters.type" create-button-label="Nova Transação"
       :on-create="handleCreate" />
 
