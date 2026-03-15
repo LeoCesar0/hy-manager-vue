@@ -40,8 +40,6 @@ export const getTransactions = async ({
         });
       }
 
-      console.log(`❗ getTransactions filters -->`, filters);
-
       return firebaseList<Item>({
         collection: "transactions",
         filters,
