@@ -77,7 +77,7 @@ export const useDashboardStore = defineStore(makeStoreKey("dashboard"), () => {
   };
 
   watch(currentUser, (currentUser) => {
-    if (currentUser && !isLoadingDashboard.value) {
+    if (currentUser) {
       loadBankAccounts();
     }
   });
