@@ -10,6 +10,7 @@ import DetailCard from "~/components/Dashboard/DetailCard.vue";
 import DetailField from "~/components/Dashboard/DetailField.vue";
 import ActionButtons from "~/components/Dashboard/ActionButtons.vue";
 import { getCategoryIcon } from "~/static/category-icons";
+import PositiveExpenseIcon from "~/components/Categories/PositiveExpenseIcon.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -130,7 +131,10 @@ onMounted(() => {
             {{ category?.icon ? getCategoryIcon(category.icon) : '—' }}
           </div>
           <div>
-            <h2 class="text-2xl font-bold">{{ category?.name }}</h2>
+            <div class="flex items-center gap-2">
+              <h2 class="text-2xl font-bold">{{ category?.name }}</h2>
+              <PositiveExpenseIcon v-if="category?.isPositiveExpense" size="md" />
+            </div>
             <p class="text-sm text-muted-foreground">
               Criada em {{ formatDate(category?.createdAt) }}
             </p>
@@ -157,6 +161,8 @@ onMounted(() => {
               <p class="text-base">{{ category?.color || '—' }}</p>
             </div>
           </DetailField>
+
+          <DetailField label="Gasto Positivo" :value="category?.isPositiveExpense ? 'Sim' : 'Não'" />
 
           <DetailField label="Data de Criação" :value="formatDate(category?.createdAt)" />
 

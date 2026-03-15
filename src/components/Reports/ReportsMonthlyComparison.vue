@@ -31,6 +31,12 @@ const displayData = computed(() =>
     ? props.comparison.categoryDeltas
     : props.comparison.counterpartyDeltas
 );
+
+const getChangeColor = (item: typeof displayData.value[number]) => {
+  if (item.change === 0 || item.change === null) return "text-muted-foreground";
+  const isGood = item.isPositiveExpense ? item.change > 0 : item.change < 0;
+  return isGood ? "text-deposit" : "text-expense";
+};
 </script>
 
 <template>
@@ -93,19 +99,11 @@ const displayData = computed(() =>
                 <component
                   :is="item.change! > 0 ? ArrowUpIcon : item.change! < 0 ? ArrowDownIcon : MinusIcon"
                   class="h-3 w-3"
-                  :class="{
-                    'text-expense': item.change! > 0,
-                    'text-deposit': item.change! < 0,
-                    'text-muted-foreground': item.change === 0,
-                  }"
+                  :class="getChangeColor(item)"
                 />
                 <span
                   class="text-xs font-mono"
-                  :class="{
-                    'text-expense': item.change! > 0,
-                    'text-deposit': item.change! < 0,
-                    'text-muted-foreground': item.change === 0,
-                  }"
+                  :class="getChangeColor(item)"
                 >
                   {{ item.changePercent > 0 ? "+" : "" }}{{ item.changePercent.toFixed(1) }}%
                 </span>

@@ -85,6 +85,15 @@ const shownLabel = computed(() => {
   return "";
 });
 const showPass = ref(false);
+
+const getBooleanFieldProps = (componentField: Record<string, any>) => {
+  const { modelValue, "onUpdate:modelValue": onUpdate, onInput, onChange, ...rest } = componentField;
+  return {
+    rest,
+    modelValue: !!modelValue,
+    onUpdateModelValue: (val: boolean) => onUpdate(val),
+  };
+};
 </script>
 
 <template>
@@ -169,16 +178,16 @@ const showPass = ref(false);
             }" />
             <!-- CHECKBOX -->
             <UiCheckbox v-if="inputVariant === 'checkbox'" class="!mt-0" v-bind="{
-              ...componentField,
+              ...getBooleanFieldProps(componentField).rest,
               disabled,
               ...(props.inputProps ?? {}),
-            }" :checked="componentField.modelValue" @update:checked="componentField['onUpdate:modelValue']" />
+            }" :model-value="getBooleanFieldProps(componentField).modelValue" @update:model-value="getBooleanFieldProps(componentField).onUpdateModelValue" />
             <!-- SWITCH -->
             <UiSwitch v-if="inputVariant === 'switch'" class="!mt-0" v-bind="{
-              ...componentField,
+              ...getBooleanFieldProps(componentField).rest,
               disabled,
               ...(props.inputProps ?? {}),
-            }" :checked="componentField.modelValue" @update:checked="componentField['onUpdate:modelValue']" />
+            }" :model-value="getBooleanFieldProps(componentField).modelValue" @update:model-value="getBooleanFieldProps(componentField).onUpdateModelValue" />
             <!-- SELECT -->
             <UiSelect v-if="inputVariant === 'select'" class="!mt-0" v-bind="{
               ...componentField,

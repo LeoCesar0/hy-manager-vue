@@ -15,6 +15,7 @@ type IDelta = {
   amounts: Record<string, number>;
   change: number | null;
   changePercent: number | null;
+  isPositiveExpense?: boolean;
 };
 
 export type IMonthlyComparison = {
@@ -69,7 +70,14 @@ export const compareMonths = ({
       changePercent = first > 0 ? ((last - first) / first) * 100 : null;
     }
 
-    return { id, name: cat?.name ?? "Desconhecido", amounts, change, changePercent };
+    return {
+      id,
+      name: cat?.name ?? "Desconhecido",
+      amounts,
+      change,
+      changePercent,
+      ...(cat?.isPositiveExpense && { isPositiveExpense: true }),
+    };
   });
 
   const counterpartyDeltas: IDelta[] = [...counterpartyIds].map((id) => {

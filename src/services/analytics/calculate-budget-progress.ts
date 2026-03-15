@@ -15,6 +15,7 @@ type IProgressItem = {
   percentage: number;
   isOverBudget: boolean;
   variant: "expense" | "deposit";
+  isPositiveExpense?: boolean;
 };
 
 export type IBudgetProgress = {
@@ -80,6 +81,7 @@ export const calculateBudgetProgress = ({
       percentage,
       isOverBudget: isExpense && current > target,
       variant: cb.type,
+      ...(category?.isPositiveExpense && { isPositiveExpense: true }),
     };
   });
 

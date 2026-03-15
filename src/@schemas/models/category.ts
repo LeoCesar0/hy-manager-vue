@@ -40,6 +40,7 @@ export const zCategoryBase = z.object({
   name: z.string(),
   color: z.string().nullish(),
   icon: zCategoryIcon.nullish(),
+  isPositiveExpense: z.boolean().optional(),
   userId: zStringNotEmpty,
 });
 

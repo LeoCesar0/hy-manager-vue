@@ -81,11 +81,14 @@ export const DEFAULT_CATEGORY_COLORS_MAP: Record<DefaultCategory, string> = {
 
 type ITemplate = Omit<ICreateCategory, "userId">
 
+const POSITIVE_EXPENSE_CATEGORIES: DefaultCategory[] = ["Investimentos", "Salário"];
+
 const getCategory = (category: DefaultCategory): ITemplate => {
     return {
         name: category,
         icon: DEFAULT_CATEGORY_ICONS[category],
         color: DEFAULT_CATEGORY_COLORS_MAP[category],
+        ...(POSITIVE_EXPENSE_CATEGORIES.includes(category) && { isPositiveExpense: true }),
     }
 }
 

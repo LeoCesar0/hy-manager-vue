@@ -90,6 +90,7 @@ const formatMonthLabel = (monthKey: string) => {
               :current="item.current"
               :target="item.target"
               :variant="item.variant"
+              :is-positive-expense="item.isPositiveExpense"
             />
           </div>
         </div>

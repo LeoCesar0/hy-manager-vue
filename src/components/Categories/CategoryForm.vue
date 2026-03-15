@@ -58,6 +58,7 @@ const onSubmit = handleSubmit(async (values) => {
           name: values.name,
           color: values.color,
           icon: values.icon,
+          isPositiveExpense: values.isPositiveExpense ?? false,
           userId: values.userId,
         },
         options: {
@@ -75,6 +76,7 @@ const onSubmit = handleSubmit(async (values) => {
           name: values.name,
           color: values.color,
           icon: values.icon,
+          isPositiveExpense: values.isPositiveExpense ?? false,
           userId: currentUser.value.id,
         },
         options: {
@@ -106,6 +108,8 @@ const handleCancel = () => {
     }" />
     <FormField name="icon" label="Ícone" input-variant="select" placeholder="Selecione um ícone"
       :select-options="CATEGORY_ICONS_OPTIONS" />
+    <FormField name="isPositiveExpense" label="Gasto positivo" input-variant="switch"
+      description="Categorias onde gastar mais é positivo (ex: investimentos, poupança)" />
     <FormActions>
       <UiButton type="button" variant="outline" @click="handleCancel" :disabled="isLoading">
         Cancelar
