@@ -4,7 +4,7 @@ import { zStringNotEmpty } from "../primitives/stringNotEmpty";
 
 export const zCategoryIcon = z.enum([
   // Alimentação
-  'food', 'supermarket', 'fastFood', 'restaurant',
+  'food', 'supermarket', 'fastFood', 'restaurant', 'convenience',
   // Moradia
   'home', 'rent', 'electricity', 'water', 'gas',
   // Transporte

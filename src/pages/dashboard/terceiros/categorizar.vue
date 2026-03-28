@@ -172,6 +172,7 @@ onMounted(() => {
         :key="item.counterparty.id"
         :counterparty="item.counterparty"
         :stats="item.stats"
+        :transactions="item.transactions"
         :categories="categories"
         :selected-category-ids="getSelectedCategoryIds(item.counterparty.id)"
         :disabled="isSaving"

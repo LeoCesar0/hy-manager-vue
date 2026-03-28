@@ -8,6 +8,7 @@ export const CATEGORY_ICON: Record<CategoryIcon, string> = {
     supermarket: "🛒",
     fastFood: "🍕",
     restaurant: "🍽️",
+    convenience: "🏪",
     // Moradia
     home: "🏠",
     rent: "🔑",
@@ -83,6 +84,7 @@ export const CATEGORY_ICON_LABEL: Record<CategoryIcon, string> = {
     supermarket: "Carrinho de Compras",
     fastFood: "Pizza",
     restaurant: "Restaurante",
+    convenience: "Lojinha",
     // Moradia
     home: "Casa",
     rent: "Chave",
@@ -127,7 +129,7 @@ export const CATEGORY_ICON_LABEL: Record<CategoryIcon, string> = {
     // Casa
     cleaning: "Vassoura",
     maintenance: "Chave Inglesa",
-    furniture: "Sofá",
+    furniture: "Mobília",
     // Tecnologia
     technology: "Notebook",
     electronics: "Celular",

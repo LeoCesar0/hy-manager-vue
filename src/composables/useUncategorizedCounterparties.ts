@@ -14,6 +14,7 @@ type CounterpartyStats = {
 export type UncategorizedCounterpartyItem = {
   counterparty: ICounterparty;
   stats: CounterpartyStats;
+  transactions: ITransaction[];
 };
 
 const emptyStats: CounterpartyStats = {
@@ -34,6 +35,7 @@ export const useUncategorizedCounterparties = () => {
 
   const items = computed<UncategorizedCounterpartyItem[]>(() => {
     const statsByCounterparty = new Map<string, CounterpartyStats>();
+    const txByCounterparty = new Map<string, ITransaction[]>();
 
     for (const tx of transactions.value) {
       if (!tx.counterpartyId) continue;
@@ -54,13 +56,27 @@ export const useUncategorizedCounterparties = () => {
       }
 
       statsByCounterparty.set(tx.counterpartyId, existing);
+
+      const txList = txByCounterparty.get(tx.counterpartyId) ?? [];
+      txList.push(tx);
+      txByCounterparty.set(tx.counterpartyId, txList);
     }
 
     return uncategorizedCounterparties.value
-      .map((counterparty) => ({
-        counterparty,
-        stats: statsByCounterparty.get(counterparty.id) ?? { ...emptyStats },
-      }))
+      .map((counterparty) => {
+        const counterpartyTxs = txByCounterparty.get(counterparty.id) ?? [];
+        counterpartyTxs.sort((a, b) => {
+          const dateA = a.date instanceof Date ? a.date : (a.date as { toDate(): Date }).toDate();
+          const dateB = b.date instanceof Date ? b.date : (b.date as { toDate(): Date }).toDate();
+          return dateB.getTime() - dateA.getTime();
+        });
+
+        return {
+          counterparty,
+          stats: statsByCounterparty.get(counterparty.id) ?? { ...emptyStats },
+          transactions: counterpartyTxs,
+        };
+      })
       .sort((a, b) => {
         const totalA = a.stats.expenseTotal + a.stats.depositTotal;
         const totalB = b.stats.expenseTotal + b.stats.depositTotal;
