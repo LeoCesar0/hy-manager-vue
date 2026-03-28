@@ -33,7 +33,7 @@ const {
   clearFilters,
 } = useDashboardAnalytics();
 
-const { count: uncategorizedCount, loadData: loadUncategorized } = useUncategorizedCounterparties();
+const { uncategorizedCount, loadData: loadUncategorized } = useCounterpartiesCategorization();
 
 const handleUpdateStartDate = (value: Timestamp | null) => {
   filters.value.startDate = value;

@@ -1,22 +1,27 @@
 <script setup lang="ts">
-import { ArrowDownIcon, ArrowUpIcon, CalendarIcon } from "lucide-vue-next";
+import { ArrowDownIcon, ArrowUpIcon, CalendarIcon, EditIcon } from "lucide-vue-next";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { ITransaction } from "~/@schemas/models/transaction";
 import type { ICategory } from "~/@schemas/models/category";
-import type { UncategorizedCounterpartyItem } from "~/composables/useUncategorizedCounterparties";
+import type { CounterpartyCategorizationItem } from "~/composables/useCounterpartiesCategorization";
 import CategorySelect from "~/components/Categories/CategorySelect.vue";
 import { formatCurrency } from "~/helpers/formatCurrency";
 import { formatDate } from "~/helpers/formatDate";
 import { getTransactionColor } from "~/helpers/getTransactionColor";
+import { getCategoryIcon } from "~/static/category-icons";
 
 type IProps = {
   counterparty: ICounterparty;
-  stats: UncategorizedCounterpartyItem["stats"];
+  stats: CounterpartyCategorizationItem["stats"];
   transactions: ITransaction[];
   categories: ICategory[];
   selectedCategoryIds: string[];
   disabled?: boolean;
   onCategoryChange: (counterpartyId: string, categoryIds: string[]) => void;
+  /** 'assign' always shows CategorySelect; 'view' shows badges with optional inline edit */
+  mode: "assign" | "view";
+  isEditing?: boolean;
+  onEdit?: (counterpartyId: string) => void;
 };
 
 const props = defineProps<IProps>();
@@ -26,6 +31,14 @@ const PREVIEW_LIMIT = 5;
 const totalTransactions = computed(() => props.stats.depositCount + props.stats.expenseCount);
 const previewTransactions = computed(() => props.transactions.slice(0, PREVIEW_LIMIT));
 const remainingCount = computed(() => Math.max(0, props.transactions.length - PREVIEW_LIMIT));
+
+const showCategorySelect = computed(() => props.mode === "assign" || props.isEditing);
+
+const resolvedCategories = computed(() => {
+  return props.counterparty.categoryIds
+    .map((id) => props.categories.find((c) => c.id === id))
+    .filter(Boolean) as ICategory[];
+});
 
 const handleChange = (categoryIds: string[]) => {
   props.onCategoryChange(props.counterparty.id, categoryIds);
@@ -87,16 +100,39 @@ const handleChange = (categoryIds: string[]) => {
           </div>
         </UiHoverCardContent>
       </UiHoverCard>
+
+      <!-- Category badges in view mode (when not editing) -->
+      <div v-if="mode === 'view' && !isEditing && resolvedCategories.length" class="flex flex-wrap gap-1 mt-2">
+        <UiBadge
+          v-for="cat in resolvedCategories"
+          :key="cat.id"
+          variant="secondary"
+          class="text-xs"
+        >
+          {{ cat.icon ? getCategoryIcon(cat.icon) : '' }} {{ cat.name }}
+        </UiBadge>
+      </div>
     </div>
 
-    <div class="sm:w-72">
-      <CategorySelect
-        :categories="categories"
-        :model-value="selectedCategoryIds"
-        placeholder="Selecione categorias"
-        :disabled="disabled"
-        @update:model-value="handleChange"
-      />
+    <div class="flex items-center gap-2">
+      <div v-if="showCategorySelect" class="sm:w-72">
+        <CategorySelect
+          :categories="categories"
+          :model-value="selectedCategoryIds"
+          placeholder="Selecione categorias"
+          :disabled="disabled"
+          @update:model-value="handleChange"
+        />
+      </div>
+      <UiButton
+        v-if="mode === 'view' && !isEditing"
+        variant="ghost"
+        size="icon"
+        title="Editar categorias"
+        @click="onEdit?.(counterparty.id)"
+      >
+        <EditIcon class="h-4 w-4" />
+      </UiButton>
     </div>
   </div>
 </template>

@@ -5,7 +5,7 @@ import { getCategories } from "~/services/api/categories/get-categories";
 import { updateCounterparty } from "~/services/api/counterparties/update-counterparty";
 import { ROUTE } from "~/static/routes";
 import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
-import UncategorizedRow from "~/components/Counterparties/UncategorizedRow.vue";
+import CounterpartyCategorizationRow from "~/components/Counterparties/CounterpartyCategorizationRow.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -16,19 +16,30 @@ const { currentUser } = storeToRefs(userStore);
 const router = useRouter();
 const { toast } = useToast();
 
+const activeTab = ref<"uncategorized" | "categorized">("uncategorized");
 const categories = ref<ICategory[]>([]);
-const { items, count, isLoading, loadData, removeCounterparty } = useUncategorizedCounterparties();
 
+const {
+  uncategorizedItems,
+  categorizedItems,
+  uncategorizedCount,
+  categorizedCount,
+  isLoading,
+  loadData,
+  updateLocalCounterparty,
+} = useCounterpartiesCategorization();
+
+// --- Uncategorized tab ---
 const pendingChanges = ref<Map<string, string[]>>(new Map());
 const isSaving = ref(false);
-const currentPage = ref(1);
+const uncategorizedPage = ref(1);
 const pageSize = 10;
 
-const totalPages = computed(() => Math.max(1, Math.ceil(items.value.length / pageSize)));
+const uncategorizedTotalPages = computed(() => Math.max(1, Math.ceil(uncategorizedItems.value.length / pageSize)));
 
-const paginatedItems = computed(() => {
-  const start = (currentPage.value - 1) * pageSize;
-  return items.value.slice(start, start + pageSize);
+const paginatedUncategorized = computed(() => {
+  const start = (uncategorizedPage.value - 1) * pageSize;
+  return uncategorizedItems.value.slice(start, start + pageSize);
 });
 
 const pendingCount = computed(() => {
@@ -64,7 +75,7 @@ const handleSaveAll = async () => {
       .filter(([, categoryIds]) => categoryIds.length > 0);
 
     const counterpartyMap = new Map(
-      items.value.map((item) => [item.counterparty.id, item.counterparty])
+      uncategorizedItems.value.map((item) => [item.counterparty.id, item.counterparty])
     );
 
     const results = await Promise.allSettled(
@@ -94,7 +105,10 @@ const handleSaveAll = async () => {
     });
 
     for (const id of successIds) {
-      removeCounterparty(id);
+      const categoryIds = pendingChanges.value.get(id);
+      if (categoryIds) {
+        updateLocalCounterparty(id, categoryIds);
+      }
       pendingChanges.value.delete(id);
     }
 
@@ -102,15 +116,108 @@ const handleSaveAll = async () => {
       toast.success(`${successIds.length} terceiro${successIds.length > 1 ? "s" : ""} categorizado${successIds.length > 1 ? "s" : ""}`);
     }
 
-    // Adjust page if current page is now out of bounds
-    if (currentPage.value > totalPages.value) {
-      currentPage.value = totalPages.value;
+    if (uncategorizedPage.value > uncategorizedTotalPages.value) {
+      uncategorizedPage.value = uncategorizedTotalPages.value;
     }
   } finally {
     isSaving.value = false;
   }
 };
 
+// --- Categorized tab ---
+const categorizedPage = ref(1);
+const editingId = ref<string | null>(null);
+const categorizedPendingChanges = ref<Map<string, string[]>>(new Map());
+const isSavingCategorized = ref(false);
+
+const categorizedTotalPages = computed(() => Math.max(1, Math.ceil(categorizedItems.value.length / pageSize)));
+
+const paginatedCategorized = computed(() => {
+  const start = (categorizedPage.value - 1) * pageSize;
+  return categorizedItems.value.slice(start, start + pageSize);
+});
+
+const hasCategorizedPendingChanges = computed(() => categorizedPendingChanges.value.size > 0);
+
+const handleEditCategorized = (counterpartyId: string) => {
+  const item = categorizedItems.value.find((i) => i.counterparty.id === counterpartyId);
+  if (!item) return;
+
+  editingId.value = counterpartyId;
+  categorizedPendingChanges.value.set(counterpartyId, [...item.counterparty.categoryIds]);
+};
+
+const handleCategorizedCategoryChange = (counterpartyId: string, categoryIds: string[]) => {
+  const updated = new Map(categorizedPendingChanges.value);
+  updated.set(counterpartyId, categoryIds);
+  categorizedPendingChanges.value = updated;
+};
+
+const getCategorizedSelectedIds = (counterpartyId: string): string[] => {
+  return categorizedPendingChanges.value.get(counterpartyId) ?? [];
+};
+
+const handleSaveCategorized = async () => {
+  if (!hasCategorizedPendingChanges.value) return;
+
+  isSavingCategorized.value = true;
+  try {
+    const validEntries = Array.from(categorizedPendingChanges.value.entries());
+
+    const counterpartyMap = new Map(
+      categorizedItems.value.map((i) => [i.counterparty.id, i.counterparty])
+    );
+
+    const results = await Promise.allSettled(
+      validEntries.map(([counterpartyId, categoryIds]) => {
+        const counterparty = counterpartyMap.get(counterpartyId);
+        if (!counterparty) return Promise.resolve(null);
+
+        return updateCounterparty({
+          id: counterpartyId,
+          userId: counterparty.userId,
+          data: {
+            name: counterparty.name,
+            categoryIds,
+            userId: counterparty.userId,
+          },
+          options: { toastOptions: undefined },
+        });
+      })
+    );
+
+    const successIds: string[] = [];
+    results.forEach((result, index) => {
+      const entry = validEntries[index];
+      if (entry && result.status === "fulfilled" && result.value && "data" in result.value && result.value.data) {
+        successIds.push(entry[0]);
+      }
+    });
+
+    for (const id of successIds) {
+      const categoryIds = categorizedPendingChanges.value.get(id);
+      if (categoryIds) {
+        updateLocalCounterparty(id, categoryIds);
+      }
+    }
+
+    if (successIds.length > 0) {
+      toast.success(`${successIds.length} terceiro${successIds.length > 1 ? "s" : ""} atualizado${successIds.length > 1 ? "s" : ""}`);
+    }
+
+    editingId.value = null;
+    categorizedPendingChanges.value.clear();
+  } finally {
+    isSavingCategorized.value = false;
+  }
+};
+
+const handleCancelEdit = () => {
+  editingId.value = null;
+  categorizedPendingChanges.value.clear();
+};
+
+// --- Common ---
 const handleBack = () => {
   router.push(ROUTE.counterparties.path());
 };
@@ -142,75 +249,154 @@ onMounted(() => {
   >
     <template #detail-actions>
       <UiButton
-        v-if="items.length > 0"
+        v-if="activeTab === 'uncategorized' && uncategorizedItems.length > 0"
         :disabled="!hasPendingChanges || isSaving"
         @click="handleSaveAll"
       >
         <SaveIcon class="h-4 w-4 mr-2" />
         Salvar{{ pendingCount > 0 ? ` (${pendingCount})` : "" }}
       </UiButton>
+      <template v-if="activeTab === 'categorized' && editingId">
+        <UiButton variant="outline" @click="handleCancelEdit" :disabled="isSavingCategorized">
+          Cancelar
+        </UiButton>
+        <UiButton
+          :disabled="!hasCategorizedPendingChanges || isSavingCategorized"
+          @click="handleSaveCategorized"
+        >
+          <SaveIcon class="h-4 w-4 mr-2" />
+          Salvar
+        </UiButton>
+      </template>
     </template>
 
-    <div v-if="items.length === 0 && !isLoading" class="flex flex-col items-center justify-center py-12 text-center">
-      <CheckCircle2Icon class="h-12 w-12 text-primary mb-4" />
-      <h3 class="text-lg font-semibold">Tudo categorizado!</h3>
-      <p class="text-muted-foreground mt-1">
-        Todos os terceiros possuem categorias atribuídas.
-      </p>
-      <UiButton variant="outline" class="mt-4" @click="handleBack">
-        Voltar para Terceiros
-      </UiButton>
-    </div>
+    <UiTabs v-model="activeTab" class="w-full">
+      <UiTabsList>
+        <UiTabsTrigger value="uncategorized">
+          Sem categoria ({{ uncategorizedCount }})
+        </UiTabsTrigger>
+        <UiTabsTrigger value="categorized">
+          Categorizados ({{ categorizedCount }})
+        </UiTabsTrigger>
+      </UiTabsList>
 
-    <div v-else class="space-y-3">
-      <p class="text-sm text-muted-foreground">
-        {{ count }} terceiro{{ count > 1 ? "s" : "" }} sem categoria, ordenados por valor total.
-      </p>
-
-      <UncategorizedRow
-        v-for="item in paginatedItems"
-        :key="item.counterparty.id"
-        :counterparty="item.counterparty"
-        :stats="item.stats"
-        :transactions="item.transactions"
-        :categories="categories"
-        :selected-category-ids="getSelectedCategoryIds(item.counterparty.id)"
-        :disabled="isSaving"
-        :on-category-change="handleCategoryChange"
-      />
-
-      <!-- Pagination + Save footer -->
-      <div class="flex items-center justify-between pt-4 border-t">
-        <div class="flex items-center gap-2">
-          <UiButton
-            variant="outline"
-            size="sm"
-            :disabled="currentPage <= 1"
-            @click="currentPage--"
-          >
-            Anterior
-          </UiButton>
-          <span class="text-sm text-muted-foreground">
-            {{ currentPage }} / {{ totalPages }}
-          </span>
-          <UiButton
-            variant="outline"
-            size="sm"
-            :disabled="currentPage >= totalPages"
-            @click="currentPage++"
-          >
-            Próximo
+      <UiTabsContent value="uncategorized">
+        <div v-if="uncategorizedItems.length === 0 && !isLoading" class="flex flex-col items-center justify-center py-12 text-center">
+          <CheckCircle2Icon class="h-12 w-12 text-primary mb-4" />
+          <h3 class="text-lg font-semibold">Tudo categorizado!</h3>
+          <p class="text-muted-foreground mt-1">
+            Todos os terceiros possuem categorias atribuídas.
+          </p>
+          <UiButton variant="outline" class="mt-4" @click="handleBack">
+            Voltar para Terceiros
           </UiButton>
         </div>
 
-        <UiButton
-          :disabled="!hasPendingChanges || isSaving"
-          @click="handleSaveAll"
-        >
-          <SaveIcon class="h-4 w-4 mr-2" />
-          Salvar{{ pendingCount > 0 ? ` (${pendingCount})` : "" }}
-        </UiButton>
-      </div>
-    </div>
+        <div v-else class="space-y-3">
+          <p class="text-sm text-muted-foreground">
+            {{ uncategorizedCount }} terceiro{{ uncategorizedCount > 1 ? "s" : "" }} sem categoria, ordenados por valor total.
+          </p>
+
+          <CounterpartyCategorizationRow
+            v-for="item in paginatedUncategorized"
+            :key="item.counterparty.id"
+            :counterparty="item.counterparty"
+            :stats="item.stats"
+            :transactions="item.transactions"
+            :categories="categories"
+            :selected-category-ids="getSelectedCategoryIds(item.counterparty.id)"
+            :disabled="isSaving"
+            :on-category-change="handleCategoryChange"
+            mode="assign"
+          />
+
+          <div class="flex items-center justify-between pt-4 border-t">
+            <div class="flex items-center gap-2">
+              <UiButton
+                variant="outline"
+                size="sm"
+                :disabled="uncategorizedPage <= 1"
+                @click="uncategorizedPage--"
+              >
+                Anterior
+              </UiButton>
+              <span class="text-sm text-muted-foreground">
+                {{ uncategorizedPage }} / {{ uncategorizedTotalPages }}
+              </span>
+              <UiButton
+                variant="outline"
+                size="sm"
+                :disabled="uncategorizedPage >= uncategorizedTotalPages"
+                @click="uncategorizedPage++"
+              >
+                Próximo
+              </UiButton>
+            </div>
+
+            <UiButton
+              :disabled="!hasPendingChanges || isSaving"
+              @click="handleSaveAll"
+            >
+              <SaveIcon class="h-4 w-4 mr-2" />
+              Salvar{{ pendingCount > 0 ? ` (${pendingCount})` : "" }}
+            </UiButton>
+          </div>
+        </div>
+      </UiTabsContent>
+
+      <UiTabsContent value="categorized">
+        <div v-if="categorizedItems.length === 0 && !isLoading" class="flex flex-col items-center justify-center py-12 text-center">
+          <h3 class="text-lg font-semibold">Nenhum terceiro categorizado</h3>
+          <p class="text-muted-foreground mt-1">
+            Categorize terceiros na aba "Sem categoria".
+          </p>
+        </div>
+
+        <div v-else class="space-y-3">
+          <p class="text-sm text-muted-foreground">
+            {{ categorizedCount }} terceiro{{ categorizedCount > 1 ? "s" : "" }} com categorias atribuídas.
+          </p>
+
+          <CounterpartyCategorizationRow
+            v-for="item in paginatedCategorized"
+            :key="item.counterparty.id"
+            :counterparty="item.counterparty"
+            :stats="item.stats"
+            :transactions="item.transactions"
+            :categories="categories"
+            :is-editing="editingId === item.counterparty.id"
+            :selected-category-ids="getCategorizedSelectedIds(item.counterparty.id)"
+            :disabled="isSavingCategorized"
+            :on-edit="handleEditCategorized"
+            :on-category-change="handleCategorizedCategoryChange"
+            mode="view"
+          />
+
+          <div class="flex items-center justify-between pt-4 border-t">
+            <div class="flex items-center gap-2">
+              <UiButton
+                variant="outline"
+                size="sm"
+                :disabled="categorizedPage <= 1"
+                @click="categorizedPage--"
+              >
+                Anterior
+              </UiButton>
+              <span class="text-sm text-muted-foreground">
+                {{ categorizedPage }} / {{ categorizedTotalPages }}
+              </span>
+              <UiButton
+                variant="outline"
+                size="sm"
+                :disabled="categorizedPage >= categorizedTotalPages"
+                @click="categorizedPage++"
+              >
+                Próximo
+              </UiButton>
+            </div>
+          </div>
+        </div>
+      </UiTabsContent>
+    </UiTabs>
   </DashboardSection>
 </template>

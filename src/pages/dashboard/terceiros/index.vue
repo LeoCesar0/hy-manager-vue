@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watchDebounced } from "@vueuse/core";
-import { PlusIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-vue-next";
+import { PlusIcon, ArrowDownIcon, ArrowUpIcon, TagsIcon } from "lucide-vue-next";
 import type { ICounterparty, ICreateCounterparty } from "~/@schemas/models/counterparty";
 import type { ICategory } from "~/@schemas/models/category";
 import type { IPaginationResult } from "~/@types/pagination";
@@ -25,7 +25,7 @@ const userStore = useUserStore();
 const { currentUser } = storeToRefs(userStore);
 const router = useRouter();
 
-const { count: uncategorizedCount, loadData: loadUncategorized } = useUncategorizedCounterparties();
+const { uncategorizedCount, loadData: loadUncategorized } = useCounterpartiesCategorization();
 
 const isLoadingData = ref(false);
 const counterparties = ref<IPaginationResult<ICounterparty> | null>(null);
@@ -194,6 +194,10 @@ onMounted(() => {
     <UncategorizedBanner :count="uncategorizedCount" />
 
     <template #actions>
+      <UiButton variant="outline" @click="router.push(ROUTE.categorizarCounterparties.path())">
+        <TagsIcon class="h-4 w-4 mr-2" />
+        Categorizar
+      </UiButton>
       <UiButton @click="handleCreate">
         <PlusIcon class="h-4 w-4 mr-2" />
         Novo Terceiro
