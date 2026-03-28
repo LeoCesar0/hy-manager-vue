@@ -9,7 +9,7 @@ import type { IAPIRequestCommon } from "../@types";
 import { firebaseCreate } from "~/services/firebase/firebaseCreate";
 import { getDefaultCreateToastOptions } from "~/helpers/toast/get-default-create-toast-options";
 import { getCategories } from "./get-categories";
-import { DEFAULT_CATEGORIES } from "~/static/default-categories";
+import { DEFAULT_CATEGORIES, type DefaultCategory } from "~/static/default-categories";
 import { firebaseCreateMany } from "~/services/firebase/firebaseCreateMany";
 import { slugify } from "~/helpers/slugify";
 import { firebaseDeleteMany } from "~/services/firebase/firebaseDeleteMany";
@@ -17,9 +17,10 @@ import { firebaseDeleteMany } from "~/services/firebase/firebaseDeleteMany";
 export type IAPISetupDefaultCategories = {
   userId: string;
   deleteExisting?: boolean;
+  selectedCategories?: DefaultCategory[];
 } & IAPIRequestCommon<ICategory[]>;
 
-export const setupDefaultCategories = async ({ userId, deleteExisting, options }: IAPISetupDefaultCategories) => {
+export const setupDefaultCategories = async ({ userId, deleteExisting, selectedCategories, options }: IAPISetupDefaultCategories) => {
   const response = await handleAppRequest<ICategory[]>(
     async () => {
       const mappedIds = new Map<string, string>()
@@ -32,7 +33,10 @@ export const setupDefaultCategories = async ({ userId, deleteExisting, options }
         })
         existingCategories = await getCategories({ userId }) // refetch to get the latest data
       }
-      const defaultCategories = DEFAULT_CATEGORIES.filter(category => !existingCategories.data?.some(c => slugify(c.name) === slugify(category.name)));
+      const baseCategories = selectedCategories
+        ? DEFAULT_CATEGORIES.filter(category => selectedCategories.includes(category.name as DefaultCategory))
+        : DEFAULT_CATEGORIES;
+      const defaultCategories = baseCategories.filter(category => !existingCategories.data?.some(c => slugify(c.name) === slugify(category.name)));
 
       const values: ICreateCategory[] = defaultCategories.map(item => {
         return {

@@ -6,6 +6,7 @@ import DashboardFilterBar from "~/components/Dashboard/DashboardFilterBar.vue";
 import SummaryCards from "~/components/Transactions/SummaryCards.vue";
 import DonutChart from "~/components/Dashboard/DonutChart.vue";
 import InsightsGrid from "~/components/Dashboard/InsightsGrid.vue";
+import UncategorizedBanner from "~/components/Counterparties/UncategorizedBanner.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -32,6 +33,8 @@ const {
   clearFilters,
 } = useDashboardAnalytics();
 
+const { count: uncategorizedCount, loadData: loadUncategorized } = useUncategorizedCounterparties();
+
 const handleUpdateStartDate = (value: Timestamp | null) => {
   filters.value.startDate = value;
 };
@@ -49,6 +52,7 @@ watch(
 
 onMounted(() => {
   loadData();
+  loadUncategorized();
 });
 </script>
 
@@ -81,6 +85,8 @@ onMounted(() => {
         :on-clear="clearFilters"
       />
     </template>
+
+    <UncategorizedBanner :count="uncategorizedCount" />
 
     <SummaryCards :totals="totals" :loading="isLoading" />
 

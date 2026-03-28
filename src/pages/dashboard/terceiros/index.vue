@@ -9,6 +9,7 @@ import { getCategories } from "~/services/api/categories/get-categories";
 import { deleteCounterparty } from "~/services/api/counterparties/delete-counterparty";
 import { ROUTE } from "~/static/routes";
 import CounterpartyCard from "~/components/Counterparties/CounterpartyCard.vue";
+import UncategorizedBanner from "~/components/Counterparties/UncategorizedBanner.vue";
 import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
 import SearchInput from "~/components/Dashboard/SearchInput.vue";
 import EmptyState from "~/components/Dashboard/EmptyState.vue";
@@ -23,6 +24,8 @@ definePageMeta({
 const userStore = useUserStore();
 const { currentUser } = storeToRefs(userStore);
 const router = useRouter();
+
+const { count: uncategorizedCount, loadData: loadUncategorized } = useUncategorizedCounterparties();
 
 const isLoadingData = ref(false);
 const counterparties = ref<IPaginationResult<ICounterparty> | null>(null);
@@ -178,6 +181,7 @@ watchDebounced(
 onMounted(() => {
   loadAuxiliaryData();
   loadCounterparties();
+  loadUncategorized();
 });
 </script>
 
@@ -187,6 +191,8 @@ onMounted(() => {
     subtitle="Gerencie seus terceiros"
     :loading="isLoadingData && !counterparties"
   >
+    <UncategorizedBanner :count="uncategorizedCount" />
+
     <template #actions>
       <UiButton @click="handleCreate">
         <PlusIcon class="h-4 w-4 mr-2" />

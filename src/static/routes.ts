@@ -3,7 +3,6 @@ import  {
   ArrowLeftRightIcon,
   FolderIcon,
   UsersIcon,
-  WalletIcon,
   BarChart3Icon,
 } from "lucide-vue-next";
 
@@ -44,6 +43,7 @@ export const ROUTES = [
     'categoryId',
     'counterparties',
     'counterpartyId',
+    'categorizarCounterparties',
     'bankAccounts',
     'bankAccountId',
     'reports',
@@ -127,14 +127,15 @@ export const ROUTE = {
         name: 'counterpartyId',
         label: 'Terceiro',
     },
+    categorizarCounterparties: {
+        path: () => '/dashboard/terceiros/categorizar',
+        name: 'categorizarCounterparties',
+        label: 'Categorizar Terceiros',
+    },
     bankAccounts: {
         path: () => '/dashboard/contas-bancarias',
         name: 'bankAccounts',
         label: 'Contas Bancárias',
-        menu:{
-            icon: WalletIcon,
-            group: 'management',
-        }
     },
     bankAccountId: {
         path: (id: string) => `/dashboard/contas-bancarias/${id}`,

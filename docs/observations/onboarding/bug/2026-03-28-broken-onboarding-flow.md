@@ -1,13 +1,13 @@
 ---
-status: open
+status: resolved
 type: bug
 severity: high
 found-during: "brainstorm session - reviewing new user flow"
 found-in: "src/pages/onboarding/index.vue, src/middleware/auth.global.ts"
 found-in-branch: "main"
 date: 2026-03-28 10:00
-updated: 2026-03-28 10:30
-resolved-date:
+updated: 2026-03-28 12:00
+resolved-date: 2026-03-28 12:00
 discard-reason:
 deferred:
 ---

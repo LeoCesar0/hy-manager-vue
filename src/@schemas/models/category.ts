@@ -30,7 +30,7 @@ export const zCategoryIcon = z.enum([
   // Financeiro
   'bank', 'investments', 'card', 'business', 'work',
   // Outros
-  'gifts', 'parties', 'onlineShopping', 'taxes', 'insurance', 'legal', 'documents',
+  'gifts', 'parties', 'onlineShopping', 'shopping', 'taxes', 'insurance', 'legal', 'documents',
   // Geral
   'others', 'miscellaneous',
 ]);

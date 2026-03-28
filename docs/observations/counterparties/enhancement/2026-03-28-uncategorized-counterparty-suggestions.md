@@ -1,13 +1,13 @@
 ---
-status: open
+status: resolved
 type: enhancement
 severity: medium
 found-during: "brainstorm session - counterparty management improvements"
 found-in: "src/pages/dashboard/terceiros/index.vue"
 found-in-branch: "main"
 date: 2026-03-28 10:00
-updated: 2026-03-28 10:30
-resolved-date:
+updated: 2026-03-28 12:00
+resolved-date: 2026-03-28 12:00
 discard-reason:
 deferred:
 ---

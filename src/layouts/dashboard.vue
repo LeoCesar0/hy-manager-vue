@@ -128,6 +128,12 @@ const selectedBankAccountId = computed({
             </UiSelectContent>
           </UiSelect>
         </div>
+        <NuxtLink
+          :to="ROUTE.bankAccounts.path()"
+          class="text-xs text-muted-foreground hover:text-foreground transition-colors mt-1 ml-6"
+        >
+          Gerenciar contas
+        </NuxtLink>
       </UiSidebarHeader>
 
       <UiSidebarContent>

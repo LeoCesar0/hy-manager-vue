@@ -1,13 +1,13 @@
 ---
-status: open
+status: resolved
 type: enhancement
 severity: medium
 found-during: "brainstorm session - bank accounts flow and navigation hierarchy"
 found-in: "src/static/routes.ts, src/layouts/dashboard.vue"
 found-in-branch: "main"
 date: 2026-03-28 10:00
-updated: 2026-03-28 10:00
-resolved-date:
+updated: 2026-03-28 12:00
+resolved-date: 2026-03-28 12:00
 discard-reason:
 deferred:
 ---

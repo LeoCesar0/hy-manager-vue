@@ -11,7 +11,6 @@ type IHandleInitializeUser = {
 export const handleInitializeUser = async ({ user }: IHandleInitializeUser) => {
   return handleAppRequest(
     async () => {
-      console.log("👤🔍 [handleInitializeUser] Firebase user object:", user);
       const existingRes = await getUserById({
         userId: user.uid,
         options: {
@@ -22,16 +21,15 @@ export const handleInitializeUser = async ({ user }: IHandleInitializeUser) => {
           },
         },
       });
-      console.log("✅ User exists in database?", !!existingRes.data);
       if (existingRes.data) {
         return existingRes;
       }
-      console.log("🆕 Creating new user in database...");
       const newUserData = zCreateUser.parse({
         email: user.email,
         name: user.displayName,
         imageUrl: user.photoURL,
         id: user.uid,
+        hasCompletedOnboarding: false,
       } as ICreateUser);
 
       const newUserResponse = await createUser({

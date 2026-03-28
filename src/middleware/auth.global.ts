@@ -27,11 +27,24 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const isAuthRoute = AUTH_ROUTES.includes(to.path);
   const isDashboardRoute = to.path.startsWith("/dashboard");
+  const isOnboardingRoute = to.path.startsWith("/onboarding");
 
-  if (!currentUser.value && isDashboardRoute) {
+  // Unauthenticated users cannot access dashboard or onboarding
+  if (!currentUser.value && (isDashboardRoute || isOnboardingRoute)) {
     return navigateTo("/sign-in");
   }
 
+  // Authenticated user who hasn't completed onboarding → redirect to onboarding
+  if (currentUser.value && isDashboardRoute && !currentUser.value.hasCompletedOnboarding) {
+    return navigateTo("/onboarding");
+  }
+
+  // Authenticated user who completed onboarding trying to access onboarding → redirect to dashboard
+  if (currentUser.value && isOnboardingRoute && currentUser.value.hasCompletedOnboarding) {
+    return navigateTo("/dashboard");
+  }
+
+  // Authenticated user on auth routes → redirect to dashboard
   if (currentUser.value && isAuthRoute) {
     return navigateTo("/dashboard");
   }
