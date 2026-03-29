@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AUTH_COPY } from "~/static/landing";
@@ -42,20 +42,10 @@ const handleSignUp = async () => {
     );
 
     if (userCredential.user) {
-      const createUserService = await import(
-        "~/services/api/users/create-user"
-      );
-      const result = await createUserService.createUser({
-        data: {
-          id: userCredential.user.uid,
-          name: name.value,
-          email: email.value,
-          imageUrl: null,
-        },
+      await updateProfile(userCredential.user, {
+        displayName: name.value,
       });
-      if (!result.error) {
-        router.push("/onboarding");
-      }
+      router.push("/onboarding");
     }
   } catch (err: unknown) {
     const message =
