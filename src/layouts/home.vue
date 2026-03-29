@@ -1,14 +1,14 @@
 <script setup lang="ts">
-// Dashboard layout component
+import Navbar from "~/components/Landing/Navbar.vue";
+import FooterSection from "~/components/Landing/FooterSection.vue";
 </script>
 
 <template>
-  <div class="home-layout">
-    <h1>HOME LAYOUT</h1>
-    <div class="">
+  <div class="min-h-screen bg-background">
+    <Navbar />
+    <main>
       <slot />
-    </div>
+    </main>
+    <FooterSection />
   </div>
 </template>
-
-<style scoped lang="scss"></style>

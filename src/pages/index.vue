@@ -1,14 +1,15 @@
 <script setup lang="ts">
-// Index page component
+import HeroSection from "~/components/Landing/HeroSection.vue";
+import FeaturesSection from "~/components/Landing/FeaturesSection.vue";
+import HowItWorksSection from "~/components/Landing/HowItWorksSection.vue";
+import CtaSection from "~/components/Landing/CtaSection.vue";
 </script>
 
 <template>
   <NuxtLayout name="home">
-    <div class="home-page">
-      <h1>Home Page</h1>
-      <NuxtLink to="/dashboard">
-        <UiButton type="button">Dashboard</UiButton>
-      </NuxtLink>
-    </div>
+    <HeroSection />
+    <FeaturesSection />
+    <HowItWorksSection />
+    <CtaSection />
   </NuxtLayout>
 </template>
