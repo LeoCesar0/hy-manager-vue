@@ -20,77 +20,98 @@ const props = withDefaults(defineProps<IProps>(), {
 });
 
 const cards = computed(() => {
-  if (!props.insights) return [];
+  const insights = props.insights;
+  if (!insights) return [];
 
-  return [
+  // Comparison cards (biggest increase/decrease) are first-vs-last-month based
+  // and return null on a single-month selection, so we filter them out instead
+  // of rendering a "—" placeholder that adds no information.
+  const all = [
     {
       title: "Taxa de poupança",
       value:
-        props.insights.savingsRate !== null
-          ? `${props.insights.savingsRate.toFixed(1)}%`
+        insights.savingsRate !== null
+          ? `${insights.savingsRate.toFixed(1)}%`
           : "—",
       subtitle:
-        props.insights.savingsRate !== null
-          ? props.insights.savingsRate >= 0
+        insights.savingsRate !== null
+          ? insights.savingsRate >= 0
             ? "do período selecionado"
             : "Gastando mais do que recebe"
           : "Sem entradas no período",
       trend:
-        props.insights.savingsRate !== null
-          ? props.insights.savingsRate >= 20
+        insights.savingsRate !== null
+          ? insights.savingsRate >= 20
             ? ("up" as const)
-            : props.insights.savingsRate >= 0
+            : insights.savingsRate >= 0
               ? ("neutral" as const)
               : ("down" as const)
           : undefined,
       icon: PiggyBankIcon,
+      visible: true,
     },
     {
       title: "Maior aumento de gastos",
-      value: props.insights.biggestIncrease?.name ?? "—",
-      subtitle: props.insights.biggestIncrease
-        ? `+${formatCurrency({ amount: props.insights.biggestIncrease.change })} (${props.insights.biggestIncrease.changePercent.toFixed(0)}%)`
+      value: insights.biggestIncrease?.name ?? "—",
+      subtitle: insights.biggestIncrease
+        ? `+${formatCurrency({ amount: insights.biggestIncrease.change })} (${insights.biggestIncrease.changePercent.toFixed(0)}%)`
         : "Sem variação",
-      trend: props.insights.biggestIncrease ? ("down" as const) : undefined,
+      trend: insights.biggestIncrease ? ("down" as const) : undefined,
       icon: TrendingUpIcon,
       variant: "expense" as const,
+      visible: insights.biggestIncrease !== null,
     },
     {
       title: "Maior redução de gastos",
-      value: props.insights.biggestDecrease?.name ?? "—",
-      subtitle: props.insights.biggestDecrease
-        ? `${formatCurrency({ amount: props.insights.biggestDecrease.change })} (${props.insights.biggestDecrease.changePercent.toFixed(0)}%)`
+      value: insights.biggestDecrease?.name ?? "—",
+      subtitle: insights.biggestDecrease
+        ? `${formatCurrency({ amount: insights.biggestDecrease.change })} (${insights.biggestDecrease.changePercent.toFixed(0)}%)`
         : "Sem variação",
-      trend: props.insights.biggestDecrease ? ("up" as const) : undefined,
+      trend: insights.biggestDecrease ? ("up" as const) : undefined,
       icon: TrendingDownIcon,
       variant: "deposit" as const,
+      visible: insights.biggestDecrease !== null,
     },
     {
       title: "Entradas (ano)",
-      value: formatCurrency({ amount: props.insights.ytdIncome }),
+      value: formatCurrency({ amount: insights.ytdIncome }),
       icon: CalendarIcon,
       variant: "deposit" as const,
+      visible: true,
     },
     {
       title: "Saídas (ano)",
-      value: formatCurrency({ amount: props.insights.ytdExpenses }),
+      value: formatCurrency({ amount: insights.ytdExpenses }),
       icon: CalendarIcon,
       variant: "expense" as const,
+      visible: true,
     },
     {
       title: "Saldo (ano)",
-      value: formatCurrency({ amount: props.insights.ytdBalance }),
-      trend: props.insights.ytdBalance >= 0 ? ("up" as const) : ("down" as const),
+      value: formatCurrency({ amount: insights.ytdBalance }),
+      trend: insights.ytdBalance >= 0 ? ("up" as const) : ("down" as const),
       icon: CalendarIcon,
+      visible: true,
+    },
+    {
+      title: "Ganho médio mensal",
+      value: formatCurrency({ amount: insights.averageMonthlyIncome }),
+      subtitle: "baseado em todo o histórico",
+      icon: BarChart3Icon,
+      variant: "deposit" as const,
+      visible: true,
     },
     {
       title: "Gasto médio mensal",
-      value: formatCurrency({ amount: props.insights.averageMonthlySpending }),
+      value: formatCurrency({ amount: insights.averageMonthlySpending }),
       subtitle: "baseado em todo o histórico",
       icon: BarChart3Icon,
       variant: "expense" as const,
+      visible: true,
     },
   ];
+
+  return all.filter((c) => c.visible);
 });
 </script>
 

@@ -1,1 +1,6 @@
-- update a counter party category must reflect into already created transactions and reports. Everything must already be synced.
+- charts tooltips
+- transaction filters and other filters which has stard and end date should have an quicker way to just say "february" or the custom date.
+- Inter transactions upload
+- Bank accounts should have the company field into it (currently inter or nubank enum). Bank Account forms and onboarding form should have that field. Transactions uploading file input should get the bank account type from it instead of select. 
+- When user logs in after other user was logged in, currentBankAccount in dashboard it not automatically selected from one of its bank accounts, should default to the last updated one since the stored bank account in browser was other user's ownership.
+- Rename Terceiros/Counterparties to Identificadores/Identifiers

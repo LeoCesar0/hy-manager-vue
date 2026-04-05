@@ -113,6 +113,20 @@ onMounted(() => {
     </template>
 
     <div class="space-y-6">
+      <ReportsInsightsKPIs :insights="enhancedInsights" :loading="isLoading" />
+
+      <ReportsBudgetTracking
+        :budget-progress-per-month="budgetProgressPerMonth"
+        :loading="isLoading"
+        :on-open-settings="handleOpenBudgetSettings"
+      />
+
+      <ReportsPeriodDonuts
+        :breakdowns="periodBreakdowns"
+        :month-count="effectiveMonths.length"
+        :loading="isLoading"
+      />
+
       <ReportsOverviewCharts
         :chart-data="overviewChartData"
         :balance-trend-data="balanceTrendData"
@@ -128,12 +142,6 @@ onMounted(() => {
         :loading="isLoading"
       />
 
-      <ReportsPeriodDonuts
-        :breakdowns="periodBreakdowns"
-        :month-count="effectiveMonths.length"
-        :loading="isLoading"
-      />
-
       <ReportsBreakdownDetail
         :category-list="categoryList"
         :counterparty-list="counterpartyList"
@@ -145,14 +153,6 @@ onMounted(() => {
         :on-select-counterparty="handleSelectCounterparty"
         :loading="isLoading"
       />
-
-      <ReportsBudgetTracking
-        :budget-progress-per-month="budgetProgressPerMonth"
-        :loading="isLoading"
-        :on-open-settings="handleOpenBudgetSettings"
-      />
-
-      <ReportsInsightsKPIs :insights="enhancedInsights" :loading="isLoading" />
     </div>
 
     <BudgetSettingsDialog

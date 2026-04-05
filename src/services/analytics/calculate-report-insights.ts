@@ -16,6 +16,7 @@ export type IReportInsights = {
   ytdExpenses: number;
   ytdBalance: number;
   averageMonthlySpending: number;
+  averageMonthlyIncome: number;
 };
 
 export const calculateReportInsights = ({
@@ -79,10 +80,17 @@ export const calculateReportInsights = ({
   const ytdBalance = roundCurrency({ value: ytdIncome - ytdExpenses });
 
   const allMonthEntries = Object.values(monthlyBreakdown);
+  const monthCount = allMonthEntries.length;
   const averageMonthlySpending =
-    allMonthEntries.length > 0
+    monthCount > 0
       ? roundCurrency({
-          value: allMonthEntries.reduce((sum, m) => sum + m.expenses, 0) / allMonthEntries.length,
+          value: allMonthEntries.reduce((sum, m) => sum + m.expenses, 0) / monthCount,
+        })
+      : 0;
+  const averageMonthlyIncome =
+    monthCount > 0
+      ? roundCurrency({
+          value: allMonthEntries.reduce((sum, m) => sum + m.income, 0) / monthCount,
         })
       : 0;
 
@@ -94,5 +102,6 @@ export const calculateReportInsights = ({
     ytdExpenses: roundCurrency({ value: ytdExpenses }),
     ytdBalance,
     averageMonthlySpending,
+    averageMonthlyIncome,
   };
 };

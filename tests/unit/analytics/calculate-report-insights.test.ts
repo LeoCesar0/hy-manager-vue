@@ -186,7 +186,30 @@ describe("calculateReportInsights", () => {
     expect(result.averageMonthlySpending).toBe(2500);
   });
 
-  it("returns 0 for average when no months exist", () => {
+  it("calculates average monthly income across all months (ignores selection)", () => {
+    const report = asReport(
+      makeReport({
+        monthlyBreakdown: {
+          "2024-01": makeMonthlyEntry({ income: 4000 }),
+          "2024-02": makeMonthlyEntry({ income: 5000 }),
+          "2024-03": makeMonthlyEntry({ income: 6000 }),
+        },
+      })
+    );
+
+    const result = calculateReportInsights({
+      report,
+      // Selection is narrower than the report — the average should still cover
+      // the full history, matching averageMonthlySpending's semantics.
+      selectedMonths: ["2024-01"],
+      categories: [],
+    });
+
+    // (4000+5000+6000)/3 = 5000
+    expect(result.averageMonthlyIncome).toBe(5000);
+  });
+
+  it("returns 0 for averages when no months exist", () => {
     const report = asReport(makeReport({}));
 
     const result = calculateReportInsights({
@@ -196,6 +219,7 @@ describe("calculateReportInsights", () => {
     });
 
     expect(result.averageMonthlySpending).toBe(0);
+    expect(result.averageMonthlyIncome).toBe(0);
   });
 
   it("uses 'Desconhecido' for unknown categories in increase/decrease", () => {

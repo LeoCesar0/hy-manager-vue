@@ -25,9 +25,15 @@ type IProps = {
   loading?: boolean;
 };
 
-withDefaults(defineProps<IProps>(), {
+const props = withDefaults(defineProps<IProps>(), {
   loading: false,
 });
+
+// Trend lines need at least two data points to be meaningful. On a single-month
+// selection they collapse to one dot, and "Saldo Acumulado" over one month is
+// just that month's balance — pure noise. Hide the whole trend grid and leave
+// the bar chart as the overview for single-month mode.
+const hasTrendData = computed(() => props.balanceTrendData.length >= 2);
 
 const balanceSeries = [
   { key: "balance", label: "Saldo", color: "var(--primary)" },
@@ -59,7 +65,7 @@ const formatCurrencyValue = (v: number) => formatCurrency({ amount: v });
       empty-message="Sem dados no período selecionado"
     />
 
-    <div class="grid gap-4 md:grid-cols-2">
+    <div v-if="hasTrendData" class="grid gap-4 md:grid-cols-2">
       <LineChart
         title="Tendência de Saldo"
         :data="balanceTrendData"
