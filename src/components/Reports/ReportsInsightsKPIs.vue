@@ -19,6 +19,13 @@ const props = withDefaults(defineProps<IProps>(), {
   loading: false,
 });
 
+// "2024-03" → "03/2024" — matches the MM/YYYY convention used by
+// ReportsOverviewCharts' month labels so users see a consistent format.
+const formatMonthKey = (key: string) => {
+  const [year, month] = key.split("-");
+  return `${month}/${year}`;
+};
+
 const cards = computed(() => {
   const insights = props.insights;
   if (!insights) return [];
@@ -54,7 +61,7 @@ const cards = computed(() => {
       title: "Maior aumento de gastos",
       value: insights.biggestIncrease?.name ?? "—",
       subtitle: insights.biggestIncrease
-        ? `+${formatCurrency({ amount: insights.biggestIncrease.change })} (${insights.biggestIncrease.changePercent.toFixed(0)}%)`
+        ? `+${formatCurrency({ amount: insights.biggestIncrease.change })} em ${formatMonthKey(insights.biggestIncrease.monthKey)}`
         : "Sem variação",
       trend: insights.biggestIncrease ? ("down" as const) : undefined,
       icon: TrendingUpIcon,
@@ -65,7 +72,7 @@ const cards = computed(() => {
       title: "Maior redução de gastos",
       value: insights.biggestDecrease?.name ?? "—",
       subtitle: insights.biggestDecrease
-        ? `${formatCurrency({ amount: insights.biggestDecrease.change })} (${insights.biggestDecrease.changePercent.toFixed(0)}%)`
+        ? `${formatCurrency({ amount: insights.biggestDecrease.change })} em ${formatMonthKey(insights.biggestDecrease.monthKey)}`
         : "Sem variação",
       trend: insights.biggestDecrease ? ("up" as const) : undefined,
       icon: TrendingDownIcon,

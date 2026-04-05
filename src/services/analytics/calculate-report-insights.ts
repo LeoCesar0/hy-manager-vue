@@ -8,10 +8,19 @@ type IProps = {
   categories: ICategory[];
 };
 
+// monthKey is the "to" month of the winning adjacent pair — i.e. the month
+// where the jump landed. Lets the UI pinpoint *when* the spike happened.
+export type IInsightChange = {
+  name: string;
+  change: number;
+  changePercent: number;
+  monthKey: string;
+};
+
 export type IReportInsights = {
   savingsRate: number | null;
-  biggestIncrease: { name: string; change: number; changePercent: number } | null;
-  biggestDecrease: { name: string; change: number; changePercent: number } | null;
+  biggestIncrease: IInsightChange | null;
+  biggestDecrease: IInsightChange | null;
   ytdIncome: number;
   ytdExpenses: number;
   ytdBalance: number;
@@ -37,35 +46,39 @@ export const calculateReportInsights = ({
   let biggestIncrease: IReportInsights["biggestIncrease"] = null;
   let biggestDecrease: IReportInsights["biggestDecrease"] = null;
 
-  if (sorted.length >= 2) {
-    const firstKey = sorted[0]!;
-    const lastKey = sorted[sorted.length - 1]!;
-    const firstEntry = monthlyBreakdown[firstKey];
-    const lastEntry = monthlyBreakdown[lastKey];
+  // Scan every adjacent pair of months inside the selection (Jan→Feb, Feb→Mar,
+  // …) so a mid-window spike or drop is caught. The previous implementation
+  // only compared sorted[0] vs sorted[last] and silently missed anything that
+  // zeroed out at the endpoints. For 2-month selections this collapses to the
+  // old behavior (one pair = same result).
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const fromKey = sorted[i]!;
+    const toKey = sorted[i + 1]!;
+    const fromEntry = monthlyBreakdown[fromKey];
+    const toEntry = monthlyBreakdown[toKey];
+    if (!fromEntry || !toEntry) continue;
 
-    if (firstEntry && lastEntry) {
-      const allCategoryIds = new Set<string>();
-      Object.keys(firstEntry.expensesByCategory ?? {}).forEach((id) => allCategoryIds.add(id));
-      Object.keys(lastEntry.expensesByCategory ?? {}).forEach((id) => allCategoryIds.add(id));
+    const allCategoryIds = new Set<string>();
+    Object.keys(fromEntry.expensesByCategory ?? {}).forEach((id) => allCategoryIds.add(id));
+    Object.keys(toEntry.expensesByCategory ?? {}).forEach((id) => allCategoryIds.add(id));
 
-      for (const id of allCategoryIds) {
-        const firstAmount = firstEntry.expensesByCategory?.[id] ?? 0;
-        const lastAmount = lastEntry.expensesByCategory?.[id] ?? 0;
-        const change = lastAmount - firstAmount;
+    for (const id of allCategoryIds) {
+      const fromAmount = fromEntry.expensesByCategory?.[id] ?? 0;
+      const toAmount = toEntry.expensesByCategory?.[id] ?? 0;
+      const change = toAmount - fromAmount;
 
-        if (firstAmount === 0 && lastAmount === 0) continue;
+      if (fromAmount === 0 && toAmount === 0) continue;
 
-        const changePercent = firstAmount > 0 ? (change / firstAmount) * 100 : 100;
-        const cat = categories.find((c) => c.id === id);
-        const name = cat?.name ?? "Desconhecido";
+      const changePercent = fromAmount > 0 ? (change / fromAmount) * 100 : 100;
+      const cat = categories.find((c) => c.id === id);
+      const name = cat?.name ?? "Desconhecido";
 
-        if (change > 0 && (!biggestIncrease || change > biggestIncrease.change)) {
-          biggestIncrease = { name, change, changePercent };
-        }
+      if (change > 0 && (!biggestIncrease || change > biggestIncrease.change)) {
+        biggestIncrease = { name, change, changePercent, monthKey: toKey };
+      }
 
-        if (change < 0 && (!biggestDecrease || change < biggestDecrease.change)) {
-          biggestDecrease = { name, change, changePercent };
-        }
+      if (change < 0 && (!biggestDecrease || change < biggestDecrease.change)) {
+        biggestDecrease = { name, change, changePercent, monthKey: toKey };
       }
     }
   }
