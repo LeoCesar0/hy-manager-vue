@@ -222,6 +222,123 @@ describe("calculateReportInsights", () => {
     expect(result.averageMonthlyIncome).toBe(0);
   });
 
+  describe("positive-expense handling", () => {
+    const positiveCategories = [
+      makeCategory({ id: "cat-food", name: "Alimentação" }),
+      makeCategory({ id: "cat-invest", name: "Investimentos", isPositiveExpense: true }),
+    ];
+
+    it("excludes positive-expense categories from averageMonthlySpending", () => {
+      const report = asReport(
+        makeReport({
+          monthlyBreakdown: {
+            "2024-01": makeMonthlyEntry({
+              expenses: 1500,
+              expensesByCategory: { "cat-food": 1000, "cat-invest": 500 },
+            }),
+            "2024-02": makeMonthlyEntry({
+              expenses: 1500,
+              expensesByCategory: { "cat-food": 1000, "cat-invest": 500 },
+            }),
+          },
+        })
+      );
+
+      const result = calculateReportInsights({
+        report,
+        selectedMonths: ["2024-01"],
+        categories: positiveCategories,
+      });
+
+      // Each month: 1500 raw, 500 positive, 1000 real. Average = 1000.
+      expect(result.averageMonthlySpending).toBe(1000);
+      // Exposes the positive-expense portion so the UI can show both numbers.
+      expect(result.averageMonthlyPositiveExpenses).toBe(500);
+    });
+
+    it("excludes positive-expense categories from ytdExpenses", () => {
+      const report = asReport(
+        makeReport({
+          monthlyBreakdown: {
+            [`${currentYear}-01`]: makeMonthlyEntry({
+              expenses: 3000,
+              expensesByCategory: { "cat-food": 2000, "cat-invest": 1000 },
+            }),
+            [`${currentYear}-02`]: makeMonthlyEntry({
+              expenses: 3000,
+              expensesByCategory: { "cat-food": 2000, "cat-invest": 1000 },
+            }),
+          },
+        })
+      );
+
+      const result = calculateReportInsights({
+        report,
+        selectedMonths: [`${currentYear}-01`, `${currentYear}-02`],
+        categories: positiveCategories,
+      });
+
+      // YTD raw = 6000, positive = 2000, real = 4000
+      expect(result.ytdExpenses).toBe(4000);
+      expect(result.ytdPositiveExpenses).toBe(2000);
+      // ytdBalance stays raw per product decision — "saldo" reflects the
+      // operating account, and investments still left the account.
+      expect(result.ytdBalance).toBe(-6000);
+    });
+
+    it("computes savings rate using real expenses, not raw", () => {
+      const report = asReport(
+        makeReport({
+          monthlyBreakdown: {
+            "2024-01": makeMonthlyEntry({
+              income: 5000,
+              expenses: 4000,
+              expensesByCategory: { "cat-food": 2000, "cat-invest": 2000 },
+            }),
+          },
+        })
+      );
+
+      const result = calculateReportInsights({
+        report,
+        selectedMonths: ["2024-01"],
+        categories: positiveCategories,
+      });
+
+      // Real expenses = 2000, not 4000.
+      // Savings rate = (5000 - 2000) / 5000 * 100 = 60%
+      expect(result.savingsRate).toBe(60);
+    });
+
+    it("skips positive-expense categories in biggestIncrease/biggestDecrease", () => {
+      // Investimentos jumps +1000, Alimentação jumps +400. Under the old logic
+      // Investimentos would be reported as the "biggest spending increase",
+      // which is actively misleading — increasing investments isn't bad news.
+      const report = asReport(
+        makeReport({
+          monthlyBreakdown: {
+            "2024-01": makeMonthlyEntry({
+              expensesByCategory: { "cat-food": 500, "cat-invest": 500 },
+            }),
+            "2024-02": makeMonthlyEntry({
+              expensesByCategory: { "cat-food": 900, "cat-invest": 1500 },
+            }),
+          },
+        })
+      );
+
+      const result = calculateReportInsights({
+        report,
+        selectedMonths: ["2024-01", "2024-02"],
+        categories: positiveCategories,
+      });
+
+      expect(result.biggestIncrease).not.toBeNull();
+      expect(result.biggestIncrease!.name).toBe("Alimentação");
+      expect(result.biggestIncrease!.change).toBe(400);
+    });
+  });
+
   it("finds biggest increase in the middle of the window, not just endpoints", () => {
     // Regression test for the endpoint-only comparison bug.
     // Alimentação is flat at 500 at both endpoints but spikes to 2000 in March.

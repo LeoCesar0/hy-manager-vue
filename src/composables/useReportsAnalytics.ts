@@ -147,6 +147,7 @@ export const useReportsAnalytics = () => {
     return calculateSavingsRateTrend({
       monthKeys: effectiveMonths.value,
       monthlyBreakdown: report.value.monthlyBreakdown,
+      categories: categories.value,
     });
   });
 

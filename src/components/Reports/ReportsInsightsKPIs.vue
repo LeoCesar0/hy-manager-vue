@@ -26,6 +26,14 @@ const formatMonthKey = (key: string) => {
   return `${month}/${year}`;
 };
 
+// Appends "+ R$ X em investimentos" to a subtitle when there are positive-expense
+// outflows in the period. When there are none, returns the base subtitle
+// unchanged so users without investment categories see no extra noise.
+const withPositiveExpenseAddendum = (base: string, positiveAmount: number) => {
+  if (positiveAmount <= 0) return base;
+  return `${base} + ${formatCurrency({ amount: positiveAmount })} em investimentos`;
+};
+
 const cards = computed(() => {
   const insights = props.insights;
   if (!insights) return [];
@@ -89,6 +97,10 @@ const cards = computed(() => {
     {
       title: "Saídas (ano)",
       value: formatCurrency({ amount: insights.ytdExpenses }),
+      subtitle: withPositiveExpenseAddendum(
+        "gastos reais",
+        insights.ytdPositiveExpenses,
+      ),
       icon: CalendarIcon,
       variant: "expense" as const,
       visible: true,
@@ -111,7 +123,10 @@ const cards = computed(() => {
     {
       title: "Gasto médio mensal",
       value: formatCurrency({ amount: insights.averageMonthlySpending }),
-      subtitle: "baseado em todo o histórico",
+      subtitle: withPositiveExpenseAddendum(
+        "baseado em todo o histórico",
+        insights.averageMonthlyPositiveExpenses,
+      ),
       icon: BarChart3Icon,
       variant: "expense" as const,
       visible: true,
