@@ -125,6 +125,15 @@ const getChangeColor = (item: typeof displayData.value[number]) => {
           <p class="text-sm font-semibold text-expense">
             {{ formatCurrency({ amount: comparison.totals.expenses[month] ?? 0 }) }}
           </p>
+          <!-- Only render the investment line when the user has positive-expense
+               activity this month — otherwise the summary grid stays uncluttered
+               for accounts without investment categories. -->
+          <p
+            v-if="(comparison.totals.positiveExpenses[month] ?? 0) > 0"
+            class="text-xs text-muted-foreground mt-0.5"
+          >
+            + {{ formatCurrency({ amount: comparison.totals.positiveExpenses[month] ?? 0 }) }} inv
+          </p>
         </div>
       </div>
     </div>

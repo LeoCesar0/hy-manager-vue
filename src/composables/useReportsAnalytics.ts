@@ -17,6 +17,7 @@ import { buildBreakdownList } from "~/services/analytics/build-breakdown-list";
 import { aggregatePeriodBreakdowns, type IPeriodBreakdowns } from "~/services/analytics/aggregate-period-breakdowns";
 import { calculateSavingsRateTrend, type ISavingsRatePoint } from "~/services/analytics/calculate-savings-rate-trend";
 import { calculateCumulativeBalanceTrend, type ICumulativeBalancePoint } from "~/services/analytics/calculate-cumulative-balance-trend";
+import { calculateBalanceTrend, type IBalanceTrendPoint } from "~/services/analytics/calculate-balance-trend";
 
 export type IMonthBudgetProgress = {
   monthKey: string;
@@ -87,12 +88,13 @@ export const useReportsAnalytics = () => {
     });
   });
 
-  const balanceTrendData = computed(() => {
-    return overviewChartData.value.map((item) => ({
-      label: item.label,
-      balance: item.balance,
-      ratio: item.income > 0 ? item.expenses / item.income : 0,
-    }));
+  const balanceTrendData = computed<IBalanceTrendPoint[]>(() => {
+    if (!report.value) return [];
+    return calculateBalanceTrend({
+      monthKeys: effectiveMonths.value,
+      monthlyBreakdown: report.value.monthlyBreakdown,
+      categories: categories.value,
+    });
   });
 
   const monthlyComparison = computed<IMonthlyComparison | null>(() => {

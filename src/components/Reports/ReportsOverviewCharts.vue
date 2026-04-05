@@ -4,6 +4,7 @@ import LineChart from "~/components/Charts/LineChart.vue";
 import { formatCurrency } from "~/helpers/formatCurrency";
 import type { ISavingsRatePoint } from "~/services/analytics/calculate-savings-rate-trend";
 import type { ICumulativeBalancePoint } from "~/services/analytics/calculate-cumulative-balance-trend";
+import type { IBalanceTrendPoint } from "~/services/analytics/calculate-balance-trend";
 
 type ChartDataItem = {
   label: string;
@@ -11,15 +12,9 @@ type ChartDataItem = {
   expenses: number;
 };
 
-type BalanceTrendItem = {
-  label: string;
-  balance: number;
-  ratio: number;
-};
-
 type IProps = {
   chartData: ChartDataItem[];
-  balanceTrendData: BalanceTrendItem[];
+  balanceTrendData: IBalanceTrendPoint[];
   savingsRateTrend: ISavingsRatePoint[];
   cumulativeBalanceTrend: ICumulativeBalancePoint[];
   loading?: boolean;

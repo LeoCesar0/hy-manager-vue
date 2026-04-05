@@ -1,6 +1,7 @@
 import type { IMonthlyEntry } from "~/@schemas/models/report";
 import type { ICategory } from "~/@schemas/models/category";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
+import { splitPositiveExpenses } from "./split-positive-expenses";
 
 type IProps = {
   monthKeys: string[];
@@ -23,7 +24,14 @@ export type IMonthlyComparison = {
   counterpartyDeltas: IDelta[];
   totals: {
     income: Record<string, number>;
+    // Real expenses — excludes positive-expense categories (investments,
+    // savings deposits). The split-off amount is exposed as positiveExpenses
+    // so the UI can surface both numbers in the per-month summary.
     expenses: Record<string, number>;
+    positiveExpenses: Record<string, number>;
+    // Balance stays raw: income − rawExpenses. It tracks money that actually
+    // left the operating account, which investments still did. Matches the
+    // "Saldo (ano)" KPI semantics.
     balance: Record<string, number>;
   };
 };
@@ -108,14 +116,21 @@ export const compareMonths = ({
   const totals: IMonthlyComparison["totals"] = {
     income: {},
     expenses: {},
+    positiveExpenses: {},
     balance: {},
   };
 
   for (const key of sorted) {
     const entry = monthlyBreakdown[key];
-    totals.income[key] = entry?.income ?? 0;
-    totals.expenses[key] = entry?.expenses ?? 0;
-    totals.balance[key] = (entry?.income ?? 0) - (entry?.expenses ?? 0);
+    const income = entry?.income ?? 0;
+    const rawExpenses = entry?.expenses ?? 0;
+    const split = entry
+      ? splitPositiveExpenses({ entry, categories })
+      : { realExpenses: 0, positiveExpenses: 0, rawExpenses: 0 };
+    totals.income[key] = income;
+    totals.expenses[key] = split.realExpenses;
+    totals.positiveExpenses[key] = split.positiveExpenses;
+    totals.balance[key] = income - rawExpenses;
   }
 
   categoryDeltas.sort((a, b) => {

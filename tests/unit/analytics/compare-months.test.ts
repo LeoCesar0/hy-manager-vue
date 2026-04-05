@@ -195,4 +195,48 @@ describe("compareMonths", () => {
 
     expect(result.categoryDeltas.map((d) => d.id)).toEqual(["cat-a", "cat-c", "cat-b"]);
   });
+
+  it("splits positive-expense categories out of totals.expenses", () => {
+    // The per-month summary at the bottom of the comparison table should
+    // answer "how much did I actually spend this month?" — investing R$ 400
+    // is saving, not spending. The R$ 400 still shows in totals.positiveExpenses
+    // so the UI can surface both numbers.
+    const categories = [
+      makeCategory({ id: "cat-food", name: "Alimentação" }),
+      makeCategory({ id: "cat-invest", name: "Investimentos", isPositiveExpense: true }),
+    ];
+
+    const result = compareMonths({
+      monthKeys: ["2025-01"],
+      monthlyBreakdown: {
+        "2025-01": makeMonthlyEntry({
+          income: 1000,
+          expenses: 700,
+          expensesByCategory: { "cat-food": 300, "cat-invest": 400 },
+        }),
+      },
+      categories,
+      counterparties: [],
+    });
+
+    expect(result.totals.expenses["2025-01"]).toBe(300);
+    expect(result.totals.positiveExpenses["2025-01"]).toBe(400);
+    // Balance stays raw — it represents what actually left the operating
+    // account, which investments still did.
+    expect(result.totals.balance["2025-01"]).toBe(300);
+  });
+
+  it("reports zero positiveExpenses when no positive-expense categories", () => {
+    const result = compareMonths({
+      monthKeys: ["2024-01"],
+      monthlyBreakdown: {
+        "2024-01": makeMonthlyEntry({ income: 5000, expenses: 3000 }),
+      },
+      categories: [],
+      counterparties: [],
+    });
+
+    expect(result.totals.expenses["2024-01"]).toBe(3000);
+    expect(result.totals.positiveExpenses["2024-01"]).toBe(0);
+  });
 });
