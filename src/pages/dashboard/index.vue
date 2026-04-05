@@ -86,7 +86,7 @@ onMounted(() => {
       />
     </template>
 
-    <UncategorizedBanner :count="uncategorizedCount" />
+    <!-- <UncategorizedBanner :count="uncategorizedCount" /> -->
 
     <SummaryCards :totals="totals" :loading="isLoading" />
 
