@@ -44,16 +44,40 @@ The rename touches both code and copy. Scope of affected surface:
 
 ## Suggested approach
 
-**Not a 5-minute find-replace.** This is a non-trivial rename that needs a plan:
+**Not a 5-minute find-replace.** This is a non-trivial rename and the effort differs wildly depending on how deep it goes. Three discrete scopes to choose from:
 
-1. **Decide the code name first**: `identifier` is a very generic word in programming (it collides with variable naming everywhere). Consider alternatives:
-   - `txIdentifier` / `ITxIdentifier` — explicit namespacing
-   - `transactionIdentifier`
-   - Keep `counterparty` in code, only rename the UI copy — separates concerns, avoids the collision problem. **This is probably the right call.**
-2. **If code stays `counterparty`**: the task collapses to a UI copy sweep — much simpler. Grep for "Terceiros?" and "Counterpart" in Vue templates and replace. Keep the code paths and types untouched.
-3. **If code also changes**: plan for a Firestore collection rename (requires a migration — create new collection, copy docs, update rules, update code, delete old collection — across a deploy). Not trivial.
-4. **Migration path** (if collection renames): existing users' data needs to carry over. Either do a server-side script via Firebase Admin, or lazy-migrate on read (create the new doc on first access, delete the old).
+### Scope A — UI copy only (recommended starting point)
 
-**Recommendation**: start with option 2 — UI copy only. That delivers 90% of the user-facing benefit in 1% of the effort, and the deeper rename can be re-evaluated once the term is validated against real user feedback.
+Touch only user-facing Portuguese strings. Code keeps `counterparty`, Firestore collection keeps `creditors`. Effort: ~30 min.
 
-**Open question when picking this up**: is "Identificador" the final term, or still under discussion? The effort difference between UI-only and full rename is so large that this should be confirmed before doing anything.
+- Grep Vue templates for `Terceiros?` and replace with `Identificadores?`
+- Update menu labels, route display names, form labels, empty states, toasts
+- Leave the URL path (`/dashboard/terceiros`) as-is unless it's visible to users often enough to matter — URL renames require redirect handling
+- Zero code or schema changes, zero migration
+
+### Scope B — UI copy + route path
+
+Scope A plus rename the route from `/dashboard/terceiros` to `/dashboard/identificadores`. Effort: ~1h.
+
+- Rename the page file + add a redirect from the old path to avoid breaking bookmarks
+- Update any internal `<NuxtLink>` / `navigateTo` references
+
+### Scope C — Full rename (code + Firestore)
+
+Rename `counterparty` → `identifier` (or `txIdentifier` to avoid variable-name collisions) across the codebase AND rename the Firestore collection. Effort: multi-day, requires migration + deploy coordination.
+
+- Collection rename needs a migration script (create new collection, copy docs, update rules, delete old) — not reversible easily
+- Touches `src/@schemas/models/counterparty.ts`, `src/services/api/counterparties/`, `src/components/Counterparties/`, any stores, any tests
+- Incidental win: the current code/collection mismatch (code = `counterparty`, Firestore = `creditors`) would be resolved
+
+**Proposed direction (not confirmed — decide when picking up the task):**
+
+Start with **Scope A**. Deliver the user-facing benefit immediately with almost no risk. If the term "Identificador" sticks after real usage, revisit Scope C as a cleanup pass. Scope B is an in-between — not clearly worth the extra effort over A unless users are sharing URLs to the page.
+
+The `counterparty` vs `identifier` code name question is the thornier half of Scope C: `identifier` collides with a very common programming term, so if we do rename code we should probably pick something more specific like `txIdentifier` or keep `counterparty` and only rename the display layer. **This is the main open question to resolve before committing to Scope C.**
+
+### Open questions
+
+1. Is "Identificador" the final term, or still under discussion?
+2. If going to Scope C: what's the code-level name? `identifier` (collision-prone), `txIdentifier` (explicit), or keep `counterparty` and treat "Identificador" as display-only?
+3. Is the route path (`/dashboard/terceiros`) shared externally enough to warrant the Scope B redirect work?

@@ -47,6 +47,11 @@ Consumer that should replace its manual selector:
 - Users currently can (and do) pick the wrong format during import, producing silently wrong data.
 - A `company` field is a prerequisite for cleaner downstream features (bank-branded UI, Inter parser integration, provider-specific automation).
 
+## Confirmed decisions
+
+- **`"other"` is the escape hatch** (confirmed with user). Users on unsupported banks can still create accounts — they simply lose access to the features that require a known provider (currently: CSV file upload). This is acceptable because manual transaction entry still works.
+- **Feature gating pattern**: provider-dependent features check `currentBankAccount.company !== "other"` and show a disabled state with a short explanation. This pattern is reusable as we add more integrations (OFX import, open banking, provider-specific automations).
+
 ## Suggested approach
 
 1. **Define the enum** alongside the schema:
@@ -54,13 +59,11 @@ Consumer that should replace its manual selector:
    export const bankAccountCompanies = ["nubank", "inter", "other"] as const;
    export const zBankAccountCompany = z.enum(bankAccountCompanies);
    ```
-   Include an `"other"` escape hatch so users with unsupported banks can still create accounts — they just won't get CSV import until we ship their parser.
-2. **Add `company: zBankAccountCompany` to `zBankAccountBase`**. Requires a Firestore migration path for existing accounts (default them to `"other"` or run a backfill reading the `name` field heuristically).
-3. **Onboarding step**: add a `Form/Field/CardSelectItem`-style picker above the name input, with the known bank logos. Pre-fill the name based on the picked company (e.g. pick Nubank → name defaults to "Nubank", user can rename).
+2. **Add `company: zBankAccountCompany` to `zBankAccountBase`**. Requires a Firestore migration path for existing accounts — set `company: "other"` for all legacy docs (see migration step below).
+3. **Onboarding step**: add a `Form/Field/CardSelectItem`-style picker above the name input, with the known bank logos (Nubank, Inter, Other). Pre-fill the name based on the picked company (e.g. pick Nubank → name defaults to "Nubank", user can rename). "Other" keeps the name field blank for the user to fill.
 4. **Bank account create/edit form**: same picker pattern as onboarding.
-5. **ImportSheet**: drop `selectedFormat` state entirely, read `currentBankAccount.company` from `useDashboardStore`, route to the parser automatically. If company is `"other"`, show a fallback message explaining CSV import isn't supported and the user should add transactions manually.
-6. **Migration**: write a one-shot script (or on-read hydration) that sets `company: "other"` for legacy docs. Consider whether existing users should be prompted to pick their bank retroactively — a one-time modal "We improved bank accounts, pick your provider:" is less bad than silently bucketing everyone into "other".
+5. **ImportSheet (and any other company-gated feature)**: drop `selectedFormat` state, read `currentBankAccount.company` from `useDashboardStore`, route to the parser automatically. If `company === "other"`, render a disabled state with copy like "Upload de extrato não disponível para este banco — adicione as transações manualmente". **Do not** silently fall through to a default parser — that's what produces wrong imports today.
+6. **Migration**: write a one-shot script (Firebase Admin or a lazy on-read hydration) that sets `company: "other"` for legacy docs. Consider a one-time post-login modal "Escolha o banco das suas contas existentes:" so existing users can opt into the full experience instead of being silently bucketed into "other".
+7. **Feature-gate audit**: after landing, grep the codebase for any other place that currently assumes a single bank format (there's at least `ImportSheet.vue` and anywhere the parsers are invoked) and make sure it reads `company` correctly or gates behind the `"other"` check.
 
 Dependency chain: this observation is a prerequisite for the "Inter bank statement parser" observation landing cleanly. They should probably ship together, or at least in the same PR series.
-
-Open question when picking this up: Do we want a free-text `company` fallback for users on small/unknown banks, or is `"other"` sufficient? Start with `"other"` and revisit if user feedback says otherwise.
