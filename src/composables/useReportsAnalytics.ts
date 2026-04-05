@@ -11,6 +11,12 @@ import { getCounterparties } from "~/services/api/counterparties/get-counterpart
 import { compareMonths, type IMonthlyComparison } from "~/services/analytics/compare-months";
 import { calculateBudgetProgress, type IBudgetProgress } from "~/services/analytics/calculate-budget-progress";
 import { calculateReportInsights, type IReportInsights } from "~/services/analytics/calculate-report-insights";
+import { buildCategoryDrillDown } from "~/services/analytics/build-category-drill-down";
+import { buildCounterpartyDrillDown } from "~/services/analytics/build-counterparty-drill-down";
+import { buildBreakdownList } from "~/services/analytics/build-breakdown-list";
+import { aggregatePeriodBreakdowns, type IPeriodBreakdowns } from "~/services/analytics/aggregate-period-breakdowns";
+import { calculateSavingsRateTrend, type ISavingsRatePoint } from "~/services/analytics/calculate-savings-rate-trend";
+import { calculateCumulativeBalanceTrend, type ICumulativeBalancePoint } from "~/services/analytics/calculate-cumulative-balance-trend";
 
 export type IMonthBudgetProgress = {
   monthKey: string;
@@ -41,6 +47,7 @@ export const useReportsAnalytics = () => {
   const counterparties = ref<ICounterparty[]>([]);
   const selectedMonths = ref<string[]>([]);
   const selectedCategoryId = ref<string | null>(null);
+  const selectedCounterpartyId = ref<string | null>(null);
   const isLoading = ref(false);
   const isRebuilding = ref(false);
   const hasInitializedSelection = ref(false);
@@ -100,39 +107,55 @@ export const useReportsAnalytics = () => {
 
   const categoryDrillDown = computed(() => {
     if (!report.value || !selectedCategoryId.value) return null;
-    const sorted = effectiveMonths.value;
-    const catId = selectedCategoryId.value;
-    const cat = categories.value.find((c) => c.id === catId);
-
-    const monthlyData = sorted.map((key) => {
-      const entry = report.value?.monthlyBreakdown[key];
-      const [year, month] = key.split("-");
-      const expenseAmount = entry?.expensesByCategory?.[catId] ?? 0;
-      const depositAmount = entry?.depositsByCategory?.[catId] ?? 0;
-      return {
-        label: `${month}/${year}`,
-        expenses: expenseAmount,
-        deposits: depositAmount,
-        total: expenseAmount + depositAmount,
-      };
+    return buildCategoryDrillDown({
+      report: report.value,
+      categories: categories.value,
+      selectedCategoryId: selectedCategoryId.value,
+      monthKeys: effectiveMonths.value,
     });
+  });
 
-    const totalExpense = report.value?.expensesByCategory[catId] ?? 0;
-    const totalDeposit = report.value?.depositsByCategory[catId] ?? 0;
-    const totalAllExpenses = report.value?.totalExpenses ?? 0;
-    const totalAllDeposits = report.value?.totalIncome ?? 0;
+  const counterpartyDrillDown = computed(() => {
+    if (!report.value || !selectedCounterpartyId.value) return null;
+    return buildCounterpartyDrillDown({
+      report: report.value,
+      counterparties: counterparties.value,
+      selectedCounterpartyId: selectedCounterpartyId.value,
+      monthKeys: effectiveMonths.value,
+    });
+  });
 
-    const percentOfExpenses = totalAllExpenses > 0 ? (totalExpense / totalAllExpenses) * 100 : 0;
-    const percentOfDeposits = totalAllDeposits > 0 ? (totalDeposit / totalAllDeposits) * 0 : 0;
+  const periodBreakdowns = computed<IPeriodBreakdowns>(() => {
+    if (!report.value) {
+      return {
+        expensesByCategory: [],
+        depositsByCategory: [],
+        expensesByCounterparty: [],
+        depositsByCounterparty: [],
+      };
+    }
+    return aggregatePeriodBreakdowns({
+      monthKeys: effectiveMonths.value,
+      monthlyBreakdown: report.value.monthlyBreakdown,
+      categories: categories.value,
+      counterparties: counterparties.value,
+    });
+  });
 
-    return {
-      category: cat,
-      monthlyData,
-      totalExpense,
-      totalDeposit,
-      percentOfExpenses,
-      percentOfDeposits,
-    };
+  const savingsRateTrend = computed<ISavingsRatePoint[]>(() => {
+    if (!report.value) return [];
+    return calculateSavingsRateTrend({
+      monthKeys: effectiveMonths.value,
+      monthlyBreakdown: report.value.monthlyBreakdown,
+    });
+  });
+
+  const cumulativeBalanceTrend = computed<ICumulativeBalancePoint[]>(() => {
+    if (!report.value) return [];
+    return calculateCumulativeBalanceTrend({
+      monthKeys: effectiveMonths.value,
+      monthlyBreakdown: report.value.monthlyBreakdown,
+    });
   });
 
   const budgetProgressPerMonth = computed<IMonthBudgetProgress[]>(() => {
@@ -163,28 +186,39 @@ export const useReportsAnalytics = () => {
     });
   });
 
+  // Counterparties get a larger cap than categories because they tend to have
+  // a longer tail (many merchants vs. a small set of curated categories).
+  // Full data is still reachable via buildCategoryDrillDown/buildCounterpartyDrillDown
+  // which take an ID rather than being limited to the visible list.
+  const CATEGORY_LIST_TOP_N = 10;
+  const COUNTERPARTY_LIST_TOP_N = 15;
+
   const categoryList = computed(() => {
     if (!report.value) return [];
-    const sorted = effectiveMonths.value;
-    const categoryTotals = new Map<string, number>();
+    return buildBreakdownList({
+      monthKeys: effectiveMonths.value,
+      monthlyBreakdown: report.value.monthlyBreakdown,
+      fields: {
+        expenseField: "expensesByCategory",
+        depositField: "depositsByCategory",
+      },
+      lookup: categories.value,
+      topN: CATEGORY_LIST_TOP_N,
+    });
+  });
 
-    for (const key of sorted) {
-      const entry = report.value.monthlyBreakdown[key];
-      if (!entry) continue;
-      for (const [catId, amount] of Object.entries(entry.expensesByCategory ?? {})) {
-        categoryTotals.set(catId, (categoryTotals.get(catId) ?? 0) + amount);
-      }
-      for (const [catId, amount] of Object.entries(entry.depositsByCategory ?? {})) {
-        categoryTotals.set(catId, (categoryTotals.get(catId) ?? 0) + amount);
-      }
-    }
-
-    return [...categoryTotals.entries()]
-      .map(([id, total]) => {
-        const cat = categories.value.find((c) => c.id === id);
-        return { id, name: cat?.name ?? "Desconhecido", total, color: cat?.color ?? null };
-      })
-      .sort((a, b) => b.total - a.total);
+  const counterpartyList = computed(() => {
+    if (!report.value) return [];
+    return buildBreakdownList({
+      monthKeys: effectiveMonths.value,
+      monthlyBreakdown: report.value.monthlyBreakdown,
+      fields: {
+        expenseField: "expensesByCounterparty",
+        depositField: "depositsByCounterparty",
+      },
+      lookup: counterparties.value,
+      topN: COUNTERPARTY_LIST_TOP_N,
+    });
   });
 
   const handleSelectPreset = (months: number) => {
@@ -287,6 +321,7 @@ export const useReportsAnalytics = () => {
     counterparties,
     selectedMonths,
     selectedCategoryId,
+    selectedCounterpartyId,
     isLoading,
     isRebuilding,
     availableMonths,
@@ -296,9 +331,14 @@ export const useReportsAnalytics = () => {
     balanceTrendData,
     monthlyComparison,
     categoryDrillDown,
+    counterpartyDrillDown,
+    periodBreakdowns,
+    savingsRateTrend,
+    cumulativeBalanceTrend,
     budgetProgressPerMonth,
     enhancedInsights,
     categoryList,
+    counterpartyList,
     handleSelectPreset,
     handleSelectYear,
     loadData,

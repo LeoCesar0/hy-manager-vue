@@ -188,8 +188,6 @@ export const useDashboardAnalytics = () => {
         }),
       ]);
 
-      console.log('❗ loadData reportRes -->', reportRes);
-
       if (transactionsRes.data) {
         filteredTransactions.value = transactionsRes.data;
       }

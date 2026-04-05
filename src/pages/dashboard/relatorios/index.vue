@@ -4,7 +4,8 @@ import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
 import ReportsPeriodSelector from "~/components/Reports/ReportsPeriodSelector.vue";
 import ReportsOverviewCharts from "~/components/Reports/ReportsOverviewCharts.vue";
 import ReportsMonthlyComparison from "~/components/Reports/ReportsMonthlyComparison.vue";
-import ReportsCategoryDrillDown from "~/components/Reports/ReportsCategoryDrillDown.vue";
+import ReportsPeriodDonuts from "~/components/Reports/ReportsPeriodDonuts.vue";
+import ReportsBreakdownDetail from "~/components/Reports/ReportsBreakdownDetail.vue";
 import ReportsBudgetTracking from "~/components/Reports/ReportsBudgetTracking.vue";
 import BudgetSettingsDialog from "~/components/Reports/BudgetSettingsDialog.vue";
 import ReportsInsightsKPIs from "~/components/Reports/ReportsInsightsKPIs.vue";
@@ -22,17 +23,23 @@ const {
   categories,
   selectedMonths,
   selectedCategoryId,
+  selectedCounterpartyId,
   isLoading,
   isRebuilding,
   availableMonths,
   effectiveMonths,
   overviewChartData,
   balanceTrendData,
+  savingsRateTrend,
+  cumulativeBalanceTrend,
   monthlyComparison,
   categoryDrillDown,
+  counterpartyDrillDown,
+  periodBreakdowns,
   budgetProgressPerMonth,
   enhancedInsights,
   categoryList,
+  counterpartyList,
   handleSelectPreset,
   handleSelectYear,
   loadData,
@@ -48,6 +55,10 @@ const handleUpdateMonths = (months: string[]) => {
 
 const handleSelectCategory = (id: string | null) => {
   selectedCategoryId.value = id;
+};
+
+const handleSelectCounterparty = (id: string | null) => {
+  selectedCounterpartyId.value = id;
 };
 
 const handleOpenBudgetSettings = () => {
@@ -105,6 +116,8 @@ onMounted(() => {
       <ReportsOverviewCharts
         :chart-data="overviewChartData"
         :balance-trend-data="balanceTrendData"
+        :savings-rate-trend="savingsRateTrend"
+        :cumulative-balance-trend="cumulativeBalanceTrend"
         :loading="isLoading"
       />
 
@@ -115,11 +128,21 @@ onMounted(() => {
         :loading="isLoading"
       />
 
-      <ReportsCategoryDrillDown
+      <ReportsPeriodDonuts
+        :breakdowns="periodBreakdowns"
+        :month-count="effectiveMonths.length"
+        :loading="isLoading"
+      />
+
+      <ReportsBreakdownDetail
         :category-list="categoryList"
-        :drill-down-data="categoryDrillDown"
+        :counterparty-list="counterpartyList"
+        :category-drill-down="categoryDrillDown"
+        :counterparty-drill-down="counterpartyDrillDown"
         :selected-category-id="selectedCategoryId"
+        :selected-counterparty-id="selectedCounterpartyId"
         :on-select-category="handleSelectCategory"
+        :on-select-counterparty="handleSelectCounterparty"
         :loading="isLoading"
       />
 
