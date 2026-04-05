@@ -1,4 +1,4 @@
-- charts tooltips
+- charts tooltips in relatorios are not shown. /dsahboard page charts are ok though.
 - transaction filters and other filters which has stard and end date should have an quicker way to just say "february" or the custom date.
 - Inter transactions upload
 - Bank accounts should have the company field into it (currently inter or nubank enum). Bank Account forms and onboarding form should have that field. Transactions uploading file input should get the bank account type from it instead of select. 
