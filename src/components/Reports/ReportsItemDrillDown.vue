@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ChevronRightIcon } from "lucide-vue-next";
 import LineChart from "~/components/Charts/LineChart.vue";
+import PositiveExpenseIndicator from "~/components/Categories/PositiveExpenseIndicator.vue";
 import { formatCurrency } from "~/helpers/formatCurrency";
 import { CATEGORY_PRESET_COLORS } from "~/static/category-colors";
 import type { IItemDrillDown } from "~/services/analytics/build-category-drill-down";
@@ -94,19 +95,10 @@ const isMixed = (item: IBreakdownListItem) =>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5">
             <p class="text-sm font-medium truncate">{{ item.name }}</p>
-            <!-- Marks categories flagged as positive-expense so users can tell
-                 saving (Investimentos, Poupança) apart from real spending in
-                 a list that's otherwise sorted by outflow magnitude. The list
-                 still shows the row — unlike the donuts which filter it out —
-                 because the list is informational and missing rows would be
-                 more confusing than a labeled row. -->
-            <UiBadge
+            <PositiveExpenseIndicator
               v-if="item.isPositiveExpense"
-              variant="secondary"
-              class="text-[0.6rem] px-1.5 py-0 h-4 font-normal"
-            >
-              investimento
-            </UiBadge>
+              variant="badge"
+            />
           </div>
           <p
             v-if="isMixed(item)"
