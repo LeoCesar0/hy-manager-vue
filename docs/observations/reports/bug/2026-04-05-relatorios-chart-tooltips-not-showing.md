@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 type: bug
 severity: medium
 found-during: "Transforming todo.md backlog into observation files"
@@ -8,7 +8,7 @@ working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-05
 updated: 2026-04-11
-resolved-date:
+resolved-date: 2026-04-11
 discard-reason:
 deferred:
 ---
@@ -68,27 +68,87 @@ not appear on `/dashboard/relatorios`, so the wrapper/position-context
 hypothesis was wrong (or insufficient). Cursor change and wrapper are
 harmless and left in place.
 
-## Next investigation
+## Resolution
 
-Reopened 2026-04-11. The positioning-context hypothesis is ruled out.
-Next steps:
+Resolved 2026-04-11 after browser-side diagnostic instrumentation in
+both chart components revealed **two distinct bugs** in `BarChart.vue`
+and `LineChart.vue`. Both had been latent since the charts were
+introduced (commit `c728745`) — the original observation framing that
+called it "environmental to Relatórios" was wrong. Dashboard never
+consumed these components, so the bug was never compared against a
+working reference.
 
-1. Open `/dashboard/relatorios` in dev tools and hover a bar / line
-   point. Determine which of the three scenarios applies:
-   - **Tooltip node not in the DOM at all** → hover event isn't firing.
-     Check whether an overlay element (UiCard, absolutely-positioned
-     filter, grid cell) is catching the pointer events. Inspect with
-     the pointer-events inspector.
-   - **Tooltip node in the DOM but `display: none` / `opacity: 0`** →
-     unovis is computing it but something in the library's trigger
-     binding failed. Check console for unovis warnings.
-   - **Tooltip node in the DOM and visible, but offscreen** → still a
-     positioning issue, but not the one the 2026-04-05 fix addressed.
-     Check `transform` / `left` / `top` on the tooltip element.
-2. Cross-reference with any other page that uses `BarChart`/`LineChart`
-   to confirm whether it's truly Relatórios-specific or affects every
-   consumer. Dashboard only has `DonutChart`, so it's not a reference.
-3. If the Relatórios page is the only consumer, check `relatorios/index.vue`
-   for recently added wrappers (sticky filters, toggles, budget cards)
-   that could be catching pointer events or creating a new stacking
-   context over the chart area.
+### Bug 1: `BarChart` tooltip handler threw on every hover
+
+**Root cause**: the tooltip trigger handler was typed and written as
+`(d: { data: Datum }) => { const item = d.data; ... }`, but unovis's
+`GroupedBar` binds each bar element to the raw `Datum` directly, not
+wrapped in `{ data: Datum }`. Evidence in
+`node_modules/.pnpm/@unovis+ts@1.6.2/node_modules/@unovis/ts/components/grouped-bar/index.js:101-102`:
+
+```js
+.selectAll(`.${bar}`)
+.data((d) => yAccessors.map(() => d));
+```
+
+Each bar's datum is just the parent's `d`. When the handler did
+`const item = d.data`, `item` was `undefined`. The next line —
+`s.accessor(item)` — threw `TypeError: Cannot read properties of
+undefined (reading 'income')`. The tooltip's `render()` was never
+called, so nothing appeared. The TypeScript compiler didn't catch the
+wrong annotation because the unovis `triggers` callback type is
+`any`-typed in the config interface.
+
+**Fix**: changed the handler signature to `(item: Datum)` and used
+`item` directly throughout the template builder. One-line rename, five
+lines of indirection removed.
+
+### Bug 2: `LineChart` crosshair had no tooltip instance to render into
+
+**Root cause**: `LineChart.vue` declared `<VisCrosshair :template="..." />`
+inside the `<VisXYContainer>` but **never added `<VisTooltip />`**. The
+crosshair's `_showTooltip` method does this (verified in
+`node_modules/.pnpm/@unovis+ts@1.6.2/.../components/crosshair/index.js:213-215`):
+
+```js
+const tooltip = config.tooltip ?? this.tooltip;
+if (!tooltip || !pos) return;
+```
+
+And `XYContainer._setUpComponents` wires `crosshair.tooltip = tooltip`
+from the container's tooltip config (same file,
+`containers/xy-container/index.js:121`) — but only if a `VisTooltip`
+was added to the container. Without one, `crosshair.tooltip` stays
+undefined, the early return at `_showTooltip` hits every time, and the
+template function is never called. No errors, no warnings, just
+silence.
+
+**Fix**: added `<VisTooltip />` as a sibling of `<VisCrosshair>` inside
+the `<VisXYContainer>`. The crosshair forces `followCursor = true`
+internally (line 219), so no props are needed on the tooltip instance.
+
+### Verification
+Both fixes verified by user in browser on `/dashboard/relatorios`
+2026-04-11:
+
+- BarChart: hover a bar → tooltip renders with correct month label and
+  series values.
+- LineChart: hover a line point → crosshair cursor line appears and
+  tooltip renders with the monthly values.
+
+### Aftermath
+- The 2026-04-05 attempt (wrapping chart output in
+  `<div class="relative bar-chart-wrapper">`) is harmless and left in
+  place — it was a shot in the dark that didn't matter. Could be
+  reverted as cleanup but there's no reason to.
+- The cursor override in `BarChart.vue`'s scoped style
+  (`rect { cursor: pointer }`) is useful independently and stays.
+- All temporary `TODO(diagnostic):` console.log instrumentation was
+  removed in the same commit that applied the fix.
+
+### Takeaway for future debugging
+When a tooltip handler "doesn't work", attach diagnostic logs inside
+the handler body BEFORE speculating about CSS/positioning. In this
+case, 15 minutes of browser-side logging identified the root cause
+that 2 hours of static analysis missed. The `2026-04-05` attempt
+failed exactly because it skipped this step.

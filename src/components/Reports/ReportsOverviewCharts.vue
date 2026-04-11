@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Switch as UiSwitch } from "~/components/ui/switch";
 import BarChart from "~/components/Charts/BarChart.vue";
 import LineChart from "~/components/Charts/LineChart.vue";
 import { formatCurrency } from "~/helpers/formatCurrency";
@@ -12,6 +13,8 @@ type IProps = {
   balanceTrendData: IBalanceTrendPoint[];
   savingsRateTrend: ISavingsRatePoint[];
   cumulativeBalanceTrend: ICumulativeBalancePoint[];
+  includePositiveExpensesInBars: boolean;
+  onToggleIncludePositiveExpensesInBars: (value: boolean) => void;
   loading?: boolean;
 };
 
@@ -96,7 +99,27 @@ const formatCurrencyValue = (v: number) => formatCurrency({ amount: v });
       :series="barSeries"
       :loading="loading"
       empty-message="Sem dados no período selecionado"
-    />
+    >
+      <template #headerActions>
+        <UiTooltip>
+          <UiTooltipTrigger as-child>
+            <label class="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+              <UiSwitch
+                :model-value="includePositiveExpensesInBars"
+                @update:model-value="onToggleIncludePositiveExpensesInBars"
+              />
+              <span>separar</span>
+            </label>
+          </UiTooltipTrigger>
+          <UiTooltipContent class="max-w-xs">
+            <p class="text-xs">
+              Separa investimentos da barra de gastos em uma barra própria.
+              Quando desligado, são somados ao total de saídas.
+            </p>
+          </UiTooltipContent>
+        </UiTooltip>
+      </template>
+    </BarChart>
 
     <div v-if="hasTrendData" class="grid gap-4 md:grid-cols-2">
       <LineChart

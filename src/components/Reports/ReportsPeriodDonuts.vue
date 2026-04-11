@@ -39,13 +39,23 @@ const handleToggle = (value: boolean) => {
 
       <!-- Toggle scope is expense donuts only — deposit donuts are never
            filtered because positive-expense is an expense-side concept. -->
-      <label class="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
-        <UiSwitch
-          :model-value="includePositiveExpenses"
-          @update:model-value="handleToggle"
-        />
-        <span>Incluir investimentos</span>
-      </label>
+      <UiTooltip>
+        <UiTooltipTrigger as-child>
+          <label class="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+            <UiSwitch
+              :model-value="includePositiveExpenses"
+              @update:model-value="handleToggle"
+            />
+            <span>incluir</span>
+          </label>
+        </UiTooltipTrigger>
+        <UiTooltipContent class="max-w-xs">
+          <p class="text-xs">
+            Inclui categorias de investimento nos donuts de despesas.
+            Quando desligado, elas são omitidas dos totais.
+          </p>
+        </UiTooltipContent>
+      </UiTooltip>
     </div>
 
     <div class="grid gap-4 md:grid-cols-2">

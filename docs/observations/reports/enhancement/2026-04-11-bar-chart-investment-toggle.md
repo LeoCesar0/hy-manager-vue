@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 type: enhancement
 severity: low
 found-during: "Follow-up from 2026-04-05 positive-expense split rollout"
@@ -8,7 +8,7 @@ working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-11
 updated: 2026-04-11
-resolved-date:
+resolved-date: 2026-04-11
 discard-reason:
 deferred:
 ---
@@ -89,3 +89,64 @@ should the Investimentos value be added into the Saídas reais bar (so
 the total expense bar height is preserved) or simply omitted (bar
 shrinks)? Probably fold — otherwise a user toggling off would see
 balance seem to "improve" without any real change, which is misleading.
+
+## Resolution
+
+Resolved 2026-04-11.
+
+**Helper flag** (`src/services/analytics/calculate-overview-bars.ts`):
+added `includePositiveExpenses?: boolean` to `IProps` (default `false`).
+When off, the helper folds `positiveExpenses` into `realExpenses` and
+zeroes out the `positiveExpenses` field. When on, it emits the existing
+split. `balance` is unchanged in both modes because it always uses
+`split.rawExpenses` — the split is a visualization concern, not a
+balance concern. Shape of `IOverviewBarPoint` stays the same so
+consumers don't branch.
+
+**Composable ref** (`src/composables/useReportsAnalytics.ts`): added
+`includePositiveExpensesInBars = ref(false)` next to the existing
+donuts ref, passed into `calculateOverviewBars` via the new flag, and
+exported from the composable return object.
+
+**Header slot** (`src/components/Charts/BarChart.vue`): added a
+`#headerActions` slot in the card header, restructured as a flex row
+(`justify-between`) alongside the existing `<h3>` title. Generic
+addition — existing call sites that don't pass a slot render unchanged.
+
+**Toggle UI** (`src/components/Reports/ReportsOverviewCharts.vue`):
+accepts two new props — `includePositiveExpensesInBars: boolean` and
+`onToggleIncludePositiveExpensesInBars: (value: boolean) => void`. The
+BarChart's `#headerActions` slot renders a `UiSwitch` wired to these
+props with a compact one-word label `separar` + `UiTooltip` explaining
+"Separa investimentos da barra de gastos em uma barra própria. Quando
+desligado, são somados ao total de saídas." The single-word + tooltip
+pattern mirrors `PositiveExpenseIndicator` and keeps the header visual
+budget small. The donut card's toggle was updated in the same session
+for consistency (label `incluir` + matching tooltip) — different verb
+because the semantics differ (bar = split vs combine, donut = include
+vs filter). The existing `hasPositiveExpenses` guard continues to
+work: when the flag is off, all `positiveExpenses` values in the data
+are 0, so the Investimentos series is omitted automatically without
+any branching.
+
+**Page wiring** (`src/pages/dashboard/relatorios/index.vue`):
+destructured `includePositiveExpensesInBars` from
+`useReportsAnalytics()`, added
+`handleToggleIncludePositiveExpensesInBars` mirroring the donut
+handler, and passed both into `ReportsOverviewCharts`.
+
+**Independence from donuts**: the two toggles are separate refs with
+no linking. User may set them differently per visualization as
+intended.
+
+**Grouped-stacked investigation relationship**: the sibling observation
+`2026-04-11-investigate-grouped-stacked-bar.md` was discarded in the
+same session — `@unovis/vue` 1.6.2 doesn't support true grouped-stacked
+rendering, and the toggle + current grouped layout already cover both
+intended UX modes (ON = 3 bars visible, OFF = single combined expense
+bar).
+
+**Not covered**: no `localStorage` persistence for the toggle state
+(matches donut behavior). No unit test for the new helper flag — the
+folding logic is small and trivially verifiable via manual inspection
+in the browser.

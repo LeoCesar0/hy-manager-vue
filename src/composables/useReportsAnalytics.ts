@@ -58,6 +58,10 @@ export const useReportsAnalytics = () => {
   // did my money go" — investing is saving, not spending, so the default view
   // hides it. Users can toggle on to audit total outflows.
   const includePositiveExpensesInDonuts = ref(false);
+  // Same concept for the overview bar chart. Default off: one combined expense
+  // bar per month (investments folded in). When on, the chart renders a third
+  // "Investimentos" bar next to "Saídas reais" per month.
+  const includePositiveExpensesInBars = ref(false);
 
   const availableMonths = computed(() => {
     if (!report.value) return [];
@@ -87,6 +91,7 @@ export const useReportsAnalytics = () => {
       monthKeys: effectiveMonths.value,
       monthlyBreakdown: report.value.monthlyBreakdown,
       categories: categories.value,
+      includePositiveExpenses: includePositiveExpensesInBars.value,
     });
   });
 
@@ -329,6 +334,7 @@ export const useReportsAnalytics = () => {
     selectedCategoryId,
     selectedCounterpartyId,
     includePositiveExpensesInDonuts,
+    includePositiveExpensesInBars,
     isLoading,
     isRebuilding,
     availableMonths,

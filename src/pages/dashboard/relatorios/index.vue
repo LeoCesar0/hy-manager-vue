@@ -25,6 +25,7 @@ const {
   selectedCategoryId,
   selectedCounterpartyId,
   includePositiveExpensesInDonuts,
+  includePositiveExpensesInBars,
   isLoading,
   isRebuilding,
   availableMonths,
@@ -64,6 +65,10 @@ const handleSelectCounterparty = (id: string | null) => {
 
 const handleToggleIncludePositiveExpenses = (value: boolean) => {
   includePositiveExpensesInDonuts.value = value;
+};
+
+const handleToggleIncludePositiveExpensesInBars = (value: boolean) => {
+  includePositiveExpensesInBars.value = value;
 };
 
 const handleOpenBudgetSettings = () => {
@@ -139,6 +144,8 @@ onMounted(() => {
         :balance-trend-data="balanceTrendData"
         :savings-rate-trend="savingsRateTrend"
         :cumulative-balance-trend="cumulativeBalanceTrend"
+        :include-positive-expenses-in-bars="includePositiveExpensesInBars"
+        :on-toggle-include-positive-expenses-in-bars="handleToggleIncludePositiveExpensesInBars"
         :loading="isLoading"
       />
 

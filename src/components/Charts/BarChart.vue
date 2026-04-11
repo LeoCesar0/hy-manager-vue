@@ -44,9 +44,13 @@ const tickFormat = (i: number) => {
   return item?.label ?? "";
 };
 
+// unovis `GroupedBar` binds each bar rect to the raw datum via
+// `.data((d) => yAccessors.map(() => d))`, so the tooltip template receives
+// the `Datum` directly — NOT wrapped in `{ data: Datum }` as the previous
+// type annotation incorrectly assumed. Getting this wrong silently threw a
+// TypeError inside the handler and prevented any tooltip from rendering.
 const tooltipTriggers = computed(() => ({
-  [GroupedBar.selectors.bar]: (d: { data: Datum }) => {
-    const item = d.data;
+  [GroupedBar.selectors.bar]: (item: Datum) => {
     const rows = props.series
       .map((s) => {
         const val = s.accessor(item);
@@ -76,7 +80,10 @@ const tooltipTriggers = computed(() => ({
 
 <template>
   <UiCard class="p-6">
-    <h3 class="text-sm font-medium text-muted-foreground mb-4">{{ title }}</h3>
+    <div class="flex items-center justify-between mb-4 gap-4">
+      <h3 class="text-sm font-medium text-muted-foreground">{{ title }}</h3>
+      <slot name="headerActions" />
+    </div>
 
     <div v-if="loading" class="flex flex-col items-center gap-4">
       <UiSkeleton class="h-[250px] w-full" />

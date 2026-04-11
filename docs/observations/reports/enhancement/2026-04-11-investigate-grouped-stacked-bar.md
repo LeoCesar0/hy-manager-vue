@@ -1,5 +1,5 @@
 ---
-status: open
+status: discarded
 type: enhancement
 severity: low
 found-during: "Follow-up from 2026-04-05 positive-expense split rollout"
@@ -9,7 +9,7 @@ found-in-branch: "main"
 date: 2026-04-11
 updated: 2026-04-11
 resolved-date:
-discard-reason:
+discard-reason: "@unovis/vue 1.6.2 has no native support for composing VisGroupedBar with VisStackedBar — GroupedBarConfigInterface and StackedBarConfigInterface are separate, non-composable configs. Custom d3/SVG overlays would break tooltip wiring and add maintenance burden disproportionate to the visual gain. The grouped layout + the 2026-04-11-bar-chart-investment-toggle already delivers the same UX intent."
 deferred:
 ---
 
@@ -82,3 +82,48 @@ Relates to (but is independent of):
 makes the investment segment optional. That toggle should land
 regardless of whether this investigation leads to a real stack, because
 users who don't care about the split should be able to hide it entirely.
+
+## Verdict (2026-04-11)
+
+Investigation complete. `@unovis/vue` 1.6.2 does not support native
+composition of grouped and stacked bars. Evidence from the installed
+package:
+
+- `node_modules/.pnpm/@unovis+ts@1.6.2/node_modules/@unovis/ts/components/grouped-bar/config.d.ts`
+  exposes `GroupedBarConfigInterface` with only grouping-related props
+  (`groupWidth`, `groupPadding`, `barPadding`, `roundedCorners`,
+  `orientation`, `cursor`, etc.). No stacking controls.
+- `.../components/stacked-bar/config.d.ts` exposes
+  `StackedBarConfigInterface` with only stacking-related props
+  (`barWidth`, `barPadding`, `orientation`, etc.). No grouping
+  controls.
+- `GroupedBar` and `StackedBar` both extend `XYComponentCore<Datum, ...>`
+  independently. `XYContainer` accepts them as alternatives, not
+  composable peers.
+
+Fallback options all carry significant cost:
+
+- **D3-direct overlay**: break unovis's tooltip event-delegation model
+  (which attaches to the component's root `<g>`). Custom rects would
+  require reimplementing hover/tooltip logic from scratch.
+- **Two side-by-side StackedBar instances**: requires manual x-axis
+  alignment, diverges from library primitives, and doubles axis
+  rendering.
+- **Hatched overlay on a single expense bar**: visually ambiguous and
+  less accurate than the current grouped layout.
+
+### Decision: discarded
+
+The grouped layout (3 bars per month side-by-side) shipped 2026-04-05,
+combined with the new `2026-04-11-bar-chart-investment-toggle.md`
+switch, already covers both user intents:
+
+- Toggle ON → user wants to see investments as a distinct visual →
+  3 bars per month.
+- Toggle OFF → user wants a single combined expense bar → 2 bars per
+  month, with investments folded into the Saídas total.
+
+A true grouped-stacked rendering would be nice-to-have but not
+proportional to the effort. If a future `@unovis/vue` release adds
+native support, this observation can be reopened as a straightforward
+component swap.

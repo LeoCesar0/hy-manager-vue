@@ -106,6 +106,11 @@ const crosshairTemplate = (d: Record<string, unknown>) => tooltipTemplate(d);
           <VisAxis type="x" :tickFormat="tickFormat" :gridLine="false" />
           <VisAxis type="y" :gridLine="true" />
           <VisCrosshair :template="crosshairTemplate" />
+          <!-- VisCrosshair needs a VisTooltip instance in the same container
+               to render into — `crosshair.tooltip = tooltip` is set by
+               XYContainer._setUpComponents. Without this, the crosshair's
+               `_showTooltip` early-returns and the template never runs. -->
+          <VisTooltip />
         </VisXYContainer>
       </ChartContainer>
 
