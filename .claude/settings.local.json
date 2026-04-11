@@ -14,6 +14,7 @@
       "Bash(which *)",
       "Bash(pnpm test*)",
       "Bash(pnpm run ts-check*)"
-    ]
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }
