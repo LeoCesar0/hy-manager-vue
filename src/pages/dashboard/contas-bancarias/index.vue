@@ -39,6 +39,7 @@ watch(isUpdateSheetOpen, (isUpdateSheetOpen) => {
 const createBankAccountInitialValues: ICreateBankAccount = {
     name: '',
     userId: currentUser.value?.id || '',
+    company: 'other',
 }
 
 const loadBankAccounts = async () => {

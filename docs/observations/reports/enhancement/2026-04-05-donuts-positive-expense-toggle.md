@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 type: enhancement
 severity: medium
 found-during: "Phase 2 of positive-expense split — propagating real/positive separation across Relatórios"
@@ -8,7 +8,7 @@ working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-05
 updated: 2026-04-05
-resolved-date:
+resolved-date: 2026-04-05
 discard-reason:
 deferred:
 ---
@@ -45,3 +45,25 @@ Implementation notes:
 Alternative considered and rejected: always filter out investments with no toggle. Rejected because some users legitimately want the full breakdown — hiding data silently is worse than hiding it with an affordance to reveal.
 
 Alternative considered and rejected: always show all slices with a visual marker (badge / pattern fill) on positive-expense slices. Rejected because the slice still visually competes for attention and doesn't fix the percentage-distortion problem.
+
+## Resolution
+
+Resolved 2026-04-05.
+
+`aggregatePeriodBreakdowns` now accepts an `includePositiveExpenseCategories`
+flag (default `false`). When false, it builds a `Set<string>` from the
+`isPositiveExpense` categories it already receives and skips matching ids
+in the `expensesByCategory` aggregation loop. Deposit totals are never
+filtered — positive-expense is expense-side only. Percentages renormalize
+automatically because `DonutChart` computes them from the slices it
+receives.
+
+`useReportsAnalytics` exposes a new ref `includePositiveExpensesInDonuts`
+(default `false`) and passes it to `aggregatePeriodBreakdowns`. The
+Relatórios page destructures the ref and wires a `handleToggleIncludePositiveExpenses`
+callback into `ReportsPeriodDonuts`, which renders a `UiSwitch` labelled
+"Incluir investimentos" in the card header.
+
+Toggle scope is donuts only — bar chart (separate observation) always
+stacks, breakdown list (separate observation) always shows an inline
+badge. Three affordances because the constraints differ per visualization.

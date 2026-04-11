@@ -18,8 +18,8 @@ const open = useVModel(props, "isOpen");
   <UiSheet v-model:open="open">
     <UiSheetContent class="overflow-y-auto">
       <UiSheetHeader>
-        <UiSheetTitle>Novo Terceiro</UiSheetTitle>
-        <UiSheetDescription>Adicione um novo terceiro</UiSheetDescription>
+        <UiSheetTitle>Novo Identificador</UiSheetTitle>
+        <UiSheetDescription>Adicione um novo identificador</UiSheetDescription>
       </UiSheetHeader>
       <UiSheetBody>
         <CounterpartyForm

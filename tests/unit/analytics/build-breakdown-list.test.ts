@@ -144,6 +144,7 @@ describe("buildBreakdownList", () => {
           depositTotal: 0,
           grossTotal: 300,
           netTotal: -300,
+          isPositiveExpense: false,
         },
       ]);
     });

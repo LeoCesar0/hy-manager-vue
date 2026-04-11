@@ -1,46 +1,43 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="Datum extends { label: string }">
 import { VisXYContainer, VisGroupedBar, VisAxis, VisTooltip } from "@unovis/vue";
 import { GroupedBar } from "@unovis/ts";
 import { ChartContainer, type ChartConfig } from "~/components/ui/chart";
 import { formatCurrency } from "~/helpers/formatCurrency";
 import { Skeleton as UiSkeleton } from "~/components/ui/skeleton";
 
-type DataItem = {
+type BarSeriesConfig<D> = {
+  key: string;
   label: string;
-  income: number;
-  expenses: number;
+  color: string;
+  accessor: (d: D) => number;
 };
 
-type IProps = {
-  data: DataItem[];
+type IProps<D> = {
+  data: D[];
+  series: BarSeriesConfig<D>[];
   loading?: boolean;
   title: string;
   emptyMessage?: string;
+  formatValue?: (value: number) => string;
 };
 
-const props = withDefaults(defineProps<IProps>(), {
+const props = withDefaults(defineProps<IProps<Datum>>(), {
   loading: false,
   emptyMessage: "Sem dados para exibir",
+  formatValue: (v: number) => formatCurrency({ amount: v }),
 });
 
-const chartConfig = computed<ChartConfig>(() => ({
-  income: {
-    label: "Entradas",
-    color: "var(--deposit)",
-  },
-  expenses: {
-    label: "Saídas",
-    color: "var(--expense)",
-  },
-}));
+const chartConfig = computed<ChartConfig>(() => {
+  const config: ChartConfig = {};
+  for (const s of props.series) {
+    config[s.key] = { label: s.label, color: s.color };
+  }
+  return config;
+});
 
-const x = (_: DataItem, i: number) => i;
-const y = [
-  (d: DataItem) => d.income,
-  (d: DataItem) => d.expenses,
-];
-
-const barColors = ["var(--deposit)", "var(--expense)"];
+const x = (_: Datum, i: number) => i;
+const y = computed(() => props.series.map((s) => s.accessor));
+const barColors = computed(() => props.series.map((s) => s.color));
 
 const tickFormat = (i: number) => {
   const item = props.data[i];
@@ -48,10 +45,18 @@ const tickFormat = (i: number) => {
 };
 
 const tooltipTriggers = computed(() => ({
-  [GroupedBar.selectors.bar]: (d: { data: DataItem }) => {
+  [GroupedBar.selectors.bar]: (d: { data: Datum }) => {
     const item = d.data;
-    const income = formatCurrency({ amount: item.income });
-    const expenses = formatCurrency({ amount: item.expenses });
+    const rows = props.series
+      .map((s) => {
+        const val = s.accessor(item);
+        return `<div style="display: flex; align-items: center; gap: 0.5rem; color: ${s.color};">
+          <div style="width: 8px; height: 8px; border-radius: 2px; background: ${s.color};"></div>
+          <span>${s.label}:</span>
+          <span style="font-weight: 600; font-family: ui-monospace, monospace;">${props.formatValue(val)}</span>
+        </div>`;
+      })
+      .join("");
 
     return `<div style="
       background: var(--background, hsl(0 0% 100%));
@@ -63,14 +68,7 @@ const tooltipTriggers = computed(() => ({
       font-size: 0.75rem;
     ">
       <div style="font-weight: 500; color: var(--foreground); margin-bottom: 0.25rem;">${item.label}</div>
-      <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--deposit);">
-        <span>Entradas:</span>
-        <span style="font-weight: 600; font-family: ui-monospace, monospace;">${income}</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--expense);">
-        <span>Saídas:</span>
-        <span style="font-weight: 600; font-family: ui-monospace, monospace;">${expenses}</span>
-      </div>
+      ${rows}
     </div>`;
   },
 }));
@@ -88,7 +86,12 @@ const tooltipTriggers = computed(() => ({
       <p class="text-sm text-muted-foreground">{{ emptyMessage }}</p>
     </div>
 
-    <div v-else>
+    <!-- `position: relative` establishes the positioning context for the
+         unovis tooltip portal. Without it, VisTooltip positions against a
+         further ancestor that may have unwanted overflow clipping or
+         stacking context boundaries, which is why the tooltip wasn't
+         rendering on the Relatórios page. -->
+    <div v-else class="relative bar-chart-wrapper">
       <ChartContainer :config="chartConfig" class="h-[250px]">
         <VisXYContainer :data="data" :padding="{ top: 10 }">
           <VisGroupedBar
@@ -105,16 +108,28 @@ const tooltipTriggers = computed(() => ({
         </VisXYContainer>
       </ChartContainer>
 
-      <div class="flex items-center justify-center gap-6 mt-4">
-        <div class="flex items-center gap-1.5 text-xs">
-          <div class="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-deposit" />
-          <span class="text-muted-foreground">Entradas</span>
-        </div>
-        <div class="flex items-center gap-1.5 text-xs">
-          <div class="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-expense" />
-          <span class="text-muted-foreground">Saídas</span>
+      <div class="flex items-center justify-center gap-6 mt-4 flex-wrap">
+        <div
+          v-for="s in series"
+          :key="s.key"
+          class="flex items-center gap-1.5 text-xs"
+        >
+          <div
+            class="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+            :style="{ backgroundColor: s.color }"
+          />
+          <span class="text-muted-foreground">{{ s.label }}</span>
         </div>
       </div>
     </div>
   </UiCard>
 </template>
+
+<style scoped>
+/* Override unovis default cursor (CSS var --vis-grouped-bar-cursor: default)
+   so users get a hover affordance on the bars. Without this, the bars look
+   non-interactive even though they trigger tooltips. */
+.bar-chart-wrapper :deep([data-vis-xy-container]) rect {
+  cursor: pointer;
+}
+</style>

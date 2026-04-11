@@ -7,7 +7,7 @@ found-in: "src/components/Reports/ReportsOverviewCharts.vue"
 working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-05
-updated: 2026-04-05
+updated: 2026-04-11
 resolved-date:
 discard-reason:
 deferred:
@@ -47,3 +47,48 @@ Debug path:
 3. If it's not in the DOM at all → the hover trigger isn't firing; check for overlapping elements with dev tools' pointer events inspector.
 
 Quick fix likely lives in `ReportsOverviewCharts.vue` or its parent card wrapper in `relatorios/index.vue`.
+
+## Previous attempt (2026-04-05) — did not fix
+
+Attempted fix at the chart primitive level in `BarChart.vue` and
+`LineChart.vue`:
+
+- Wrapped the chart render output in a `<div class="relative ...">` to
+  establish a local positioning context for the unovis tooltip portal.
+  Hypothesis was that `VisTooltip` was positioning against an ancestor
+  with its own stacking context or overflow boundary, clipping the
+  tooltip or pushing it outside the visible area.
+- Added a scoped CSS rule in `BarChart.vue`
+  (`.bar-chart-wrapper :deep([data-vis-xy-container]) rect { cursor: pointer }`)
+  so bars feel interactive.
+
+The attempt was based on static analysis only and was not verified in a
+live browser. On manual verification 2026-04-11 the tooltips still do
+not appear on `/dashboard/relatorios`, so the wrapper/position-context
+hypothesis was wrong (or insufficient). Cursor change and wrapper are
+harmless and left in place.
+
+## Next investigation
+
+Reopened 2026-04-11. The positioning-context hypothesis is ruled out.
+Next steps:
+
+1. Open `/dashboard/relatorios` in dev tools and hover a bar / line
+   point. Determine which of the three scenarios applies:
+   - **Tooltip node not in the DOM at all** → hover event isn't firing.
+     Check whether an overlay element (UiCard, absolutely-positioned
+     filter, grid cell) is catching the pointer events. Inspect with
+     the pointer-events inspector.
+   - **Tooltip node in the DOM but `display: none` / `opacity: 0`** →
+     unovis is computing it but something in the library's trigger
+     binding failed. Check console for unovis warnings.
+   - **Tooltip node in the DOM and visible, but offscreen** → still a
+     positioning issue, but not the one the 2026-04-05 fix addressed.
+     Check `transform` / `left` / `top` on the tooltip element.
+2. Cross-reference with any other page that uses `BarChart`/`LineChart`
+   to confirm whether it's truly Relatórios-specific or affects every
+   consumer. Dashboard only has `DonutChart`, so it's not a reference.
+3. If the Relatórios page is the only consumer, check `relatorios/index.vue`
+   for recently added wrappers (sticky filters, toggles, budget cards)
+   that could be catching pointer events or creating a new stacking
+   context over the chart area.

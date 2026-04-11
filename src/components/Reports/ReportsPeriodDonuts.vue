@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { Switch as UiSwitch } from "~/components/ui/switch";
 import DonutChart from "~/components/Dashboard/DonutChart.vue";
 import type { IPeriodBreakdowns } from "~/services/analytics/aggregate-period-breakdowns";
 
 type IProps = {
   breakdowns: IPeriodBreakdowns;
   monthCount: number;
+  includePositiveExpenses: boolean;
+  onToggleIncludePositiveExpenses: (value: boolean) => void;
   loading?: boolean;
 };
 
@@ -20,13 +23,29 @@ const subtitle = computed(() => {
   if (props.monthCount === 1) return "Agregado de 1 mês selecionado";
   return `Agregado de ${props.monthCount} meses selecionados`;
 });
+
+const handleToggle = (value: boolean) => {
+  props.onToggleIncludePositiveExpenses(value);
+};
 </script>
 
 <template>
   <UiCard class="p-6">
-    <div class="mb-4">
-      <h3 class="text-sm font-medium text-muted-foreground">Distribuição do Período</h3>
-      <p class="text-xs text-muted-foreground/70 mt-0.5">{{ subtitle }}</p>
+    <div class="mb-4 flex items-start justify-between gap-4 flex-wrap">
+      <div>
+        <h3 class="text-sm font-medium text-muted-foreground">Distribuição do Período</h3>
+        <p class="text-xs text-muted-foreground/70 mt-0.5">{{ subtitle }}</p>
+      </div>
+
+      <!-- Toggle scope is expense donuts only — deposit donuts are never
+           filtered because positive-expense is an expense-side concept. -->
+      <label class="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+        <UiSwitch
+          :model-value="includePositiveExpenses"
+          @update:model-value="handleToggle"
+        />
+        <span>Incluir investimentos</span>
+      </label>
     </div>
 
     <div class="grid gap-4 md:grid-cols-2">
@@ -38,10 +57,10 @@ const subtitle = computed(() => {
         variant="expense"
       />
       <DonutChart
-        title="Saídas por Terceiro"
+        title="Saídas por Identificador"
         :data="breakdowns.expensesByCounterparty"
         :loading="loading"
-        empty-message="Nenhuma despesa com terceiro no período"
+        empty-message="Nenhuma despesa com identificador no período"
         variant="expense"
       />
       <DonutChart
@@ -52,10 +71,10 @@ const subtitle = computed(() => {
         variant="deposit"
       />
       <DonutChart
-        title="Entradas por Terceiro"
+        title="Entradas por Identificador"
         :data="breakdowns.depositsByCounterparty"
         :loading="loading"
-        empty-message="Nenhuma receita com terceiro no período"
+        empty-message="Nenhuma receita com identificador no período"
         variant="deposit"
       />
     </div>

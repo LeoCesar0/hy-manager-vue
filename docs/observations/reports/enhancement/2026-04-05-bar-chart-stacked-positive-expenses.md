@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 type: enhancement
 severity: medium
 found-during: "Phase 2 of positive-expense split — propagating real/positive separation across Relatórios"
@@ -8,7 +8,7 @@ working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-05
 updated: 2026-04-05
-resolved-date:
+resolved-date: 2026-04-05
 discard-reason:
 deferred:
 ---
@@ -45,3 +45,36 @@ Implementation steps:
 Unit coverage: `overviewChartData` is currently logic-only inside the composable. If the split logic lives there, consider extracting to a pure function like `calculate-balance-trend.ts` so it can be unit tested the same way.
 
 Alternative considered and rejected: filter investments out entirely (no stacked segment). Rejected because it hides a real outflow — users need to see their total cash movement, not just their "real" spending.
+
+## Resolution
+
+Resolved 2026-04-05 — **grouped** (not stacked) because `@unovis/vue`'s
+`VisGroupedBar` doesn't natively compose with `VisStackedBar` to produce
+grouped-stacked bars, and rolling our own layered rendering would have
+been disproportionate scope for this observation.
+
+**Trade-off**: the preferred "two bars per month, with the expense bar
+split into real + investment stacked segments" visual was replaced with
+"three bars per month side-by-side: Entradas, Saídas reais, Investimentos".
+Positive expense bars are colored with a muted expense variant
+(`color-mix(in oklch, var(--expense) 45%, var(--muted))`) so they read as
+"expense family, distinct sub-type". The legend has three entries when
+any month has positive-expense activity; otherwise the Investimentos
+series is omitted to avoid an empty legend slot for users who don't track
+saving.
+
+**Implementation**:
+- New pure helper `src/services/analytics/calculate-overview-bars.ts` —
+  takes `monthKeys`, `monthlyBreakdown`, and `categories`; calls
+  `splitPositiveExpenses` per month and returns
+  `{ label, income, realExpenses, positiveExpenses, balance }` points.
+- `useReportsAnalytics.overviewChartData` now delegates to this helper.
+- `BarChart.vue` was generalized from a fixed `{income, expenses}` shape
+  to a `series: BarSeriesConfig[]` prop — mirrors the existing `LineChart`
+  API. Tooltip renders one row per series.
+- `ReportsOverviewCharts.vue` constructs the series config, including the
+  conditional Investimentos series when any month has
+  positive-expense activity.
+
+A future follow-up could revisit true grouped-stacked rendering if this
+visual proves insufficient.

@@ -27,8 +27,8 @@ const categoryLabel = {
 };
 
 const counterpartyLabel = {
-  plural: "Terceiros",
-  emptyMessage: "Nenhum terceiro encontrado no período",
+  plural: "Identificadores",
+  emptyMessage: "Nenhum identificador encontrado no período",
 };
 </script>
 
@@ -51,7 +51,7 @@ const counterpartyLabel = {
           :variant="activeTab === 'counterparties' ? 'default' : 'ghost'"
           @click="activeTab = 'counterparties'"
         >
-          Terceiros
+          Identificadores
         </UiButton>
       </div>
     </div>

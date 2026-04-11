@@ -15,7 +15,7 @@ export const groupByCounterparty = (
     if (!transaction.counterpartyId) {
       if (!grouped[NO_COUNTERPARTY_ID]) {
         grouped[NO_COUNTERPARTY_ID] = {
-          name: "Sem terceiro",
+          name: "Sem identificador",
           amount: 0,
         };
       }

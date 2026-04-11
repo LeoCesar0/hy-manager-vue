@@ -45,7 +45,7 @@ export const updateCounterparty = async ({ id, userId, data, options }: IAPIUpda
       return result;
     },
     {
-      toastOptions: getDefaultUpdateToastOptions({ itemName: "Terceiro" }),
+      toastOptions: getDefaultUpdateToastOptions({ itemName: "Identificador" }),
       ...options,
     }
   );

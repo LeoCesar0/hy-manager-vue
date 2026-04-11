@@ -31,7 +31,7 @@ export const deleteCounterparty = async ({ id, userId, options }: IAPIDeleteCoun
       return true;
     },
     {
-      toastOptions: getDefaultDeleteToastOptions({ itemName: "Terceiro" }),
+      toastOptions: getDefaultDeleteToastOptions({ itemName: "Identificador" }),
       ...options,
     }
   );

@@ -104,8 +104,8 @@ const { openDialog } = useAlertDialog();
 
 const handleDelete = (counterparty: ICounterparty) => {
   openDialog({
-    title: "Deletar Terceiro",
-    message: `Tem certeza que deseja deletar o terceiro "${counterparty.name}"?`,
+    title: "Deletar Identificador",
+    message: `Tem certeza que deseja deletar o identificador "${counterparty.name}"?`,
     confirm: {
       label: "Deletar",
       action: async () => {
@@ -115,8 +115,8 @@ const handleDelete = (counterparty: ICounterparty) => {
           userId: currentUser.value.id,
           options: {
             toastOptions: {
-              loading: { message: "Deletando terceiro..." },
-              success: { message: "Terceiro deletado com sucesso!" },
+              loading: { message: "Deletando identificador..." },
+              success: { message: "Identificador deletado com sucesso!" },
               error: true,
             },
           },
@@ -187,8 +187,8 @@ onMounted(() => {
 
 <template>
   <DashboardSection
-    title="Terceiros"
-    subtitle="Gerencie seus terceiros"
+    title="Identificadores"
+    subtitle="Gerencie seus identificadores"
     :loading="isLoadingData && !counterparties"
   >
     <UncategorizedBanner :count="uncategorizedCount" />
@@ -200,14 +200,14 @@ onMounted(() => {
       </UiButton>
       <UiButton @click="handleCreate">
         <PlusIcon class="h-4 w-4 mr-2" />
-        Novo Terceiro
+        Novo Identificador
       </UiButton>
     </template>
 
     <template #filters>
       <SearchInput
         v-model="searchQuery"
-        placeholder="Buscar terceiros..."
+        placeholder="Buscar identificadores..."
       />
 
       <div class="flex items-center gap-3 flex-wrap">
@@ -248,10 +248,10 @@ onMounted(() => {
 
     <EmptyState
       v-if="counterpartiesList.length === 0 && !isLoadingData"
-      title="Nenhum terceiro encontrado"
-      :description="searchQuery || categoryFilter.length > 0 ? 'Tente ajustar os filtros ou buscar por outro termo.' : 'Crie seu primeiro terceiro clicando no botão acima.'"
+      title="Nenhum identificador encontrado"
+      :description="searchQuery || categoryFilter.length > 0 ? 'Tente ajustar os filtros ou buscar por outro termo.' : 'Crie seu primeiro identificador clicando no botão acima.'"
       :show-create-button="!searchQuery && categoryFilter.length === 0"
-      create-button-label="Novo Terceiro"
+      create-button-label="Novo Identificador"
       :on-create="handleCreate"
     />
 

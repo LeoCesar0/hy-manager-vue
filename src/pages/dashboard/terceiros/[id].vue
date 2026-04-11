@@ -73,8 +73,8 @@ const handleDelete = () => {
   if (!counterparty.value) return;
 
   openDialog({
-    title: "Deletar Terceiro",
-    message: `Tem certeza que deseja deletar o terceiro "${counterparty.value.name}"?`,
+    title: "Deletar Identificador",
+    message: `Tem certeza que deseja deletar o identificador "${counterparty.value.name}"?`,
     confirm: {
       label: "Deletar",
       action: async () => {
@@ -84,8 +84,8 @@ const handleDelete = () => {
           userId: currentUser.value.id,
           options: {
             toastOptions: {
-              loading: { message: "Deletando terceiro..." },
-              success: { message: "Terceiro deletado com sucesso!" },
+              loading: { message: "Deletando identificador..." },
+              success: { message: "Identificador deletado com sucesso!" },
               error: true,
             },
           },
@@ -118,8 +118,8 @@ onMounted(() => {
 
 <template>
   <DashboardSection
-    title="Detalhes do Terceiro"
-    subtitle="Visualize e edite as informações do terceiro"
+    title="Detalhes do Identificador"
+    subtitle="Visualize e edite as informações do identificador"
     :show-back-button="true"
     :on-back="handleGoBack"
     :loading="isLoadingData"
@@ -134,8 +134,8 @@ onMounted(() => {
 
     <DetailCard
       :not-found="!counterparty"
-      not-found-title="Terceiro não encontrado"
-      not-found-description="O terceiro que você está procurando não existe."
+      not-found-title="Identificador não encontrado"
+      not-found-description="O identificador que você está procurando não existe."
     >
       <template #not-found-action>
         <UiButton @click="handleGoBack">

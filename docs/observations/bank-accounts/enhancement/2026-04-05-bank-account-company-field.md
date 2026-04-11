@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 type: enhancement
 severity: medium
 found-during: "Transforming todo.md backlog into observation files"
@@ -8,7 +8,7 @@ working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-05
 updated: 2026-04-05
-resolved-date:
+resolved-date: 2026-04-05
 discard-reason:
 deferred:
 ---
@@ -67,3 +67,40 @@ Consumer that should replace its manual selector:
 7. **Feature-gate audit**: after landing, grep the codebase for any other place that currently assumes a single bank format (there's at least `ImportSheet.vue` and anywhere the parsers are invoked) and make sure it reads `company` correctly or gates behind the `"other"` check.
 
 Dependency chain: this observation is a prerequisite for the "Inter bank statement parser" observation landing cleanly. They should probably ship together, or at least in the same PR series.
+
+## Resolution
+
+Resolved 2026-04-05 — shipped together with the Inter parser observation.
+
+**Schema** (`src/@schemas/models/bank-account.ts`): added
+`bankAccountCompanies = ["nubank", "inter", "other"] as const` and
+`zBankAccountCompany = z.enum(bankAccountCompanies)`. Added
+`company: zBankAccountCompany.default("other")` to `zBankAccountBase`
+— the `.default()` is the migration path: legacy docs without the field
+parse cleanly as `"other"` on read, with no separate migration script
+required. The field is persisted on next write (user edits the account).
+Also exported `BANK_ACCOUNT_COMPANY_LABELS` for UI pickers to stay in
+sync with the enum.
+
+**Onboarding step** (`src/components/Onboarding/StepBankAccount.vue`):
+added a 3-column button grid above the name input. Selecting a known
+bank auto-fills the account name if it's empty or matches the previous
+auto-filled value, so manual edits aren't clobbered. The explanatory
+copy below the grid tells users that "other" still works but loses
+CSV import.
+
+**Bank account form** (`src/components/BankAccounts/BankAccountForm.vue`):
+same 3-column button grid pattern. Uses `values` and `setFieldValue`
+from vee-validate to sync the company field through both create and
+edit flows. `createBankAccountInitialValues` in
+`pages/dashboard/contas-bancarias/index.vue` got `company: 'other'`.
+
+**Onboarding composable** (`src/composables/useOnboarding.ts`): added
+`bankAccountCompany` ref, updated `handleBankAccountNext` to accept
+`{ name, company }`, and `completeOnboarding` now passes the company
+through to `createBankAccount`.
+
+**ImportSheet gating**: see the Inter parser observation resolution for
+details. `currentBankAccount.company === "other"` renders a disabled
+state explaining that upload isn't available, instead of silently falling
+through to a default parser.

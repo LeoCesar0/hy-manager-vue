@@ -12,9 +12,9 @@ defineProps<IProps>();
 <template>
   <UiAlert v-if="count > 0" variant="destructive">
     <AlertCircleIcon class="h-4 w-4" />
-    <UiAlertTitle>Terceiros sem categoria</UiAlertTitle>
+    <UiAlertTitle>Identificadores sem categoria</UiAlertTitle>
     <UiAlertDescription>
-      Você tem {{ count }} terceiro{{ count > 1 ? "s" : "" }} sem categoria.
+      Você tem {{ count }} identificador{{ count > 1 ? "es" : "" }} sem categoria.
       <NuxtLink
         :to="ROUTE.categorizarCounterparties.path()"
         class="underline font-medium hover:text-foreground"

@@ -24,6 +24,7 @@ const {
   selectedMonths,
   selectedCategoryId,
   selectedCounterpartyId,
+  includePositiveExpensesInDonuts,
   isLoading,
   isRebuilding,
   availableMonths,
@@ -59,6 +60,10 @@ const handleSelectCategory = (id: string | null) => {
 
 const handleSelectCounterparty = (id: string | null) => {
   selectedCounterpartyId.value = id;
+};
+
+const handleToggleIncludePositiveExpenses = (value: boolean) => {
+  includePositiveExpensesInDonuts.value = value;
 };
 
 const handleOpenBudgetSettings = () => {
@@ -124,6 +129,8 @@ onMounted(() => {
       <ReportsPeriodDonuts
         :breakdowns="periodBreakdowns"
         :month-count="effectiveMonths.length"
+        :include-positive-expenses="includePositiveExpensesInDonuts"
+        :on-toggle-include-positive-expenses="handleToggleIncludePositiveExpenses"
         :loading="isLoading"
       />
 

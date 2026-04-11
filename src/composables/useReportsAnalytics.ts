@@ -18,6 +18,7 @@ import { aggregatePeriodBreakdowns, type IPeriodBreakdowns } from "~/services/an
 import { calculateSavingsRateTrend, type ISavingsRatePoint } from "~/services/analytics/calculate-savings-rate-trend";
 import { calculateCumulativeBalanceTrend, type ICumulativeBalancePoint } from "~/services/analytics/calculate-cumulative-balance-trend";
 import { calculateBalanceTrend, type IBalanceTrendPoint } from "~/services/analytics/calculate-balance-trend";
+import { calculateOverviewBars, type IOverviewBarPoint } from "~/services/analytics/calculate-overview-bars";
 
 export type IMonthBudgetProgress = {
   monthKey: string;
@@ -52,6 +53,11 @@ export const useReportsAnalytics = () => {
   const isLoading = ref(false);
   const isRebuilding = ref(false);
   const hasInitializedSelection = ref(false);
+  // Controls whether positive-expense categories (Investimentos, Poupança) are
+  // shown in the expense donuts. Default off because the donuts answer "where
+  // did my money go" — investing is saving, not spending, so the default view
+  // hides it. Users can toggle on to audit total outflows.
+  const includePositiveExpensesInDonuts = ref(false);
 
   const availableMonths = computed(() => {
     if (!report.value) return [];
@@ -75,16 +81,12 @@ export const useReportsAnalytics = () => {
     return result;
   });
 
-  const overviewChartData = computed(() => {
-    return effectiveMonths.value.map((key) => {
-      const entry = report.value?.monthlyBreakdown[key];
-      const [year, month] = key.split("-");
-      return {
-        label: `${month}/${year}`,
-        income: entry?.income ?? 0,
-        expenses: entry?.expenses ?? 0,
-        balance: (entry?.income ?? 0) - (entry?.expenses ?? 0),
-      };
+  const overviewChartData = computed<IOverviewBarPoint[]>(() => {
+    if (!report.value) return [];
+    return calculateOverviewBars({
+      monthKeys: effectiveMonths.value,
+      monthlyBreakdown: report.value.monthlyBreakdown,
+      categories: categories.value,
     });
   });
 
@@ -141,6 +143,7 @@ export const useReportsAnalytics = () => {
       monthlyBreakdown: report.value.monthlyBreakdown,
       categories: categories.value,
       counterparties: counterparties.value,
+      includePositiveExpenseCategories: includePositiveExpensesInDonuts.value,
     });
   });
 
@@ -325,6 +328,7 @@ export const useReportsAnalytics = () => {
     selectedMonths,
     selectedCategoryId,
     selectedCounterpartyId,
+    includePositiveExpensesInDonuts,
     isLoading,
     isRebuilding,
     availableMonths,

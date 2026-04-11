@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 type: bug
 severity: high
 found-during: "Transforming todo.md backlog into observation files"
@@ -8,7 +8,7 @@ working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-05
 updated: 2026-04-05
-resolved-date:
+resolved-date: 2026-04-05
 discard-reason:
 deferred:
 ---
@@ -64,3 +64,20 @@ Apply both. Fix 1 alone leaves the "no stored id" case broken; Fix 2 alone still
 - User A selects X, refreshes the page → user A still gets X
 - User A has 3 accounts, no stored id → gets the most recently updated one
 - User A's stored id is for an account they later deleted → fallback kicks in correctly
+
+## Resolution
+
+Resolved 2026-04-05 in `src/composables/stores/useDashboardStore.ts`.
+
+Dropped `useLocalStorage` from `@vueuse/core` in favor of plain
+`localStorage.getItem`/`setItem` calls keyed by the current user id
+(`lastSelectedBankAccountId:${userId}`). Key is only read/written inside
+`loadBankAccounts` and the `currentBankAccount` watcher — both are gated on
+`currentUser`, so there's no anonymous-bucket writes. Fallback now picks the
+account with the most recent `updatedAt` via `toMillis()` compare instead of
+the first list item. `resetStore()` wipes the current user's key so a clean
+logout doesn't leave a stale pointer. The `currentUser` watcher got a null
+branch (previously only handled "user exists") and a user-switch branch that
+clears in-memory state before reloading, so the `!currentBankAccount.value`
+guard doesn't block a re-selection when user A logs out and user B logs in
+in the same session.

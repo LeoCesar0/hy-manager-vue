@@ -1,5 +1,5 @@
 ---
-status: open
+status: discarded
 type: bug
 severity: medium
 found-during: "Adding positive-expense split to Relatórios analytics"
@@ -9,7 +9,7 @@ found-in-branch: "main"
 date: 2026-04-05
 updated: 2026-04-05
 resolved-date:
-discard-reason:
+discard-reason: "Intentional design — user prefers full amount per category. R$100 gastos em Mercado+Lazer = R$100 em cada. Consumers that need the scalar total use entry.expenses directly. splitPositiveExpenses already has Math.max(0) clamp for the edge case."
 deferred:
 ---
 
@@ -58,3 +58,30 @@ Two reasonable fixes:
 Option 1 is the standard approach and matches how most personal finance apps handle multi-tag splits. Requires a report rebuild after deploying.
 
 Not fixing in the current task — scope is the positive-expense split in analytics. Flagging so we know where the clamp in `splitPositiveExpenses` comes from, and so this can be prioritized independently.
+
+## Resolution
+
+Discarded 2026-04-05 — intentional design decision.
+
+The user confirmed that per-category views should show the full transaction
+amount in each tagged category. R$100 spent and tagged with Mercado + Lazer
+is R$100 in Mercado AND R$100 in Lazer. This matches how users think about
+category-level spending: "how much did I spend on food?" — the full amount,
+regardless of other tags.
+
+`sum(expensesByCategory)` can exceed `entry.expenses` for multi-tagged
+transactions. All consumers were audited:
+
+- **Per-category reads** (insights deltas, budget progress, donuts,
+  breakdown list, drill-down) — read individual amounts, never compare
+  cross-category sum to totalExpenses. Correct as-is.
+- **`splitPositiveExpenses`** — subtracts positive-expense category amounts
+  from `entry.expenses`. `Math.max(0, ...)` clamp at line 42 already
+  handles the edge case where a transaction is tagged with both a
+  positive-expense and a regular category. No fix needed.
+- **`buildCategoryDrillDown.percentOfExpenses`** — `categoryAmount / totalExpenses`
+  can exceed 100% for multi-tagged transactions. Acceptable: it reflects
+  that this category absorbed the full transaction amount.
+
+No code changes. Tests document the full-amount-per-category behavior
+with a comment explaining the design rationale.

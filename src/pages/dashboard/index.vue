@@ -101,13 +101,13 @@ onMounted(() => {
         toggle-label="sem categoria"
       />
       <DonutChart
-        title="Saídas por Terceiro"
+        title="Saídas por Identificador"
         :data="expensesByCounterparty"
         :loading="isLoading"
-        empty-message="Nenhuma despesa com terceiro no período"
+        empty-message="Nenhuma despesa com identificador no período"
         variant="expense"
         unassigned-id="no-counterparty"
-        toggle-label="sem terceiro"
+        toggle-label="sem identificador"
       />
       <DonutChart
         title="Entradas por Categoria"
@@ -119,13 +119,13 @@ onMounted(() => {
         toggle-label="sem categoria"
       />
       <DonutChart
-        title="Entradas por Terceiro"
+        title="Entradas por Identificador"
         :data="depositsByCounterparty"
         :loading="isLoading"
-        empty-message="Nenhuma receita com terceiro no período"
+        empty-message="Nenhuma receita com identificador no período"
         variant="deposit"
         unassigned-id="no-counterparty"
-        toggle-label="sem terceiro"
+        toggle-label="sem identificador"
       />
     </div>
 

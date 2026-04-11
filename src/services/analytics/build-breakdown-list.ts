@@ -20,9 +20,15 @@ export type IBreakdownListItem = {
   // netTotal is deposits - expenses. Positive = item earned you money,
   // negative = item cost you money. Displayed in the list row.
   netTotal: number;
+  // True for categories marked as positive-expense (Investimentos, Poupança).
+  // Powers the "investimento" badge in the list UI so users can distinguish
+  // saving from real spending at a glance. Always false/undefined for
+  // counterparties — the constraint widens to allow the flag but
+  // counterparties simply never carry it.
+  isPositiveExpense?: boolean;
 };
 
-type IProps<T extends { id: string; name: string; color?: string | null }> = {
+type IProps<T extends { id: string; name: string; color?: string | null; isPositiveExpense?: boolean }> = {
   monthKeys: string[];
   monthlyBreakdown: Record<string, IMonthlyEntry>;
   fields: IBreakdownFields;
@@ -31,7 +37,7 @@ type IProps<T extends { id: string; name: string; color?: string | null }> = {
 };
 
 export const buildBreakdownList = <
-  T extends { id: string; name: string; color?: string | null },
+  T extends { id: string; name: string; color?: string | null; isPositiveExpense?: boolean },
 >({
   monthKeys,
   monthlyBreakdown,
@@ -77,6 +83,7 @@ export const buildBreakdownList = <
         depositTotal,
         grossTotal: expenseTotal + depositTotal,
         netTotal: depositTotal - expenseTotal,
+        isPositiveExpense: match?.isPositiveExpense ?? false,
       };
     })
     .filter((item) => item.grossTotal > 0)

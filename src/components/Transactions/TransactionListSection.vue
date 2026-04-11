@@ -230,7 +230,7 @@ const handleExport = () => {
     return;
   }
 
-  const headers = ['Data', 'Tipo', 'Descrição', 'Valor', 'Conta', 'Categorias', 'Terceiro'];
+  const headers = ['Data', 'Tipo', 'Descrição', 'Valor', 'Conta', 'Categorias', 'Identificador'];
   const rows = data.map(t => {
     const categoryNames = categories.value
       .filter(cat => t.categoryIds?.includes(cat.id))

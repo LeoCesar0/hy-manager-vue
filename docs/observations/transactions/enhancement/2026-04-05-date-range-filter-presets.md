@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 type: enhancement
 severity: low
 found-during: "Transforming todo.md backlog into observation files"
@@ -8,7 +8,7 @@ working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-05
 updated: 2026-04-05
-resolved-date:
+resolved-date: 2026-04-05
 discard-reason:
 deferred:
 ---
@@ -47,3 +47,32 @@ Implementation notes:
 4. Consider extracting the preset UI into its own component (`Form/Field/DateRangePreset.vue` or similar) since other list screens will probably want the same affordance.
 
 This applies to: transactions list, and any future list screen with date filters. Not applicable to Relatórios which already has its own preset flow.
+
+## Resolution
+
+Resolved 2026-04-05.
+
+**New helper** `src/helpers/dateRangePresets.ts`: pure module exporting
+`DATE_RANGE_PRESETS` — an array of `{ key, label, getRange }` entries
+with presets for "Este mês", "Mês passado", "Últimos 7 dias", "Últimos
+30 dias", "Últimos 90 dias", "Este ano", and "Personalizado".
+`getRange` returns Firestore `Timestamp` pairs directly (start-of-day
+to end-of-day, inclusive on both ends) since the FilterPanel consumes
+Timestamps. "Personalizado" returns `null` to signal "leave current
+range untouched". Kept the helper separate from
+`useReportsAnalytics`'s month-based presets because the two use cases
+have different shapes (day-range vs month-list).
+
+**FilterPanel** (`src/components/Transactions/FilterPanel.vue`): added
+a "Período" row of `UiButton` chips above the existing manual pickers.
+Active preset is tracked via `activePresetKey` ref — null initially so
+existing filter state isn't clobbered on mount. Clicking a preset emits
+a single `update:modelValue` with both `startDate` and `endDate` set
+together, avoiding partial state updates the parent has to reconcile.
+Manual picker changes automatically deselect the active preset (set it
+to `"custom"`) so the UI honestly reflects which mode is driving the
+range. `handleClear` also resets `activePresetKey` to null.
+
+Did not extract a separate `DateRangePreset.vue` component — the preset
+row is simple enough to inline in `FilterPanel` and only one consumer
+exists today. Extract when a second consumer appears.

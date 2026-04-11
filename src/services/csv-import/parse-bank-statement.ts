@@ -1,8 +1,10 @@
 import { nubankParser } from "./parsers/nubank-parser";
+import { interParser } from "./parsers/inter-parser";
 import type { IBankStatementParser, IBankStatementRow } from "./@types";
 
 const PARSERS: Record<string, IBankStatementParser> = {
   nubank: nubankParser,
+  inter: interParser,
 };
 
 export const AVAILABLE_FORMATS = Object.values(PARSERS).map((p) => ({

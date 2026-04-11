@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 type: enhancement
 severity: low
 found-during: "Phase 2 of positive-expense split — propagating real/positive separation across Relatórios"
@@ -8,7 +8,7 @@ working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-05
 updated: 2026-04-05
-resolved-date:
+resolved-date: 2026-04-05
 discard-reason:
 deferred:
 ---
@@ -48,3 +48,27 @@ Implementation:
 3. Consider whether the sort order should change — should positive-expense categories be bucketed at the bottom, or left interleaved? Interleaved matches "top N by outflow" which is the current semantic. Bucketing would require either two separate lists or a visual divider.
 
 Paired with the donut toggle observation: same underlying issue (positive-expense categories being visually indistinguishable), different component, different UX solution because the constraints differ (list = informational, donut = proportional).
+
+## Resolution
+
+Resolved 2026-04-05.
+
+`IBreakdownListItem` gained an optional `isPositiveExpense?: boolean`
+field, populated from the `lookup` match. Picked Option 1 from the
+Suggested approach: widened the generic constraint on `lookup` to
+`{ id; name; color?; isPositiveExpense? }` so both categories and
+counterparties satisfy it (counterparties simply never set the flag).
+`useReportsAnalytics` call sites are unchanged — `categories.value`
+already carries the field.
+
+`ReportsItemDrillDown.vue` conditionally renders a muted
+`<UiBadge variant="secondary">investimento</UiBadge>` next to the
+category name in each list row when `isPositiveExpense === true`.
+Counterparty tab never shows it because counterparties don't carry the
+flag. Row is still shown — unlike donuts which filter it — because the
+list is informational and a missing row would be more confusing than a
+labeled one.
+
+Unit test adjusted: `tests/unit/analytics/build-breakdown-list.test.ts`
+"labels unknown IDs as 'Desconhecido'" now asserts the
+`isPositiveExpense: false` field in the returned item shape.

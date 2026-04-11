@@ -69,7 +69,12 @@ describe("applyTransactionToReport", () => {
     expect(result.expensesByCategory).toEqual({});
   });
 
-  it("transaction with multiple categoryIds adds amount to EACH category", () => {
+  it("transaction with multiple categoryIds adds full amount to EACH category", () => {
+    // Each category receives the full transaction amount — a R$100 expense
+    // tagged with Mercado + Lazer means R$100 in Mercado AND R$100 in Lazer.
+    // This is intentional: per-category views show the full impact on each
+    // category. sum(expensesByCategory) can exceed totalExpenses; consumers
+    // that need the scalar total use entry.expenses directly.
     const report = makeReport();
     const transaction = makeTransaction({
       type: "expense",

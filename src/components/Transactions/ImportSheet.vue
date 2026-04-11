@@ -7,15 +7,14 @@ import {
   TrendingDownIcon,
   UsersIcon,
   AlertCircleIcon,
+  BanIcon,
 } from "lucide-vue-next";
 import type { IBankStatementRow } from "~/services/csv-import/@types";
-import {
-  parseBankStatement,
-  AVAILABLE_FORMATS,
-} from "~/services/csv-import/parse-bank-statement";
+import { parseBankStatement } from "~/services/csv-import/parse-bank-statement";
 import { importTransactions } from "~/services/api/transactions/import-transactions";
 import { formatCurrency } from "~/helpers/formatCurrency";
 import { roundCurrency } from "~/helpers/roundCurrency";
+import { BANK_ACCOUNT_COMPANY_LABELS } from "~/@schemas/models/bank-account";
 
 type IProps = {
   isOpen: boolean;
@@ -31,8 +30,17 @@ const emit = defineEmits<{
   "update:isOpen": [value: boolean];
 }>();
 
+const dashboardStore = useDashboardStore();
+const { currentBankAccount } = storeToRefs(dashboardStore);
+
+// The selected company determines which parser runs — no manual selector.
+// "other" accounts are feature-gated below with a disabled state that tells
+// the user they need to add transactions manually. Silently falling through
+// to a default parser here would produce wrong imports.
+const selectedFormat = computed(() => currentBankAccount.value?.company ?? "other");
+const isUnsupportedBank = computed(() => selectedFormat.value === "other");
+
 const step = ref<"upload" | "confirm">("upload");
-const selectedFormat = ref(AVAILABLE_FORMATS[0]?.key || "nubank");
 const parsedRows = ref<IBankStatementRow[]>([]);
 const parseError = ref<string | null>(null);
 const isImporting = ref(false);
@@ -182,27 +190,33 @@ const handleClose = (value: boolean) => {
       </UiSheetHeader>
 
       <UiSheetBody>
+        <!-- Feature-gated state for accounts whose bank doesn't have a parser.
+             Showing a clear disabled state is better than silently falling
+             through to a default parser — that produced wrong imports before
+             the company field existed. -->
+        <div v-if="isUnsupportedBank" class="space-y-4">
+          <div class="flex items-start gap-3 p-4 rounded-md bg-muted/50 text-sm">
+            <BanIcon class="w-5 h-5 mt-0.5 shrink-0 text-muted-foreground" />
+            <div class="space-y-1">
+              <p class="font-medium">Upload de extrato não disponível</p>
+              <p class="text-muted-foreground">
+                A conta selecionada não tem um banco compatível com importação
+                automática. Adicione as transações manualmente ou edite a conta
+                para selecionar um banco suportado.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- Step: Upload -->
-        <div v-if="step === 'upload'" class="space-y-6">
+        <div v-else-if="step === 'upload'" class="space-y-6">
           <div class="space-y-2">
             <label class="text-sm font-medium">Formato do banco</label>
-            <UiSelect
-              :model-value="selectedFormat"
-              @update:model-value="(v) => selectedFormat = v as string"
-            >
-              <UiSelectTrigger class="w-full">
-                <UiSelectValue />
-              </UiSelectTrigger>
-              <UiSelectContent>
-                <UiSelectItem
-                  v-for="format in AVAILABLE_FORMATS"
-                  :key="format.key"
-                  :value="format.key"
-                >
-                  {{ format.label }}
-                </UiSelectItem>
-              </UiSelectContent>
-            </UiSelect>
+            <div class="flex items-center gap-2 px-3 py-2 rounded-md bg-muted/50 text-sm">
+              <FileSpreadsheetIcon class="w-4 h-4 text-muted-foreground" />
+              <span class="font-medium">{{ BANK_ACCOUNT_COMPANY_LABELS[selectedFormat] }}</span>
+              <span class="text-xs text-muted-foreground ml-auto">detectado da conta</span>
+            </div>
           </div>
 
           <div class="space-y-2">
@@ -264,7 +278,7 @@ const handleClose = (value: boolean) => {
               <div class="flex items-center gap-2 p-3 rounded-md bg-muted/50">
                 <UsersIcon class="w-4 h-4 text-muted-foreground" />
                 <div>
-                  <p class="text-xs text-muted-foreground">Terceiros</p>
+                  <p class="text-xs text-muted-foreground">Identificadores</p>
                   <p class="text-sm font-medium">
                     {{ summary.counterparties }} encontrados
                   </p>
@@ -301,7 +315,7 @@ const handleClose = (value: boolean) => {
         </div>
 
         <!-- Step: Confirm -->
-        <div v-if="step === 'confirm'" class="space-y-6">
+        <div v-if="!isUnsupportedBank && step === 'confirm'" class="space-y-6">
           <div v-if="summary" class="space-y-4">
             <div class="p-4 rounded-md bg-muted/50 space-y-2">
               <p class="text-sm">
@@ -313,7 +327,7 @@ const handleClose = (value: boolean) => {
                 automaticamente ignoradas.
               </p>
               <p class="text-sm text-muted-foreground">
-                Terceiros serão criados automaticamente caso não existam.
+                Identificadores serão criados automaticamente caso não existam.
               </p>
             </div>
 

@@ -216,13 +216,13 @@ const handleCancel = () => {
       placeholder="Selecione as categorias" :select-options="categoryOptions" />
 
     <div class="space-y-2">
-      <label class="text-sm font-medium leading-none">Terceiro (opcional)</label>
+      <label class="text-sm font-medium leading-none">Identificador (opcional)</label>
       <UiCombobox :open="comboboxOpen" @update:open="comboboxOpen = $event">
         <UiComboboxAnchor class="w-full">
           <div class="relative flex items-center">
             <UiComboboxInput
               v-model="counterpartySearchQuery"
-              placeholder="Digite ou selecione o terceiro..."
+              placeholder="Digite ou selecione o identificador..."
               class="w-full"
               @focus="comboboxOpen = true"
             />
@@ -245,7 +245,7 @@ const handleCancel = () => {
               <span v-if="counterpartySearchQuery.trim()">
                 "{{ counterpartySearchQuery.trim() }}" será criado automaticamente
               </span>
-              <span v-else>Nenhum terceiro encontrado</span>
+              <span v-else>Nenhum identificador encontrado</span>
             </UiComboboxEmpty>
             <UiComboboxItem
               v-for="cp in filteredCounterparties"
@@ -260,7 +260,7 @@ const handleCancel = () => {
         </UiComboboxList>
       </UiCombobox>
       <p v-if="counterpartySearchQuery.trim() && !selectedCounterpartyId" class="text-xs text-muted-foreground">
-        Novo terceiro será criado automaticamente ao salvar
+        Novo identificador será criado automaticamente ao salvar
       </p>
     </div>
 

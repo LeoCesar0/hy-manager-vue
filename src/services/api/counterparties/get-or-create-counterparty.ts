@@ -67,7 +67,7 @@ export const getOrCreateCounterparty = async ({
       return createResult.data;
     },
     {
-      toastOptions: getDefaultGetToastOptions({ itemName: "Terceiro" }),
+      toastOptions: getDefaultGetToastOptions({ itemName: "Identificador" }),
       ...options,
     }
   );

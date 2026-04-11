@@ -100,7 +100,7 @@ const counterparty = computed(() => {
             </div>
 
             <div v-if="counterparty" class="flex items-center gap-2 text-sm text-muted-foreground">
-              <span class="font-medium">Terceiro:</span>
+              <span class="font-medium">Identificador:</span>
               <span>{{ counterparty.name }}</span>
             </div>
           </div>

@@ -56,7 +56,7 @@ const getChangeColor = (item: typeof displayData.value[number]) => {
           :variant="activeTab === 'counterparties' ? 'default' : 'ghost'"
           @click="activeTab = 'counterparties'"
         >
-          Terceiros
+          Identificadores
         </UiButton>
       </div>
     </div>

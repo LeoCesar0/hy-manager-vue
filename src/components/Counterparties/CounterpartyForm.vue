@@ -84,8 +84,8 @@ const onSubmit = handleSubmit(async (values) => {
         },
         options: {
           toastOptions: {
-            loading: { message: "Atualizando terceiro..." },
-            success: { message: "Terceiro atualizado com sucesso!" },
+            loading: { message: "Atualizando identificador..." },
+            success: { message: "Identificador atualizado com sucesso!" },
             error: true,
           },
         },
@@ -100,8 +100,8 @@ const onSubmit = handleSubmit(async (values) => {
         },
         options: {
           toastOptions: {
-            loading: { message: "Criando terceiro..." },
-            success: { message: "Terceiro criado com sucesso!" },
+            loading: { message: "Criando identificador..." },
+            success: { message: "Identificador criado com sucesso!" },
             error: true,
           },
         },

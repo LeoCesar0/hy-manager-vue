@@ -96,7 +96,7 @@ export const paginateCounterparties = async ({
       });
     },
     {
-      toastOptions: getDefaultGetToastOptions({ itemName: "Terceiros" }),
+      toastOptions: getDefaultGetToastOptions({ itemName: "Identificadores" }),
       ...options,
     },
   );

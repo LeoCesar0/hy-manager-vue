@@ -113,7 +113,7 @@ const handleSaveAll = async () => {
     }
 
     if (successIds.length > 0) {
-      toast.success(`${successIds.length} terceiro${successIds.length > 1 ? "s" : ""} categorizado${successIds.length > 1 ? "s" : ""}`);
+      toast.success(`${successIds.length} identificador${successIds.length > 1 ? "es" : ""} categorizado${successIds.length > 1 ? "s" : ""}`);
     }
 
     if (uncategorizedPage.value > uncategorizedTotalPages.value) {
@@ -202,7 +202,7 @@ const handleSaveCategorized = async () => {
     }
 
     if (successIds.length > 0) {
-      toast.success(`${successIds.length} terceiro${successIds.length > 1 ? "s" : ""} atualizado${successIds.length > 1 ? "s" : ""}`);
+      toast.success(`${successIds.length} identificador${successIds.length > 1 ? "es" : ""} atualizado${successIds.length > 1 ? "s" : ""}`);
     }
 
     editingId.value = null;
@@ -241,8 +241,8 @@ onMounted(() => {
 
 <template>
   <DashboardSection
-    title="Categorizar Terceiros"
-    subtitle="Atribua categorias aos terceiros pendentes"
+    title="Categorizar Identificadores"
+    subtitle="Atribua categorias aos identificadores pendentes"
     show-back-button
     :on-back="handleBack"
     :loading="isLoading"
@@ -285,16 +285,16 @@ onMounted(() => {
           <CheckCircle2Icon class="h-12 w-12 text-primary mb-4" />
           <h3 class="text-lg font-semibold">Tudo categorizado!</h3>
           <p class="text-muted-foreground mt-1">
-            Todos os terceiros possuem categorias atribuídas.
+            Todos os identificadores possuem categorias atribuídas.
           </p>
           <UiButton variant="outline" class="mt-4" @click="handleBack">
-            Voltar para Terceiros
+            Voltar para Identificadores
           </UiButton>
         </div>
 
         <div v-else class="space-y-3">
           <p class="text-sm text-muted-foreground">
-            {{ uncategorizedCount }} terceiro{{ uncategorizedCount > 1 ? "s" : "" }} sem categoria, ordenados por valor total.
+            {{ uncategorizedCount }} identificador{{ uncategorizedCount > 1 ? "es" : "" }} sem categoria, ordenados por valor total.
           </p>
 
           <CounterpartyCategorizationRow
@@ -346,15 +346,15 @@ onMounted(() => {
 
       <UiTabsContent value="categorized">
         <div v-if="categorizedItems.length === 0 && !isLoading" class="flex flex-col items-center justify-center py-12 text-center">
-          <h3 class="text-lg font-semibold">Nenhum terceiro categorizado</h3>
+          <h3 class="text-lg font-semibold">Nenhum identificador categorizado</h3>
           <p class="text-muted-foreground mt-1">
-            Categorize terceiros na aba "Sem categoria".
+            Categorize identificadores na aba "Sem categoria".
           </p>
         </div>
 
         <div v-else class="space-y-3">
           <p class="text-sm text-muted-foreground">
-            {{ categorizedCount }} terceiro{{ categorizedCount > 1 ? "s" : "" }} com categorias atribuídas.
+            {{ categorizedCount }} identificador{{ categorizedCount > 1 ? "es" : "" }} com categorias atribuídas.
           </p>
 
           <CounterpartyCategorizationRow

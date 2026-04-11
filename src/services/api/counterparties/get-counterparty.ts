@@ -19,7 +19,7 @@ export const getCounterparty = async ({ id, options }: IAPIGetCounterparty) => {
       });
     },
     {
-      toastOptions: getDefaultGetToastOptions({ itemName: "Terceiro" }),
+      toastOptions: getDefaultGetToastOptions({ itemName: "Identificador" }),
       ...options,
     },
   );

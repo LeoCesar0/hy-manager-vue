@@ -24,7 +24,7 @@ export const createCounterparty = async ({ data, options }: IAPICreateCounterpar
       });
     },
     {
-      toastOptions: getDefaultCreateToastOptions({ itemName: "Terceiro" }),
+      toastOptions: getDefaultCreateToastOptions({ itemName: "Identificador" }),
       ...options,
     }
   );

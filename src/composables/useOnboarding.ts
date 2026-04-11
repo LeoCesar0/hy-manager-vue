@@ -1,4 +1,5 @@
 import type { DefaultCategory } from "~/static/default-categories";
+import type { IBankAccountCompany } from "~/@schemas/models/bank-account";
 import { createBankAccount } from "~/services/api/bank-accounts/create-bank-account";
 import { setupDefaultCategories } from "~/services/api/categories/setup-default-categories";
 import { updateUser } from "~/services/api/users/update-user";
@@ -12,6 +13,7 @@ export const useOnboarding = () => {
   const totalSteps = 3;
   const userName = ref(currentUser.value?.name || "");
   const bankAccountName = ref("");
+  const bankAccountCompany = ref<IBankAccountCompany>("other");
   const isSubmitting = ref(false);
 
   const goToNextStep = () => {
@@ -31,8 +33,9 @@ export const useOnboarding = () => {
     goToNextStep();
   };
 
-  const handleBankAccountNext = (name: string) => {
+  const handleBankAccountNext = ({ name, company }: { name: string; company: IBankAccountCompany }) => {
     bankAccountName.value = name;
+    bankAccountCompany.value = company;
     goToNextStep();
   };
 
@@ -55,7 +58,11 @@ export const useOnboarding = () => {
 
       // Step 2: Create bank account
       const bankAccountRes = await createBankAccount({
-        data: { name: bankAccountName.value, userId },
+        data: {
+          name: bankAccountName.value,
+          userId,
+          company: bankAccountCompany.value,
+        },
         options: silentOptions,
       });
 
@@ -125,6 +132,7 @@ export const useOnboarding = () => {
     totalSteps,
     userName,
     bankAccountName,
+    bankAccountCompany,
     isSubmitting,
     goToNextStep,
     goToPreviousStep,

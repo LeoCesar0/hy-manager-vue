@@ -226,7 +226,7 @@ onMounted(() => {
             <span v-else class="text-muted-foreground">—</span>
           </DetailField>
 
-          <DetailField label="Terceiro">
+          <DetailField label="Identificador">
             <FancyLink v-if="counterparty" :to="ROUTE.counterpartyId.path(counterparty.id)"
               class="text-primary hover:underline">
               {{ counterparty.name }}

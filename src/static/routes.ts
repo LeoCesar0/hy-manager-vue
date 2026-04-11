@@ -116,7 +116,7 @@ export const ROUTE = {
     counterparties: {
         path: () => '/dashboard/terceiros',
         name: 'counterparties',
-        label: 'Terceiros',
+        label: 'Identificadores',
         menu:{
             icon: UsersIcon,
             group: 'management',
@@ -125,12 +125,12 @@ export const ROUTE = {
     counterpartyId: {
         path: (id: string) => `/dashboard/terceiros/${id}`,
         name: 'counterpartyId',
-        label: 'Terceiro',
+        label: 'Identificador',
     },
     categorizarCounterparties: {
         path: () => '/dashboard/terceiros/categorizar',
         name: 'categorizarCounterparties',
-        label: 'Categorizar Terceiros',
+        label: 'Categorizar Identificadores',
     },
     bankAccounts: {
         path: () => '/dashboard/contas-bancarias',

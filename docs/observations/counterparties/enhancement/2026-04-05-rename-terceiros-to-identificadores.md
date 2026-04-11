@@ -1,5 +1,5 @@
 ---
-status: open
+status: resolved
 type: enhancement
 severity: low
 found-during: "Transforming todo.md backlog into observation files"
@@ -8,7 +8,7 @@ working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-05
 updated: 2026-04-05
-resolved-date:
+resolved-date: 2026-04-05
 discard-reason:
 deferred:
 ---
@@ -81,3 +81,24 @@ The `counterparty` vs `identifier` code name question is the thornier half of Sc
 1. Is "Identificador" the final term, or still under discussion?
 2. If going to Scope C: what's the code-level name? `identifier` (collision-prone), `txIdentifier` (explicit), or keep `counterparty` and treat "Identificador" as display-only?
 3. Is the route path (`/dashboard/terceiros`) shared externally enough to warrant the Scope B redirect work?
+
+## Resolution
+
+Resolved 2026-04-05 — Scope A only (UI copy). Code identifiers
+(`ICounterparty`, `counterpartyId`, Firestore `creditors` collection, URL
+path `/dashboard/terceiros`) left untouched; revisit in a future Scope C
+pass if the term sticks.
+
+Files updated: `src/static/routes.ts` labels, toast messages in all
+`src/services/api/counterparties/*.ts` files, component labels in
+`BreakdownDetail`, `MonthlyComparison`, `PeriodDonuts`, dashboard donut
+titles and empty messages, `ImportSheet` summary label, `FilterPanel`
+field label, transaction form/card/list-section labels,
+`TransactionsListSection` CSV export header, `Dashboard/InsightsGrid`
+insight card titles, `UncategorizedBanner` title and count wording,
+`CounterpartyForm` toast messages, `CreateSheet`/`EditSheet` titles, all
+`pages/dashboard/terceiros/*.vue` headings, subtitles, dialog titles and
+toast messages, `group-by-counterparty.ts` "Sem terceiro" fallback label,
+and the `Transactions/README.md` developer doc for consistency. Pluralization
+updated from "terceiros" to "identificadores" (plural suffix "es" not "s").
+Confirmed zero remaining user-facing "terceiro" strings via grep.

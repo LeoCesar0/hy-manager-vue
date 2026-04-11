@@ -6,6 +6,10 @@ import type { Timestamp } from "firebase/firestore";
 import SearchInput from "~/components/Dashboard/SearchInput.vue";
 import DatePicker from "~/components/Form/Field/DatePicker.vue";
 import CategorySelect from "~/components/Categories/CategorySelect.vue";
+import {
+  DATE_RANGE_PRESETS,
+  type IDateRangePresetKey,
+} from "~/helpers/dateRangePresets";
 
 type IFilters = {
   startDate: Timestamp | null;
@@ -34,6 +38,10 @@ type IEmits = {
 const emit = defineEmits<IEmits>();
 
 const isExpanded = ref(false);
+// Tracks which preset button is currently active so we can highlight it and
+// show/hide the manual date pickers. null = "Personalizado" (manual pickers
+// visible). Starts at null so existing filter state isn't clobbered on mount.
+const activePresetKey = ref<IDateRangePresetKey | null>(null);
 
 const localFilters = computed({
   get: () => props.modelValue,
@@ -42,6 +50,39 @@ const localFilters = computed({
 
 const updateFilter = (key: keyof IFilters, value: any) => {
   emit('update:modelValue', { ...props.modelValue, [key]: value });
+};
+
+const handleSelectPreset = (key: IDateRangePresetKey) => {
+  activePresetKey.value = key;
+  const preset = DATE_RANGE_PRESETS.find((p) => p.key === key);
+  if (!preset) return;
+
+  const range = preset.getRange();
+  if (range === null) {
+    // "Personalizado" — leave current start/end untouched and let the manual
+    // pickers drive the range from here.
+    return;
+  }
+
+  // Emit both dates in a single update so the parent sees one coherent state
+  // change instead of two partial ones.
+  emit('update:modelValue', {
+    ...props.modelValue,
+    startDate: range.start,
+    endDate: range.end,
+  });
+};
+
+// Changing a manual picker deselects any active preset — the user is now in
+// custom-range mode. Keeps the UI state honest about which mode is active.
+// Value type mirrors DatePicker's emit signature (Timestamp | Date | string |
+// number | undefined) — downstream consumers normalize it.
+const handleManualDateChange = (
+  key: 'startDate' | 'endDate',
+  value: Timestamp | Date | string | number | undefined,
+) => {
+  activePresetKey.value = 'custom';
+  updateFilter(key, value);
 };
 
 const isFilterHidden = (key: string) => props.hiddenFilters?.includes(key);
@@ -58,6 +99,7 @@ const hasActiveFilters = computed(() => {
 });
 
 const handleClear = () => {
+  activePresetKey.value = null;
   emit('update:modelValue', {
     startDate: null,
     endDate: null,
@@ -107,13 +149,33 @@ const handleApply = () => {
       </UiButton>
     </div>
 
-    <UiCard v-if="isExpanded" class="p-4">
+    <UiCard v-if="isExpanded" class="p-4 space-y-4">
+      <!-- Preset row — one click sets both startDate and endDate together,
+           removing the need to navigate two calendars for common periods
+           like "this month" or "last 30 days". "Personalizado" keeps the
+           manual pickers as the escape hatch for arbitrary ranges. -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium">Período</label>
+        <div class="flex flex-wrap gap-2">
+          <UiButton
+            v-for="preset in DATE_RANGE_PRESETS"
+            :key="preset.key"
+            type="button"
+            size="sm"
+            :variant="activePresetKey === preset.key ? 'default' : 'outline'"
+            @click="handleSelectPreset(preset.key)"
+          >
+            {{ preset.label }}
+          </UiButton>
+        </div>
+      </div>
+
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <div class="space-y-2">
           <label class="text-sm font-medium">Data Início</label>
           <DatePicker
             :model-value="localFilters.startDate ?? undefined"
-            @update:model-value="(value) => updateFilter('startDate', value)"
+            @update:model-value="(value) => handleManualDateChange('startDate', value)"
             class="max-w-full"
           />
         </div>
@@ -122,7 +184,7 @@ const handleApply = () => {
           <label class="text-sm font-medium">Data Fim</label>
           <DatePicker
             :model-value="localFilters.endDate ?? undefined"
-            @update:model-value="(value) => updateFilter('endDate', value)"
+            @update:model-value="(value) => handleManualDateChange('endDate', value)"
             class="max-w-full"
           />
         </div>
@@ -154,7 +216,7 @@ const handleApply = () => {
         </div>
 
         <div v-if="!isFilterHidden('counterparty')" class="space-y-2">
-          <label class="text-sm font-medium">Terceiro</label>
+          <label class="text-sm font-medium">Identificador</label>
           <UiSelect
             :model-value="localFilters.counterpartyId || 'all'"
             @update:model-value="(v) => updateFilter('counterpartyId', v === 'all' ? null : v)"

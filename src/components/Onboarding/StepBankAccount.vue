@@ -1,15 +1,37 @@
 <script setup lang="ts">
 import { WalletIcon, ArrowLeftIcon } from "lucide-vue-next";
+import {
+  bankAccountCompanies,
+  BANK_ACCOUNT_COMPANY_LABELS,
+  type IBankAccountCompany,
+} from "~/@schemas/models/bank-account";
 
 type IProps = {
-  onNext: (bankAccountName: string) => void;
+  onNext: (payload: { name: string; company: IBankAccountCompany }) => void;
   onBack: () => void;
 };
 
 const props = defineProps<IProps>();
 
 const bankAccountName = ref("");
+const bankAccountCompany = ref<IBankAccountCompany>("other");
 const error = ref("");
+
+// Pre-fills the account name with the bank label when the user picks a known
+// provider — matches how most people name their accounts ("Nubank", "Inter").
+// Only overwrites empty/unchanged names so a user who already typed a custom
+// name doesn't lose it when changing the company.
+const handleSelectCompany = (company: IBankAccountCompany) => {
+  const previousLabel = BANK_ACCOUNT_COMPANY_LABELS[bankAccountCompany.value];
+  const nameIsAutoFilled =
+    bankAccountName.value === "" || bankAccountName.value === previousLabel;
+
+  bankAccountCompany.value = company;
+
+  if (nameIsAutoFilled && company !== "other") {
+    bankAccountName.value = BANK_ACCOUNT_COMPANY_LABELS[company];
+  }
+};
 
 const handleNext = () => {
   const trimmed = bankAccountName.value.trim();
@@ -18,7 +40,7 @@ const handleNext = () => {
     return;
   }
   error.value = "";
-  props.onNext(trimmed);
+  props.onNext({ name: trimmed, company: bankAccountCompany.value });
 };
 </script>
 
@@ -31,6 +53,30 @@ const handleNext = () => {
       <h2 class="text-2xl font-semibold">Conta Bancária</h2>
       <p class="text-muted-foreground">
         Crie sua primeira conta bancária para começar a gerenciar suas finanças.
+      </p>
+    </div>
+
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Banco</label>
+      <div class="grid grid-cols-3 gap-2">
+        <button
+          v-for="company in bankAccountCompanies"
+          :key="company"
+          type="button"
+          class="rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors"
+          :class="
+            bankAccountCompany === company
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border hover:border-muted-foreground/50'
+          "
+          @click="handleSelectCompany(company)"
+        >
+          {{ BANK_ACCOUNT_COMPANY_LABELS[company] }}
+        </button>
+      </div>
+      <p class="text-xs text-muted-foreground">
+        Contas de bancos não listados funcionam normalmente, mas não suportam
+        importação de extrato CSV.
       </p>
     </div>
 

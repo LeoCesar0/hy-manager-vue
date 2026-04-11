@@ -5,15 +5,10 @@ import { formatCurrency } from "~/helpers/formatCurrency";
 import type { ISavingsRatePoint } from "~/services/analytics/calculate-savings-rate-trend";
 import type { ICumulativeBalancePoint } from "~/services/analytics/calculate-cumulative-balance-trend";
 import type { IBalanceTrendPoint } from "~/services/analytics/calculate-balance-trend";
-
-type ChartDataItem = {
-  label: string;
-  income: number;
-  expenses: number;
-};
+import type { IOverviewBarPoint } from "~/services/analytics/calculate-overview-bars";
 
 type IProps = {
-  chartData: ChartDataItem[];
+  chartData: IOverviewBarPoint[];
   balanceTrendData: IBalanceTrendPoint[];
   savingsRateTrend: ISavingsRatePoint[];
   cumulativeBalanceTrend: ICumulativeBalancePoint[];
@@ -29,6 +24,48 @@ const props = withDefaults(defineProps<IProps>(), {
 // just that month's balance — pure noise. Hide the whole trend grid and leave
 // the bar chart as the overview for single-month mode.
 const hasTrendData = computed(() => props.balanceTrendData.length >= 2);
+
+// Bar chart series — 3 bars per month: Entradas (green), Saídas reais (red),
+// and Investimentos (muted). The Investimentos segment exists only when a
+// month has activity in positive-expense categories; unovis still renders
+// zero-height bars gracefully.
+// Rendering positiveExpenses as a separate bar rather than a stacked segment
+// because @unovis/vue's GroupedBar doesn't natively compose with StackedBar.
+// The 3-grouped visual still surfaces the split clearly, keeps the expense
+// colors adjacent, and avoids hacky multi-component overlays.
+const hasPositiveExpenses = computed(() =>
+  props.chartData.some((d) => d.positiveExpenses > 0),
+);
+
+const barSeries = computed(() => {
+  const base = [
+    {
+      key: "income",
+      label: "Entradas",
+      color: "var(--deposit)",
+      accessor: (d: IOverviewBarPoint) => d.income,
+    },
+    {
+      key: "realExpenses",
+      label: "Saídas reais",
+      color: "var(--expense)",
+      accessor: (d: IOverviewBarPoint) => d.realExpenses,
+    },
+  ];
+
+  // Only include the Investimentos series when any month has positive-expense
+  // activity — avoids an empty legend slot for users who don't track saving.
+  if (hasPositiveExpenses.value) {
+    base.push({
+      key: "positiveExpenses",
+      label: "Investimentos",
+      color: "color-mix(in oklch, var(--expense) 45%, var(--muted))",
+      accessor: (d: IOverviewBarPoint) => d.positiveExpenses,
+    });
+  }
+
+  return base;
+});
 
 const balanceSeries = [
   { key: "balance", label: "Saldo", color: "var(--primary)" },
@@ -56,6 +93,7 @@ const formatCurrencyValue = (v: number) => formatCurrency({ amount: v });
     <BarChart
       title="Entradas vs Saídas"
       :data="chartData"
+      :series="barSeries"
       :loading="loading"
       empty-message="Sem dados no período selecionado"
     />

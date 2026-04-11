@@ -47,7 +47,7 @@ const cards = computed(() => [
     variant: "deposit" as const,
   },
   {
-    title: "Maior saída (terceiro)",
+    title: "Maior saída (identificador)",
     value: props.insights.topExpenseCounterparty?.name ?? "—",
     subtitle: props.insights.topExpenseCounterparty
       ? formatAmount(props.insights.topExpenseCounterparty.amount)
@@ -62,7 +62,7 @@ const cards = computed(() => [
     variant: "expense" as const,
   },
   {
-    title: "Maior entrada (terceiro)",
+    title: "Maior entrada (identificador)",
     value: props.insights.topDepositCounterparty?.name ?? "—",
     subtitle: props.insights.topDepositCounterparty
       ? formatAmount(props.insights.topDepositCounterparty.amount)

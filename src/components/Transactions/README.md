@@ -21,7 +21,7 @@ Este documento descreve a implementação completa das páginas e componentes de
 **Características:**
 - Card em formato de lista/timeline
 - Ícone colorido (verde para receitas, vermelho para despesas)
-- Exibe: descrição, valor, data, conta bancária, categorias (chips coloridos), terceiro
+- Exibe: descrição, valor, data, conta bancária, categorias (chips coloridos), identificador
 - Botões de ação (visualizar, editar, deletar)
 - Responsivo e com hover effects
 
@@ -40,7 +40,7 @@ Este documento descreve a implementação completa das páginas e componentes de
 - ✅ Tipo (Todos, Receitas, Despesas)
 - ✅ Categoria (select)
 - ✅ Conta bancária (select)
-- ✅ Terceiro (select)
+- ✅ Identificador (select)
 
 **Recursos:**
 - Painel expansível/colapsável
@@ -55,7 +55,7 @@ Este documento descreve a implementação completa das páginas e componentes de
 - Data (Datepicker)
 - Conta bancária (select, required)
 - Categorias (multi-select)
-- Terceiro (select, opcional)
+- Identificador (select, opcional)
 
 **Recursos:**
 - Validação com Zod schemas
@@ -85,7 +85,7 @@ Este documento descreve a implementação completa das páginas e componentes de
 - ✅ Carregamento de transações com paginação
 - ✅ Filtros avançados (todos os especificados)
 - ✅ Busca em tempo real por descrição
-- ✅ Carregamento de dados auxiliares (categorias, contas, terceiros)
+- ✅ Carregamento de dados auxiliares (categorias, contas, identificadors)
 - ✅ CRUD completo (criar, editar, visualizar, deletar)
 - ✅ Confirmação antes de deletar
 - ✅ **Exportação CSV** com todos os dados filtrados
@@ -104,8 +104,8 @@ Este documento descreve a implementação completa das páginas e componentes de
 **Exibição:**
 - Badge grande com tipo e ícone colorido
 - Valor formatado e colorido
-- Descrição, data, conta, categorias (chips), terceiro
-- Links para: conta bancária, categorias, terceiro
+- Descrição, data, conta, categorias (chips), identificador
+- Links para: conta bancária, categorias, identificador
 - Datas de criação e atualização
 - Not found state
 
@@ -139,7 +139,7 @@ Este documento descreve a implementação completa das páginas e componentes de
 
 #### ✅ Exportação CSV/Excel
 - Exporta transações filtradas
-- Inclui: data, tipo, descrição, valor, conta, categorias, terceiro
+- Inclui: data, tipo, descrição, valor, conta, categorias, identificador
 - Download automático com nome baseado na data
 
 ### 5. Padrões Seguidos
@@ -163,7 +163,7 @@ Este documento descreve a implementação completa das páginas e componentes de
 **Auxiliares:**
 - `getCategories` - carregar categorias
 - `getBankAccounts` - carregar contas bancárias
-- `getCreditors` - carregar terceiros
+- `getCreditors` - carregar identificadores
 - `calculateTotals` - calcular totais financeiros
 
 ### 7. UX Melhorias

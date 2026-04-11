@@ -88,7 +88,11 @@ const crosshairTemplate = (d: Record<string, unknown>) => tooltipTemplate(d);
       <p class="text-sm text-muted-foreground">{{ emptyMessage }}</p>
     </div>
 
-    <div v-else>
+    <!-- `position: relative` establishes the positioning context for the
+         unovis crosshair/tooltip portal. Without it, the tooltip can
+         position against an ancestor with unwanted clipping, causing it
+         to not render visibly on pages like Relatórios. -->
+    <div v-else class="relative">
       <ChartContainer :config="chartConfig" class="h-[250px]" :cursor="true">
         <VisXYContainer :data="data" :padding="{ top: 10 }">
           <VisLine
