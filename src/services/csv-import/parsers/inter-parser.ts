@@ -14,10 +14,14 @@ import type { IBankStatementParser, IBankStatementRow } from "../@types";
 // Note: semicolon delimiter (not comma), 5 preamble rows before the header,
 // Brazilian decimal format ("-10,99"), and no unique identifier per row —
 // ids are synthesized via a stable composite key.
-const EXPECTED_HEADER_CELL = "data lançamento";
-
 const normalize = (s: string): string =>
   s.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+// Compare pre-normalized on both sides: the cedilla in "lançamento"
+// decomposes to "c + U+0327" and the combining mark is stripped by
+// normalize(), so the literal string must go through the same pipeline
+// or the equality check will never match.
+const EXPECTED_HEADER_CELL = normalize("data lançamento");
 
 const parseDate = (dateStr: string): Date => {
   const parts = dateStr.split("/").map(Number);

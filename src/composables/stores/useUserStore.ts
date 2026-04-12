@@ -28,7 +28,7 @@ export const useUserStore = defineStore(makeStoreKey("user"), () => {
           error: { message: "Failed to sign in" },
         },
         onSuccess: () => {
-          router.push("/");
+          router.push("/dashboard");
         },
       }
     );
@@ -46,7 +46,7 @@ export const useUserStore = defineStore(makeStoreKey("user"), () => {
           error: { message: "Failed to sign in with Google" },
         },
         onSuccess: () => {
-          router.push("/");
+          router.push("/dashboard");
         },
       }
     );

@@ -67,9 +67,9 @@ export const ROUTE = {
         label: 'Sign Up',
     },
     'forgot-password': {
-        path: () => '/esqueci-minha-senha',
+        path: () => '/forgot-password',
         name: 'forgot-password',
-        label: 'Esquecei minha senha',
+        label: 'Esqueci minha senha',
     },
     'onboarding': {
         path: () => '/onboarding',
