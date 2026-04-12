@@ -46,7 +46,7 @@ const handleToggle = (value: boolean) => {
               :model-value="includePositiveExpenses"
               @update:model-value="handleToggle"
             />
-            <span>incluir</span>
+            <span>incluir investimentos</span>
           </label>
         </UiTooltipTrigger>
         <UiTooltipContent class="max-w-xs">

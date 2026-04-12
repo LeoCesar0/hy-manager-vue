@@ -13,7 +13,8 @@
       "Bash(wc *)",
       "Bash(which *)",
       "Bash(pnpm test*)",
-      "Bash(pnpm run ts-check*)"
+      "Bash(pnpm run ts-check*)",
+      "Bash(pnpm ts-check:*)"
     ],
     "defaultMode": "bypassPermissions"
   }

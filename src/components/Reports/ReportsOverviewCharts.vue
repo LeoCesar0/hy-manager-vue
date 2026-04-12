@@ -108,7 +108,7 @@ const formatCurrencyValue = (v: number) => formatCurrency({ amount: v });
                 :model-value="includePositiveExpensesInBars"
                 @update:model-value="onToggleIncludePositiveExpensesInBars"
               />
-              <span>separar</span>
+              <span>separar investimentos</span>
             </label>
           </UiTooltipTrigger>
           <UiTooltipContent class="max-w-xs">
