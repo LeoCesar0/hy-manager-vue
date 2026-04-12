@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Timestamp } from "firebase/firestore";
-import { makeTransaction, makeReport } from "../../helpers";
+import { makeTransaction, makeReport, makeMonthlyEntry } from "../../helpers";
 import { applyTransactionToReport } from "~/services/api/reports/apply-transaction-to-report";
 
 const makeDate = (year: number, month: number) =>
@@ -23,11 +23,17 @@ describe("applyTransactionToReport", () => {
     expect(result.totalIncome).toBe(0);
     expect(result.expensesByCategory).toEqual({ "cat-1": 150 });
     expect(result.expensesByCounterparty).toEqual({ "cp-1": 150 });
-    expect(result.monthlyBreakdown["2024-03"]).toEqual({
-      income: 0, expenses: 150,
-      expensesByCategory: { "cat-1": 150 }, depositsByCategory: {},
-      expensesByCounterparty: { "cp-1": 150 }, depositsByCounterparty: {},
-    });
+    expect(result.monthlyBreakdown["2024-03"]).toEqual(
+      makeMonthlyEntry({
+        expenses: 150,
+        transactionCount: 1,
+        expensesByCategory: { "cat-1": 150 },
+        expensesByCounterparty: { "cp-1": 150 },
+        expensesByCategoryAndCounterparty: { "cat-1": { "cp-1": 150 } },
+        expensesByCategoryCount: { "cat-1": 1 },
+        expensesByCounterpartyCount: { "cp-1": 1 },
+      })
+    );
     expect(result.transactionCount).toBe(1);
   });
 
@@ -47,11 +53,17 @@ describe("applyTransactionToReport", () => {
     expect(result.totalExpenses).toBe(0);
     expect(result.depositsByCategory).toEqual({ "cat-2": 200 });
     expect(result.depositsByCounterparty).toEqual({ "cp-2": 200 });
-    expect(result.monthlyBreakdown["2024-05"]).toEqual({
-      income: 200, expenses: 0,
-      expensesByCategory: {}, depositsByCategory: { "cat-2": 200 },
-      expensesByCounterparty: {}, depositsByCounterparty: { "cp-2": 200 },
-    });
+    expect(result.monthlyBreakdown["2024-05"]).toEqual(
+      makeMonthlyEntry({
+        income: 200,
+        transactionCount: 1,
+        depositsByCategory: { "cat-2": 200 },
+        depositsByCounterparty: { "cp-2": 200 },
+        depositsByCategoryAndCounterparty: { "cat-2": { "cp-2": 200 } },
+        depositsByCategoryCount: { "cat-2": 1 },
+        depositsByCounterpartyCount: { "cp-2": 1 },
+      })
+    );
   });
 
   it("transaction with empty categoryIds does NOT add to expensesByCategory but DOES add to totalExpenses", () => {
@@ -99,7 +111,17 @@ describe("applyTransactionToReport", () => {
       transactionCount: 3,
       expensesByCategory: { "cat-1": 300 },
       expensesByCounterparty: { "cp-1": 300 },
-      monthlyBreakdown: { "2024-06": { income: 0, expenses: 300, expensesByCategory: { "cat-1": 300 }, depositsByCategory: {}, expensesByCounterparty: { "cp-1": 300 }, depositsByCounterparty: {} } },
+      monthlyBreakdown: {
+        "2024-06": makeMonthlyEntry({
+          expenses: 300,
+          transactionCount: 3,
+          expensesByCategory: { "cat-1": 300 },
+          expensesByCounterparty: { "cp-1": 300 },
+          expensesByCategoryAndCounterparty: { "cat-1": { "cp-1": 300 } },
+          expensesByCategoryCount: { "cat-1": 3 },
+          expensesByCounterpartyCount: { "cp-1": 3 },
+        }),
+      },
     });
 
     const transaction = makeTransaction({
@@ -116,11 +138,17 @@ describe("applyTransactionToReport", () => {
     expect(result.transactionCount).toBe(2);
     expect(result.expensesByCategory).toEqual({ "cat-1": 200 });
     expect(result.expensesByCounterparty).toEqual({ "cp-1": 200 });
-    expect(result.monthlyBreakdown["2024-06"]).toEqual({
-      income: 0, expenses: 200,
-      expensesByCategory: { "cat-1": 200 }, depositsByCategory: {},
-      expensesByCounterparty: { "cp-1": 200 }, depositsByCounterparty: {},
-    });
+    expect(result.monthlyBreakdown["2024-06"]).toEqual(
+      makeMonthlyEntry({
+        expenses: 200,
+        transactionCount: 2,
+        expensesByCategory: { "cat-1": 200 },
+        expensesByCounterparty: { "cp-1": 200 },
+        expensesByCategoryAndCounterparty: { "cat-1": { "cp-1": 200 } },
+        expensesByCategoryCount: { "cat-1": 2 },
+        expensesByCounterpartyCount: { "cp-1": 2 },
+      })
+    );
   });
 
   it("values never go below 0 (Math.max(0, ...) guard)", () => {
@@ -129,7 +157,17 @@ describe("applyTransactionToReport", () => {
       transactionCount: 1,
       expensesByCategory: { "cat-1": 50 },
       expensesByCounterparty: { "cp-1": 50 },
-      monthlyBreakdown: { "2024-01": { income: 0, expenses: 50, expensesByCategory: { "cat-1": 50 }, depositsByCategory: {}, expensesByCounterparty: { "cp-1": 50 }, depositsByCounterparty: {} } },
+      monthlyBreakdown: {
+        "2024-01": makeMonthlyEntry({
+          expenses: 50,
+          transactionCount: 1,
+          expensesByCategory: { "cat-1": 50 },
+          expensesByCounterparty: { "cp-1": 50 },
+          expensesByCategoryAndCounterparty: { "cat-1": { "cp-1": 50 } },
+          expensesByCategoryCount: { "cat-1": 1 },
+          expensesByCounterpartyCount: { "cp-1": 1 },
+        }),
+      },
     });
 
     const transaction = makeTransaction({
@@ -146,11 +184,7 @@ describe("applyTransactionToReport", () => {
     expect(result.transactionCount).toBe(0);
     expect(result.expensesByCategory).toEqual({});
     expect(result.expensesByCounterparty).toEqual({});
-    expect(result.monthlyBreakdown["2024-01"]).toEqual({
-      income: 0, expenses: 0,
-      expensesByCategory: {}, depositsByCategory: {},
-      expensesByCounterparty: {}, depositsByCounterparty: {},
-    });
+    expect(result.monthlyBreakdown["2024-01"]).toEqual(makeMonthlyEntry());
   });
 
   it("transaction without counterpartyId skips counterparty map update", () => {

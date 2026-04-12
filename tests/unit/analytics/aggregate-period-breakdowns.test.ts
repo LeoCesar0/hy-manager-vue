@@ -124,6 +124,115 @@ describe("aggregatePeriodBreakdowns", () => {
     expect(result.expensesByCategory[0]?.id).toBe("cat-food");
   });
 
+  describe("positive-expense filter (cross-ref map)", () => {
+    const filterCategories = [
+      makeCategory({ id: "cat-food", name: "Alimentação" }),
+      makeCategory({ id: "cat-investment", name: "Tesouro", isPositiveExpense: true }),
+    ];
+    const filterCounterparties = [
+      makeCounterparty({ id: "cp-xp", name: "XP Investimentos" }),
+      makeCounterparty({ id: "cp-market", name: "Supermarket" }),
+    ];
+
+    it("subtracts positive-expense share from counterparty totals when toggle is off", () => {
+      const result = aggregatePeriodBreakdowns({
+        monthKeys: ["2025-01"],
+        monthlyBreakdown: {
+          "2025-01": makeMonthlyEntry({
+            expensesByCategory: { "cat-food": 100, "cat-investment": 500 },
+            expensesByCounterparty: { "cp-xp": 500, "cp-market": 100 },
+            expensesByCategoryAndCounterparty: {
+              "cat-investment": { "cp-xp": 500 },
+              "cat-food": { "cp-market": 100 },
+            },
+          }),
+        },
+        categories: filterCategories,
+        counterparties: filterCounterparties,
+        includePositiveExpenseCategories: false,
+      });
+
+      expect(result.expensesByCategory).toHaveLength(1);
+      expect(result.expensesByCategory[0]?.id).toBe("cat-food");
+
+      expect(result.expensesByCounterparty).toHaveLength(1);
+      expect(result.expensesByCounterparty[0]?.id).toBe("cp-market");
+    });
+
+    it("preserves counterparty totals untouched when toggle is on", () => {
+      const result = aggregatePeriodBreakdowns({
+        monthKeys: ["2025-01"],
+        monthlyBreakdown: {
+          "2025-01": makeMonthlyEntry({
+            expensesByCategory: { "cat-food": 100, "cat-investment": 500 },
+            expensesByCounterparty: { "cp-xp": 500, "cp-market": 100 },
+            expensesByCategoryAndCounterparty: {
+              "cat-investment": { "cp-xp": 500 },
+              "cat-food": { "cp-market": 100 },
+            },
+          }),
+        },
+        categories: filterCategories,
+        counterparties: filterCounterparties,
+        includePositiveExpenseCategories: true,
+      });
+
+      expect(result.expensesByCategory).toHaveLength(2);
+      expect(result.expensesByCounterparty).toHaveLength(2);
+    });
+
+    it("handles partial subtraction (counterparty has both positive and regular expenses)", () => {
+      const result = aggregatePeriodBreakdowns({
+        monthKeys: ["2025-01"],
+        monthlyBreakdown: {
+          "2025-01": makeMonthlyEntry({
+            // A single counterparty with both spending types (e.g., a broker
+            // that also charges fees as a regular expense).
+            expensesByCategory: { "cat-food": 200, "cat-investment": 500 },
+            expensesByCounterparty: { "cp-xp": 700 },
+            expensesByCategoryAndCounterparty: {
+              "cat-investment": { "cp-xp": 500 },
+              "cat-food": { "cp-xp": 200 },
+            },
+          }),
+        },
+        categories: filterCategories,
+        counterparties: filterCounterparties,
+        includePositiveExpenseCategories: false,
+      });
+
+      expect(result.expensesByCounterparty).toHaveLength(1);
+      expect(result.expensesByCounterparty[0]).toMatchObject({
+        id: "cp-xp",
+        amount: 200,
+      });
+    });
+
+    it("silently no-ops on old reports with empty cross-ref map", () => {
+      // Pre-enrichment reports have no expensesByCategoryAndCounterparty.
+      // The counterparty total stays as-is; the filter only affects the
+      // category side (which reads from the existing 1D map).
+      const result = aggregatePeriodBreakdowns({
+        monthKeys: ["2025-01"],
+        monthlyBreakdown: {
+          "2025-01": makeMonthlyEntry({
+            expensesByCategory: { "cat-food": 100, "cat-investment": 500 },
+            expensesByCounterparty: { "cp-xp": 500, "cp-market": 100 },
+            // cross-ref intentionally empty
+          }),
+        },
+        categories: filterCategories,
+        counterparties: filterCounterparties,
+        includePositiveExpenseCategories: false,
+      });
+
+      expect(result.expensesByCategory).toHaveLength(1);
+      expect(result.expensesByCategory[0]?.id).toBe("cat-food");
+      // counterparty totals unchanged because cross-ref is empty
+      expect(result.expensesByCounterparty).toHaveLength(2);
+    });
+  });
+
   it("labels unknown category IDs as 'Desconhecido' instead of dropping them", () => {
     const result = aggregatePeriodBreakdowns({
       monthKeys: ["2025-01"],

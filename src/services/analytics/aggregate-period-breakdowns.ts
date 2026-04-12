@@ -74,6 +74,13 @@ export const aggregatePeriodBreakdowns = ({
     ? null
     : new Set(categories.filter((c) => c.isPositiveExpense).map((c) => c.id));
 
+  // Per-counterparty running total of the positive-expense slice across the
+  // period. Subtracted from `expenseCounterpartyTotals` at the end when the
+  // toggle is off. Sourced from the cross-ref map introduced in the
+  // 2026-04-11 schema enrichment; on old reports that haven't been Recalcular'd
+  // yet, the cross-ref is empty and this subtraction silently no-ops.
+  const positiveCounterpartySubtract = new Map<string, number>();
+
   for (const key of monthKeys) {
     const entry = monthlyBreakdown[key];
     if (!entry) continue;
@@ -96,6 +103,30 @@ export const aggregatePeriodBreakdowns = ({
         id,
         (depositCounterpartyTotals.get(id) ?? 0) + amount
       );
+    }
+
+    if (positiveExpenseIds) {
+      const crossRef = entry.expensesByCategoryAndCounterparty ?? {};
+      for (const catId of positiveExpenseIds) {
+        const inner = crossRef[catId];
+        if (!inner) continue;
+        for (const [cpId, amount] of Object.entries(inner)) {
+          positiveCounterpartySubtract.set(
+            cpId,
+            (positiveCounterpartySubtract.get(cpId) ?? 0) + amount
+          );
+        }
+      }
+    }
+  }
+
+  if (positiveExpenseIds) {
+    for (const [cpId, toSubtract] of positiveCounterpartySubtract) {
+      const total = expenseCounterpartyTotals.get(cpId);
+      if (total === undefined) continue;
+      const next = total - toSubtract;
+      if (next <= 0) expenseCounterpartyTotals.delete(cpId);
+      else expenseCounterpartyTotals.set(cpId, next);
     }
   }
 

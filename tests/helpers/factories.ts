@@ -115,10 +115,17 @@ export const makeMonthlyEntry = (
 ): IMonthlyEntry => ({
   income: 0,
   expenses: 0,
+  transactionCount: 0,
   expensesByCategory: {},
   depositsByCategory: {},
   expensesByCounterparty: {},
   depositsByCounterparty: {},
+  expensesByCategoryAndCounterparty: {},
+  depositsByCategoryAndCounterparty: {},
+  expensesByCategoryCount: {},
+  depositsByCategoryCount: {},
+  expensesByCounterpartyCount: {},
+  depositsByCounterpartyCount: {},
   ...overrides,
 });
 

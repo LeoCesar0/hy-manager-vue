@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Timestamp } from "firebase/firestore";
-import { makeTransaction, makeReport } from "../../helpers";
+import { makeTransaction, makeReport, makeMonthlyEntry } from "../../helpers";
 import { applyTransactionToReport } from "~/services/api/reports/apply-transaction-to-report";
 
 const makeDate = (year: number, month: number) =>
@@ -58,10 +58,16 @@ describe("report double-counting bug", () => {
     expect(rebuilt.totalExpenses).toBe(300);
     expect(rebuilt.totalIncome).toBe(1000);
     expect(rebuilt.transactionCount).toBe(3);
-    expect(rebuilt.monthlyBreakdown["2024-03"]).toEqual({
-      income: 1000, expenses: 300,
-      expensesByCategory: { "cat-1": 300 }, depositsByCategory: { "cat-2": 1000 },
-      expensesByCounterparty: {}, depositsByCounterparty: {},
-    });
+    expect(rebuilt.monthlyBreakdown["2024-03"]).toEqual(
+      makeMonthlyEntry({
+        income: 1000,
+        expenses: 300,
+        transactionCount: 3,
+        expensesByCategory: { "cat-1": 300 },
+        depositsByCategory: { "cat-2": 1000 },
+        expensesByCategoryCount: { "cat-1": 2 },
+        depositsByCategoryCount: { "cat-2": 1 },
+      })
+    );
   });
 });
