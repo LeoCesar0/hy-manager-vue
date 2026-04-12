@@ -50,7 +50,7 @@ const barSeries = computed(() => {
     },
     {
       key: "realExpenses",
-      label: "Saídas reais",
+      label: "Saídas",
       color: "var(--expense)",
       accessor: (d: IOverviewBarPoint) => d.realExpenses,
     },
