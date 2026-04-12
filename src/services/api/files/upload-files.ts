@@ -6,6 +6,7 @@ import { createFile } from "./create-file";
 import { generateId } from "~/helpers/generateId";
 import { slugify } from "~/helpers/slugify";
 import { getDefaultCreateToastOptions } from "~/helpers/toast/get-default-create-toast-options";
+import { getServerPath } from "~/services/firebase/getServerPath";
 
 type Item = IFile;
 
@@ -28,7 +29,7 @@ const makeFilePath = ({
   fileName: string;
   fileId: string;
 }) => {
-  return `user-${userId}/${slugify(fileName)}-${fileId}`;
+  return `env/${getServerPath()}/users/${userId}/${slugify(fileName)}-${fileId}`;
 };
 
 const getFirebaseStorage = () => {
