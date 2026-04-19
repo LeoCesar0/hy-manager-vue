@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watchDebounced } from "@vueuse/core";
-import { PlusIcon, DownloadIcon, UploadIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-vue-next";
+import { PlusIcon, DownloadIcon, UploadIcon, ArrowDownIcon, ArrowUpIcon, Trash2Icon } from "lucide-vue-next";
 import { Timestamp } from "firebase/firestore";
 import type { ITransaction, ICreateTransaction } from "~/@schemas/models/transaction";
 import type { ICategory } from "~/@schemas/models/category";
@@ -8,6 +8,7 @@ import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { IPaginationResult } from "~/@types/pagination";
 import { paginateTransactions } from "~/services/api/transactions/paginate-transactions";
 import { deleteTransaction } from "~/services/api/transactions/delete-transaction";
+import { clearTransactions } from "~/services/api/transactions/clear-transactions";
 import { getCategories } from "~/services/api/categories/get-categories";
 import { getCounterparties } from "~/services/api/counterparties/get-counterparties";
 import { ROUTE } from "~/static/routes";
@@ -191,6 +192,32 @@ const handleDelete = (transaction: ITransaction) => {
   });
 };
 
+const handleClearTransactions = () => {
+  if (!currentUser.value || !currentBankAccount.value) return;
+
+  const bankAccountName = currentBankAccount.value.name;
+  const bankAccountId = currentBankAccount.value.id;
+  const userId = currentUser.value.id;
+
+  openDialog({
+    title: "Limpar Transações",
+    message: `Todas as transações da conta "${bankAccountName}" serão deletadas permanentemente. Esta ação é irreversível.`,
+    confirm: {
+      label: "Limpar Tudo",
+      variant: "destructive",
+      action: async () => {
+        const response = await clearTransactions({
+          bankAccountId,
+          userId,
+        });
+        if (!response.error) {
+          loadTransactions();
+        }
+      },
+    },
+  });
+};
+
 const handleEdit = (transaction: ITransaction) => {
   updatingTransaction.value = transaction;
   isUpdateSheetOpen.value = true;
@@ -302,6 +329,10 @@ onMounted(() => {
 <template>
   <div class="space-y-6">
     <div v-if="showActions" class="flex items-center gap-2 justify-end">
+      <UiButton @click="handleClearTransactions" variant="outline" class="text-destructive hover:text-destructive" :disabled="!transactionsList.length">
+        <Trash2Icon class="h-4 w-4 mr-2" />
+        Limpar
+      </UiButton>
       <UiButton @click="handleExport" variant="outline" :disabled="!transactionsList.length">
         <DownloadIcon class="h-4 w-4 mr-2" />
         Exportar
