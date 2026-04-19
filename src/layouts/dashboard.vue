@@ -155,6 +155,7 @@ const selectedBankAccountId = computed({
       </UiSidebarContent>
 
       <UiSidebarFooter class="border-t p-4">
+        <AppVersionLabel class="px-2 pb-2" />
         <UiDropdownMenu>
           <UiDropdownMenuTrigger as-child>
             <button

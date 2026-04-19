@@ -36,10 +36,11 @@ import { APP_NAME, LANDING_FOOTER } from "~/static/landing";
         </div>
       </div>
 
-      <div class="mt-10 border-t border-border/50 pt-6 text-center">
+      <div class="mt-10 border-t border-border/50 pt-6 text-center space-y-2">
         <p class="text-xs text-muted-foreground">
           {{ LANDING_FOOTER.copyright }}
         </p>
+        <AppVersionLabel />
       </div>
     </div>
   </footer>

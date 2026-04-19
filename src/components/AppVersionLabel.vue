@@ -8,7 +8,7 @@ const isDev = runtimeConfig.public.dockerComposeUsed === "development";
 </script>
 
 <template>
-  <p class="text-sm text-muted-foreground">
+  <p class="text-sm text-muted-foreground text-center">
     App Version: {{ appVersion }}
     <span class="text-orange-500" v-if="isStaging">Staging</span>
     <span class="text-blue-500" v-if="isDev">Dev</span>
