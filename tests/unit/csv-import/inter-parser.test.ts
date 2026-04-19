@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { interParser } from "~/services/csv-import/parsers/inter-parser";
 
 const sampleCsv = readFileSync(
-  resolve(__dirname, "../../../src/assets/statement-examples/inter/inter-statement-example.csv"),
+  resolve(__dirname, "../../fixtures/csv/inter/inter-statement-example.csv"),
   "utf-8",
 );
 
@@ -33,13 +33,13 @@ describe("interParser.parse", () => {
     const bigDeposit = rows.find((r) => r.amount === 3000);
     expect(bigDeposit).toBeDefined();
     expect(bigDeposit!.type).toBe("deposit");
-    expect(bigDeposit!.description).toContain("Coriolano E Valentim Ltda");
+    expect(bigDeposit!.description).toContain("Empresa Ficticia Ltda");
   });
 
   it("combines Histórico and Descrição into the description field", () => {
     const rows = interParser.parse({ csvText: sampleCsv });
     const pixRecebido = rows.find((r) =>
-      r.description.startsWith("Pix recebido - Leonardo César Ribeiro Rocha"),
+      r.description.startsWith("Pix recebido - Joao Carlos Silva Santos"),
     );
     expect(pixRecebido).toBeDefined();
   });

@@ -1,0 +1,21 @@
+ Extrato Conta Corrente
+Conta ;999888777
+Periodo ;01/03/2026 a 31/03/2026
+Saldo ;2500,00
+
+Data Lançamento;Histórico;Descrição;Valor;Saldo
+01/03/2026;Compra no débito;Armazzem Do Seu Jeito  Teresina      Bra;-10,99;2500,00
+02/03/2026;Pix enviado ;Farmacia Popular;-45,00;2489,01
+03/03/2026;Compra no débito;Uber Uber *trip Help.u Sp            Bra;-12,50;2444,01
+04/03/2026;Compra no débito;Padaria Central        Teresina      Bra;-8,75;2431,51
+05/03/2026;Pix recebido;Joao Carlos Silva Santos;300,00;2422,76
+06/03/2026;Pix enviado ;Supermercado Bom Preco;-150,00;2722,76
+07/03/2026;Compra no débito;Posto Shell             Teresina      Bra;-80,00;2572,76
+08/03/2026;Aplicação;Cdb Porq Obj Banco Inter Sa;-500,00;2492,76
+09/03/2026;Estorno;Compra cartão;25,95;1992,76
+10/03/2026;Pix recebido;Empresa Ficticia Ltda;3.000,00;2018,71
+11/03/2026;Compra no débito;Mp *thebeijus          Teresina      Bra;-25,50;5018,71
+12/03/2026;Pix enviado ;Banco Do Brasil Sa;-200,00;4993,21
+13/03/2026;Compra no débito;Sabor Do Oriente       Teresina      Bra;-22,00;4793,21
+14/03/2026;Compra no débito;Uber Uber *trip Help.u Sp            Bra;-15,00;4771,21
+15/03/2026;Pagamento efetuado;Pagamento Fatura - Cartao Credito;-350,00;4756,21
