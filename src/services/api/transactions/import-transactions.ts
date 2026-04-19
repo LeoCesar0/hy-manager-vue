@@ -27,18 +27,38 @@ type IProps = {
   bankAccountId: string;
 } & IAPIRequestCommon<IImportResult>;
 
+const buildFieldDedupKey = ({
+  dateIso,
+  type,
+  amount,
+  description,
+}: {
+  dateIso: string;
+  type: string;
+  amount: number;
+  description: string;
+}): string => {
+  const slug = description
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+  return `${dateIso}-${type}-${amount.toFixed(2)}-${slug}`;
+};
+
 const checkExistingTransactions = async ({
   ids,
+  rows,
   userId,
   bankAccountId,
 }: {
   ids: string[];
+  rows: IBankStatementRow[];
   userId: string;
   bankAccountId: string;
 }): Promise<Set<string>> => {
-  console.log(`❗ checkExistingTransactions -->`);
-  const existingIds = new Set<string>();
+  const skipIds = new Set<string>();
 
+  // 1. Check by ID (handles current-format IDs)
   const batches = chunk({ items: ids, size: FIRESTORE_IN_LIMIT });
 
   const results = await Promise.all(
@@ -57,12 +77,64 @@ const checkExistingTransactions = async ({
   for (const result of results) {
     if (result.data) {
       for (const transaction of result.data) {
-        existingIds.add(transaction.id);
+        skipIds.add(transaction.id);
       }
     }
   }
 
-  return existingIds;
+  // 2. Field-based fallback for retrocompatibility with old-format IDs.
+  //    Queries existing transactions in the import date range and matches
+  //    by (date, type, amount, description) so that rows already imported
+  //    under a different ID format are still detected as duplicates.
+  const unmatchedRows = rows.filter((r) => !skipIds.has(r.id));
+  if (unmatchedRows.length === 0) return skipIds;
+
+  const timestamps = unmatchedRows.map((r) => r.date.getTime());
+  const minDate = new Date(Math.min(...timestamps));
+  const maxDate = new Date(Math.max(...timestamps));
+  maxDate.setHours(23, 59, 59, 999);
+
+  const existingInRange = await firebaseList<ITransaction>({
+    collection: "transactions",
+    filters: [
+      { field: "userId", operator: "==", value: userId },
+      { field: "bankAccountId", operator: "==", value: bankAccountId },
+      { field: "date", operator: ">=", value: Timestamp.fromDate(minDate) },
+      { field: "date", operator: "<=", value: Timestamp.fromDate(maxDate) },
+    ],
+  });
+
+  if (existingInRange.length === 0) return skipIds;
+
+  const existingCounts = new Map<string, number>();
+  for (const t of existingInRange) {
+    const key = buildFieldDedupKey({
+      dateIso: t.date.toDate().toISOString().slice(0, 10),
+      type: t.type,
+      amount: t.amount,
+      description: t.description,
+    });
+    existingCounts.set(key, (existingCounts.get(key) ?? 0) + 1);
+  }
+
+  const importCounts = new Map<string, number>();
+  for (const row of unmatchedRows) {
+    const key = buildFieldDedupKey({
+      dateIso: row.date.toISOString().slice(0, 10),
+      type: row.type,
+      amount: row.amount,
+      description: row.description,
+    });
+    const seen = importCounts.get(key) ?? 0;
+    const existing = existingCounts.get(key) ?? 0;
+
+    if (seen < existing) {
+      skipIds.add(row.id);
+    }
+    importCounts.set(key, seen + 1);
+  }
+
+  return skipIds;
 };
 
 const resolveCounterparties = async ({
@@ -129,16 +201,16 @@ export const importTransactions = async ({
   bankAccountId,
   options,
 }: IProps) => {
-  console.log('❗❗❗ importTransactions');
   const response = await handleAppRequest(
     async () => {
       const rowIds = rows.map((r) => r.id);
-      const existingIds = await checkExistingTransactions({
+      const skipIds = await checkExistingTransactions({
         ids: rowIds,
+        rows,
         userId,
         bankAccountId,
       });
-      const newRows = rows.filter((r) => !existingIds.has(r.id));
+      const newRows = rows.filter((r) => !skipIds.has(r.id));
 
       if (newRows.length === 0) {
         return {

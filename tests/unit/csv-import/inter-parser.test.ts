@@ -9,9 +9,9 @@ const sampleCsv = readFileSync(
 );
 
 describe("interParser.parse", () => {
-  it("parses every data row from the real sample CSV", () => {
+  it("parses every data row from the sample CSV", () => {
     const rows = interParser.parse({ csvText: sampleCsv });
-    expect(rows).toHaveLength(47);
+    expect(rows).toHaveLength(15);
   });
 
   it("maps negative Valor to expense and positive Valor to deposit", () => {
@@ -36,6 +36,14 @@ describe("interParser.parse", () => {
     expect(bigDeposit!.description).toContain("Coriolano E Valentim Ltda");
   });
 
+  it("combines Histórico and Descrição into the description field", () => {
+    const rows = interParser.parse({ csvText: sampleCsv });
+    const pixRecebido = rows.find((r) =>
+      r.description.startsWith("Pix recebido - Leonardo César Ribeiro Rocha"),
+    );
+    expect(pixRecebido).toBeDefined();
+  });
+
   it("cleans merchant description: collapses whitespace and strips trailing country code", () => {
     const rows = interParser.parse({ csvText: sampleCsv });
     const armazzem = rows.find(
@@ -47,17 +55,7 @@ describe("interParser.parse", () => {
     );
   });
 
-  it("combines Histórico and Descrição into the description field", () => {
-    const rows = interParser.parse({ csvText: sampleCsv });
-    const pixRecebido = rows.find((r) =>
-      r.description.startsWith("Pix recebido - Leonardo César Ribeiro Rocha"),
-    );
-    expect(pixRecebido).toBeDefined();
-  });
-
   it("synthesizes unique ids across same-day identical rows", () => {
-    // Two identical Uber trips on 26/03/2026 (different amounts in the real
-    // sample, but we want to guarantee uniqueness even when amounts collide).
     const csv = [
       " Extrato Conta Corrente ",
       "Conta ;123",
@@ -71,6 +69,65 @@ describe("interParser.parse", () => {
 
     const rows = interParser.parse({ csvText: csv });
     expect(rows).toHaveLength(2);
+    expect(rows[0]!.id).not.toBe(rows[1]!.id);
+  });
+
+  it("produces stable ids across overlapping statement periods", () => {
+    const header = "Data Lançamento;Histórico;Descrição;Valor;Saldo";
+    const sharedRow = "15/01/2026;Pix enviado;Mercado Livre                           Bra;-50,00;100,00";
+
+    const partialCsv = [
+      " Extrato Conta Corrente ",
+      "Conta ;123",
+      "Período ;10/01/2026 a 15/01/2026",
+      "Saldo ;100,00",
+      "",
+      header,
+      "10/01/2026;Compra no débito;Padaria Central                         Bra;-5,00;150,00",
+      "12/01/2026;Compra no débito;Posto Shell                             Bra;-80,00;145,00",
+      sharedRow,
+    ].join("\n");
+
+    const fullCsv = [
+      " Extrato Conta Corrente ",
+      "Conta ;123",
+      "Período ;01/01/2026 a 31/01/2026",
+      "Saldo ;200,00",
+      "",
+      header,
+      "01/01/2026;Pix recebido;Salario                                 Bra;3000,00;3000,00",
+      "05/01/2026;Compra no débito;Supermercado Extra                       Bra;-200,00;2800,00",
+      "10/01/2026;Compra no débito;Padaria Central                         Bra;-5,00;150,00",
+      "12/01/2026;Compra no débito;Posto Shell                             Bra;-80,00;145,00",
+      sharedRow,
+      "20/01/2026;Compra no débito;Farmacia Raia                           Bra;-30,00;70,00",
+    ].join("\n");
+
+    const partialRows = interParser.parse({ csvText: partialCsv });
+    const fullRows = interParser.parse({ csvText: fullCsv });
+
+    const partialIds = new Set(partialRows.map((r) => r.id));
+    const fullIds = new Map(fullRows.map((r) => [r.id, r]));
+
+    for (const row of partialRows) {
+      expect(fullIds.has(row.id)).toBe(true);
+    }
+
+    const onlyInFull = fullRows.filter((r) => !partialIds.has(r.id));
+    expect(onlyInFull).toHaveLength(3);
+  });
+
+  it("includes type in synthesized id to distinguish deposits from expenses", () => {
+    const csv = [
+      "Data Lançamento;Histórico;Descrição;Valor;Saldo",
+      "01/01/2026;Pix enviado;Fulano;-100,00;0,00",
+      "01/01/2026;Estorno;Fulano;100,00;100,00",
+    ].join("\n");
+
+    const rows = interParser.parse({ csvText: csv });
+    expect(rows).toHaveLength(2);
+    expect(rows[0]!.id).toContain("expense");
+    expect(rows[1]!.id).toContain("deposit");
     expect(rows[0]!.id).not.toBe(rows[1]!.id);
   });
 

@@ -53,25 +53,31 @@ const cleanInterDescription = (raw: string): string => {
 };
 
 // No stable per-row id exists in Inter exports, so we compose one from the
-// fields that uniquely identify a transaction. The rowIndex suffix survives
-// same-day duplicates (e.g. two identical Uber trips on the same date).
-const synthesizeId = ({
+// fields that uniquely identify a transaction. The occurrenceIndex suffix
+// disambiguates same-day duplicates (e.g. two identical Uber trips) and is
+// stable across different export date ranges — unlike a CSV row position,
+// which shifts when the statement period changes.
+const buildCompositeKey = ({
   date,
   amount,
+  type,
   description,
-  rowIndex,
 }: {
   date: Date;
   amount: number;
+  type: "expense" | "deposit";
   description: string;
-  rowIndex: number;
 }): string => {
   const iso = date.toISOString().slice(0, 10);
   const slug = description
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
-  return `inter-${iso}-${amount.toFixed(2)}-${slug}-${rowIndex}`;
+  return `${iso}-${type}-${amount.toFixed(2)}-${slug}`;
+};
+
+const synthesizeId = (compositeKey: string, occurrenceIndex: number): string => {
+  return `inter-${compositeKey}-${occurrenceIndex}`;
 };
 
 export const interParser: IBankStatementParser = {
@@ -119,6 +125,7 @@ export const interParser: IBankStatementParser = {
 
     const dataRows = result.data.slice(headerIndex + 1);
     const rows: IBankStatementRow[] = [];
+    const occurrenceCounter = new Map<string, number>();
 
     for (let i = 0; i < dataRows.length; i++) {
       const row = dataRows[i]!;
@@ -161,12 +168,17 @@ export const interParser: IBankStatementParser = {
         : (descricao || historico);
 
       const amount = Math.abs(valor);
+      const type = valor < 0 ? "expense" : "deposit" as const;
+      const descForId = descricao || historico;
+      const compositeKey = buildCompositeKey({ date, amount, type, description: descForId });
+      const occurrenceIndex = occurrenceCounter.get(compositeKey) ?? 0;
+      occurrenceCounter.set(compositeKey, occurrenceIndex + 1);
 
       rows.push({
-        id: synthesizeId({ date, amount, description: descricao || historico, rowIndex: i }),
+        id: synthesizeId(compositeKey, occurrenceIndex),
         date,
         amount,
-        type: valor < 0 ? "expense" : "deposit",
+        type,
         description,
         counterpartyName: descricao || null,
       });
