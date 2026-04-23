@@ -4,9 +4,22 @@ type: performance
 severity: critical
 date: 2026-04-19
 updated: 2026-04-23
+current-stage: "Wave A — code complete, awaiting manual smoke test at real volume"
 ---
 
 # Performance: travamento com volume real de dados (2000+ transacoes)
+
+## Progresso das ondas
+
+| Onda | Escopo | Status | Branch / commits | Notas |
+|------|--------|--------|-------------------|-------|
+| A | Batch foundation + cascade ops chunkado (#1, #9, #10) | ✅ done (code) · ⏳ smoke test pendente | `perf/performance-overview` | Plano: `~/.claude/plans/graceful-wibbling-wilkes.md`. Falta validar manualmente em volume real antes de passar para B. |
+| B | Import refactor (#2, #3) | ⬜ pending | — | Depende de A estar validada. |
+| C | Reference data + counterparty lookup (#5, #8, #11) | ⬜ pending | — | — |
+| D | Listagem de transacoes (#6, #7) | ⬜ pending | — | — |
+| Defer | Dashboard Report + sync fragility (#4, #12) | ⏸ deferred | — | Revisitar apos D. |
+
+Legenda: ⬜ pending · 🟡 in progress · ✅ done · ⏸ deferred
 
 ## Contexto real
 
