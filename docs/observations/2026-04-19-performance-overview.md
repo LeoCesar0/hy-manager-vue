@@ -132,27 +132,83 @@ Em qualquer fluxo, o usuario disparara N leituras das colecoes de referencia:
 [#7] Search full-fetch         — independente
 ```
 
-## Ordem sugerida de resolucao
+## Plano de execucao — 4 ondas
 
-| Ordem | # | Problema | Motivo |
-|-------|---|----------|--------|
-| 1 | #1 | Batch limit 500 | Foundation: corrige bug real e desbloqueia #2, #9, #10 |
-| 2 | #2 | Counterparties sequenciais | Quick win apos #1, ganho perceptivel imediato no import |
-| 3 | #9 | Cascade delete fetch-all | Aplica chunked-paging — padrao reusavel para #10 |
-| 4 | #10 | Cascade update fetch-all | Mesmo padrao de #9 |
-| 5 | #11 | Reference data cache | Reduz centenas de leituras em todos os fluxos; barato |
-| 6 | #8 | get-or-create-counterparty | Adiciona `slugifiedName` indexado; tambem mitiga search de counterparties |
-| 7 | #5 | Categorization composable | Separa contagem (getCountFromServer) do load completo |
-| 8 | #3 | Deduplicacao no import | Substitui 67+ queries por 1 query por date range |
-| 9 | #6 | Paginacao offset | Cursor-based pagination — mudanca estrutural |
-| 10 | #7 | Search full-fetch | Filtro de data obrigatorio + prefix match onde aplicavel |
-| 11 | #4 | Dashboard via Report | Depende de robustez (#12); maior impacto na UX diaria |
+Decisoes ja alinhadas:
+- **Branch unica** para todas as ondas; uma planmode por onda; ao terminar uma, abre nova janela limpa para a proxima.
+- **Validacao**: testes unitarios/integracao + teste manual com dados de dev. Sem E2E; sem emulador dedicado.
+- **Fora de escopo (defer)**: #4 (Dashboard via Report) e #12 (best-effort report sync fragility). Ambos serao revisitados em momento separado.
+- **Paginacao**: cursor-based com **Next/Previous apenas** (sem page-jump). Performance identica ao cursor com page-jump, UI bem mais simples.
 
-**Marco intermediario apos passos 1-4**: o fluxo de Import e as operacoes de cleanup (Cascade) estao saudaveis. O app aguenta volume real sem falhas estruturais.
+Decisoes pendentes (default abaixo, pode ser trocado no planmode da onda):
+- **Reference data (Onda C)**: default = **Opcao 1 (load-once + refresh on mutation)**. Migrar para `onSnapshot` so se inconsistencia multi-tab virar problema real.
+- **Migracao do `slugifiedName` (Onda C)**: default = **one-shot client-side no login**. App detecta counterparties sem o campo no primeiro login pos-deploy, popula em batch chunked, marca user como migrado.
 
-**Marco intermediario apos passos 5-7**: a maioria dos fetches desnecessarios foi eliminada. Custo Firebase cai significativamente.
+### Onda A — Batch foundation + Cascade ops (chunked write/paging)
 
-**Ultimo passo (#4)**: revisitar #12 (fragilidade do Report) antes ou em paralelo. O dashboard so deve depender exclusivamente do Report quando a sincronizacao for confiavel.
+Coerencia: tudo sobre escrita em batch + leitura paginada para nao explodir memoria/limite do Firestore.
+
+| # | Item | Arquivos principais |
+|---|------|---------------------|
+| #1 | Batch limit 500 (chunking interno) | `src/services/firebase/firebase{Create,Update,Delete}Many.ts` |
+| #9 | Cascade delete via cursor + chunked batch | `src/services/api/sync/cascade-delete-bank-account.ts`, `clear-bank-account-transactions.ts` |
+| #10 | Cascade update via cursor + chunked batch | `src/services/api/sync/cascade-delete-category.ts`, `cascade-delete-counterparty.ts`, `cascade-update-counterparty-category-ids.ts` |
+
+Risco: baixo (so toca services internos). Desbloqueia Onda B.
+
+### Onda B — Import refactor
+
+Coerencia: tudo dentro de `import-transactions.ts`. Depende de Onda A (precisa do `firebaseCreateMany` chunkado).
+
+| # | Item | Arquivos principais |
+|---|------|---------------------|
+| #2 | Counterparties via `firebaseCreateMany` em bulk | `src/services/api/transactions/import-transactions.ts` (`resolveCounterparties`) |
+| #3 | Dedup com 1 query por date range (substitui 67+ paralelas) | `src/services/api/transactions/import-transactions.ts` (`checkExistingTransactions`) |
+
+Risco: medio (logica de dedup tem corner cases — testar bem com re-importacao do mesmo extrato).
+
+### Onda C — Reference data + counterparty lookup eficiente
+
+Coerencia: tudo sobre como o app le dados referenciais (categorias, counterparties). Reduz centenas de leituras por sessao e elimina 1 antipadrao replicado.
+
+| # | Item | Arquivos principais |
+|---|------|---------------------|
+| #11 | Pinia store `useReferenceDataStore` (load-once + refresh on mutation) | Novo store; consumers em ~10 arquivos (composables, pages, forms) |
+| #8 | `slugifiedName` indexado em counterparty + query direta no `getOrCreateCounterparty` + migracao one-shot client-side no login | `src/@schemas/models/counterparty.ts`, `firestore.indexes.json`, `get-or-create-counterparty.ts`, `create-counterparty.ts`, `update-counterparty.ts`, plugin de migracao |
+| #5 | `uncategorizedCount` via `getCountFromServer` (separar do load completo) | `src/composables/useCounterpartiesCategorization.ts`, callers que usam apenas a contagem |
+
+Risco: medio-alto (toca muitos arquivos consumers; mudanca de schema; migracao). PR com diff grande mas mecanico.
+
+Beneficio colateral: prefix search de counterparties via `slugifiedName` ja resolve metade do antipadrao da Onda D #7.
+
+### Onda D — Listagem (transacoes)
+
+Coerencia: tudo sobre paginacao e search da pagina `/transacoes`.
+
+| # | Item | Arquivos principais |
+|---|------|---------------------|
+| #6 | Cursor-based pagination (Next/Previous apenas) | `src/services/firebase/firebasePaginatedList.ts`, `src/components/Table/Pagination.vue` |
+| #7 | Search com filtro de data obrigatorio | `src/services/api/transactions/paginate-transactions.ts`, UI de filtros em `/transacoes` |
+
+Risco: medio (mudanca de UX na paginacao; precisa garantir que filtros de data sejam aplicados de forma transparente).
+
+### Out of scope (defer)
+
+| # | Item | Razao |
+|---|------|-------|
+| #4 | Dashboard via Report pre-agregado | Decisao do usuario: defer |
+| #12 | Best-effort report sync fragility | Decisao do usuario: defer; bloqueia #4 |
+
+Apos as 4 ondas, revisitar #12 (resolver a fragilidade do sync) e entao #4 (migrar dashboard para Report).
+
+## Marcos esperados
+
+- **Apos Onda A**: app aguenta operacoes de delete/update em volume real sem falha silenciosa de batch.
+- **Apos Onda B**: import de 2000+ transacoes funciona em tempo razoavel sem quebrar.
+- **Apos Onda C**: custo Firebase cai significativamente; forms abrem rapido; counterparties tem search apropriada.
+- **Apos Onda D**: navegacao em `/transacoes` e search performam bem em qualquer pagina/volume.
+
+Restara apenas o trabalho do Dashboard (#4 + #12) como debito tecnico conhecido — sera abordado em ciclo separado.
 
 ## Estrategia geral
 
