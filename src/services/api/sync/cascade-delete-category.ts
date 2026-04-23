@@ -1,10 +1,9 @@
 import type { ITransaction } from "~/@schemas/models/transaction";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
-import { firebaseList } from "~/services/firebase/firebaseList";
-import { firebaseUpdateMany } from "~/services/firebase/firebaseUpdateMany";
+import { cascadePaginatedBatch } from "~/services/firebase/cascadePaginatedBatch";
 import { firebaseGet } from "~/services/firebase/firebaseGet";
 import type { IReport } from "~/@schemas/models/report";
-import { deleteField, writeBatch, type WriteBatch } from "firebase/firestore";
+import { deleteField, writeBatch } from "firebase/firestore";
 import { createDocRef } from "~/services/firebase/createDocRef";
 import { removeCategoryFromTransactions } from "./remove-category-from-transactions";
 import { removeCategoryFromCounterparties } from "./remove-category-from-counterparties";
@@ -12,76 +11,70 @@ import { removeCategoryFromCounterparties } from "./remove-category-from-counter
 type IProps = {
   categoryId: string;
   userId: string;
-  batch?: WriteBatch;
 };
 
-export const cascadeDeleteCategory = async ({ categoryId, userId, batch: _batch }: IProps) => {
+// Self-managed batching (see cascade-delete-bank-account for rationale).
+export const cascadeDeleteCategory = async ({ categoryId, userId }: IProps) => {
   const { firebaseDB } = useFirebaseStore();
+  const affectedBankAccountIds = new Set<string>();
 
-  const [transactions, counterparties] = await Promise.all([
-    firebaseList<ITransaction>({
-      collection: "transactions",
-      filters: [
-        { field: "userId", operator: "==", value: userId },
-        { field: "categoryIds", operator: "array-contains", value: categoryId },
-      ],
-    }),
-    firebaseList<ICounterparty>({
-      collection: "creditors",
-      filters: [
-        { field: "userId", operator: "==", value: userId },
-        { field: "categoryIds", operator: "array-contains", value: categoryId },
-      ],
-    }),
-  ]);
+  await cascadePaginatedBatch<ITransaction>({
+    collection: "transactions",
+    filters: [
+      { field: "userId", operator: "==", value: userId },
+      { field: "categoryIds", operator: "array-contains", value: categoryId },
+    ],
+    onPage: ({ items, batch }) => {
+      const changed = removeCategoryFromTransactions({ categoryId, transactions: items });
+      for (const tx of changed) {
+        affectedBankAccountIds.add(tx.bankAccountId);
+        batch.update(
+          createDocRef({ collection: "transactions", id: tx.id }),
+          { categoryIds: tx.categoryIds }
+        );
+      }
+    },
+  });
 
-  const changedTransactions = removeCategoryFromTransactions({ categoryId, transactions });
-  const changedCounterparties = removeCategoryFromCounterparties({ categoryId, counterparties });
+  await cascadePaginatedBatch<ICounterparty>({
+    collection: "creditors",
+    filters: [
+      { field: "userId", operator: "==", value: userId },
+      { field: "categoryIds", operator: "array-contains", value: categoryId },
+    ],
+    onPage: ({ items, batch }) => {
+      const changed = removeCategoryFromCounterparties({ categoryId, counterparties: items });
+      for (const cp of changed) {
+        batch.update(
+          createDocRef({ collection: "creditors", id: cp.id }),
+          { categoryIds: cp.categoryIds }
+        );
+      }
+    },
+  });
 
-  const batch = _batch || writeBatch(firebaseDB);
+  if (affectedBankAccountIds.size === 0) return;
 
-  if (changedTransactions.length > 0) {
-    await firebaseUpdateMany({
-      collection: "transactions",
-      items: changedTransactions.map((t) => ({
-        id: t.id,
-        data: { categoryIds: t.categoryIds },
-      })),
-      batch,
-    });
-  }
-
-  if (changedCounterparties.length > 0) {
-    await firebaseUpdateMany({
-      collection: "creditors",
-      items: changedCounterparties.map((cp) => ({
-        id: cp.id,
-        data: { categoryIds: cp.categoryIds },
-      })),
-      batch,
-    });
-  }
-
-  // Update reports for affected bank accounts
-  // Use deleteField() to remove map keys — setDoc merge won't remove them otherwise
-  const bankAccountIds = [...new Set(changedTransactions.map((t) => t.bankAccountId))];
+  // Report map updates — bounded by number of affected accounts (always far under 500).
+  // Use deleteField() to remove map keys — setDoc merge won't remove them otherwise.
+  const reportBatch = writeBatch(firebaseDB);
+  let reportOps = 0;
 
   await Promise.all(
-    bankAccountIds.map(async (bankAccountId) => {
+    [...affectedBankAccountIds].map(async (bankAccountId) => {
       try {
         await firebaseGet<IReport>({ collection: "reports", id: bankAccountId });
 
-        const docRef = createDocRef({ collection: "reports", id: bankAccountId });
-
-        batch.update(docRef, {
+        reportBatch.update(createDocRef({ collection: "reports", id: bankAccountId }), {
           [`expensesByCategory.${categoryId}`]: deleteField(),
           [`depositsByCategory.${categoryId}`]: deleteField(),
         });
+        reportOps++;
       } catch {
         // Report may not exist — safe to skip
       }
     })
   );
 
-  if (!_batch) await batch.commit();
+  if (reportOps > 0) await reportBatch.commit();
 };

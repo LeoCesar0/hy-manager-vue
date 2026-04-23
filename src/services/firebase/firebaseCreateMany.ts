@@ -3,6 +3,8 @@ import { writeBatch, Timestamp, WriteBatch } from "firebase/firestore";
 import { createDocRef } from "./createDocRef";
 import type { AnyObject } from "~/@types/anyObject";
 import { COLLECTION_SCHEMA, type FirebaseCollection } from "./collections";
+import { chunk } from "~/helpers/chunk";
+import { BATCH_MAX } from "./@constants";
 
 type IFirebaseCreateMany<T extends AnyObject> = {
   collection: FirebaseCollection;
@@ -21,12 +23,9 @@ export const firebaseCreateMany = async <T extends AnyObject, R = T>({
     return [];
   }
 
-  const batch = _batch || writeBatch(firebaseDB);
-  const documentsData: R[] = [];
-
   const schema = COLLECTION_SCHEMA[collectionName];
 
-  for (const item of data) {
+  const prepared = data.map((item) => {
     const id = item.id || uuid();
     const newData = schema.parse({
       ...item,
@@ -34,17 +33,28 @@ export const firebaseCreateMany = async <T extends AnyObject, R = T>({
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     });
+    return { id, newData };
+  });
 
-    const docRef = createDocRef({
-      collection: collectionName,
-      id,
-    });
+  const documentsData: R[] = prepared.map(({ newData }) => newData as unknown as R);
 
-    batch.set(docRef, newData);
-    documentsData.push(newData as unknown as R);
+  if (_batch) {
+    // External batch → caller owns the 500-op budget; do not chunk, do not commit.
+    for (const { id, newData } of prepared) {
+      const docRef = createDocRef({ collection: collectionName, id });
+      _batch.set(docRef, newData);
+    }
+    return documentsData;
   }
 
-  if (!_batch) await batch.commit();
+  for (const group of chunk({ items: prepared, size: BATCH_MAX })) {
+    const batch = writeBatch(firebaseDB);
+    for (const { id, newData } of group) {
+      const docRef = createDocRef({ collection: collectionName, id });
+      batch.set(docRef, newData);
+    }
+    await batch.commit();
+  }
 
   return documentsData;
 };

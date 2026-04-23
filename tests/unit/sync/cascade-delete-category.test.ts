@@ -15,6 +15,13 @@ const mockBatch = {
   set: vi.fn(),
 };
 
+const pageBatch = {
+  commit: vi.fn().mockResolvedValue(undefined),
+  delete: vi.fn(),
+  update: vi.fn(),
+  set: vi.fn(),
+};
+
 vi.mock("firebase/firestore", async (importOriginal) => {
   const actual = await importOriginal<typeof import("firebase/firestore")>();
   return {
@@ -26,10 +33,13 @@ vi.mock("firebase/firestore", async (importOriginal) => {
 
 vi.stubGlobal("useFirebaseStore", () => ({ firebaseDB: {} }));
 
-vi.mock("~/services/firebase/firebaseList", () => ({ firebaseList: firebaseMocks.firebaseList }));
-vi.mock("~/services/firebase/firebaseUpdateMany", () => ({ firebaseUpdateMany: firebaseMocks.firebaseUpdateMany }));
+vi.mock("~/services/firebase/cascadePaginatedBatch", () => ({
+  cascadePaginatedBatch: firebaseMocks.cascadePaginatedBatch,
+}));
 vi.mock("~/services/firebase/firebaseGet", () => ({ firebaseGet: firebaseMocks.firebaseGet }));
-vi.mock("~/services/firebase/createDocRef", () => ({ createDocRef: vi.fn(({ id }: { id: string }) => ({ __mockRef: true, id })) }));
+vi.mock("~/services/firebase/createDocRef", () => ({
+  createDocRef: vi.fn(({ id }: { id: string }) => ({ __mockRef: true, id })),
+}));
 
 import { cascadeDeleteCategory } from "~/services/api/sync/cascade-delete-category";
 
@@ -37,93 +47,101 @@ describe("cascadeDeleteCategory", () => {
   beforeEach(() => {
     resetFactoryCounter();
     resetFirebaseMocks();
-    mockBatch.commit.mockReset().mockResolvedValue(undefined);
-    mockBatch.delete.mockReset();
-    mockBatch.update.mockReset();
-    mockBatch.set.mockReset();
+    [mockBatch, pageBatch].forEach((b) => {
+      b.commit.mockReset().mockResolvedValue(undefined);
+      b.delete.mockReset();
+      b.update.mockReset();
+      b.set.mockReset();
+    });
   });
 
-  it("removes categoryId from transactions, counterparties, and reports in a single batch", async () => {
+  it("removes categoryId from transactions, counterparties, and reports", async () => {
     const t1 = makeTransaction({ categoryIds: ["cat-1", "cat-2"], bankAccountId: "bank-1" });
     const t2 = makeTransaction({ categoryIds: ["cat-1"], bankAccountId: "bank-2" });
     const cp1 = makeCounterparty({ categoryIds: ["cat-1", "cat-3"] });
     const report1 = makeReport({ bankAccountId: "bank-1", expensesByCategory: { "cat-1": 100 } });
     const report2 = makeReport({ bankAccountId: "bank-2", expensesByCategory: { "cat-1": 50 } });
 
-    firebaseMocks.firebaseList.mockResolvedValueOnce([t1, t2]);
-    firebaseMocks.firebaseList.mockResolvedValueOnce([cp1]);
-    firebaseMocks.firebaseUpdateMany.mockResolvedValue([]);
-    firebaseMocks.firebaseGet.mockResolvedValueOnce(report1);
-    firebaseMocks.firebaseGet.mockResolvedValueOnce(report2);
+    // First call: transactions. Second: counterparties.
+    firebaseMocks.cascadePaginatedBatch
+      .mockImplementationOnce(
+        async ({ onPage }: { onPage: (args: { items: unknown[]; batch: typeof pageBatch }) => void | Promise<void> }) => {
+          await onPage({ items: [t1, t2], batch: pageBatch });
+        }
+      )
+      .mockImplementationOnce(
+        async ({ onPage }: { onPage: (args: { items: unknown[]; batch: typeof pageBatch }) => void | Promise<void> }) => {
+          await onPage({ items: [cp1], batch: pageBatch });
+        }
+      );
+    firebaseMocks.firebaseGet.mockResolvedValueOnce(report1).mockResolvedValueOnce(report2);
 
     await cascadeDeleteCategory({ categoryId: "cat-1", userId: "user-1" });
 
-    // Transactions updated with batch
-    expect(firebaseMocks.firebaseUpdateMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        collection: "transactions",
-        items: [
-          { id: t1.id, data: { categoryIds: ["cat-2"] } },
-          { id: t2.id, data: { categoryIds: [] } },
-        ],
-        batch: mockBatch,
-      })
-    );
+    // pageBatch received 2 tx updates + 1 counterparty update
+    expect(pageBatch.update).toHaveBeenCalledTimes(3);
 
-    // Counterparties updated with batch
-    expect(firebaseMocks.firebaseUpdateMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        collection: "creditors",
-        items: [
-          { id: cp1.id, data: { categoryIds: ["cat-3"] } },
-        ],
-        batch: mockBatch,
-      })
-    );
-
-    // Reports: batch.update called for each bank account
+    // Reports: mockBatch.update called for each bank account, one commit
     expect(mockBatch.update).toHaveBeenCalledTimes(2);
     expect(mockBatch.commit).toHaveBeenCalledTimes(1);
   });
 
-  it("does nothing when no transactions or counterparties match", async () => {
-    firebaseMocks.firebaseList.mockResolvedValueOnce([]);
-    firebaseMocks.firebaseList.mockResolvedValueOnce([]);
+  it("does nothing when no transactions or counterparties match (no report batch committed)", async () => {
+    firebaseMocks.cascadePaginatedBatch
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
 
     await cascadeDeleteCategory({ categoryId: "cat-1", userId: "user-1" });
 
-    expect(firebaseMocks.firebaseUpdateMany).not.toHaveBeenCalled();
     expect(firebaseMocks.firebaseGet).not.toHaveBeenCalled();
-    expect(mockBatch.commit).toHaveBeenCalledTimes(1);
+    expect(mockBatch.commit).not.toHaveBeenCalled();
   });
 
-  it("fetches transactions with array-contains filter", async () => {
-    firebaseMocks.firebaseList.mockResolvedValueOnce([]);
-    firebaseMocks.firebaseList.mockResolvedValueOnce([]);
+  it("invokes the helper with the expected tx filter", async () => {
+    firebaseMocks.cascadePaginatedBatch
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
 
     await cascadeDeleteCategory({ categoryId: "cat-1", userId: "user-1" });
 
-    expect(firebaseMocks.firebaseList).toHaveBeenCalledWith({
-      collection: "transactions",
-      filters: [
-        { field: "userId", operator: "==", value: "user-1" },
-        { field: "categoryIds", operator: "array-contains", value: "cat-1" },
-      ],
-    });
+    expect(firebaseMocks.cascadePaginatedBatch).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        collection: "transactions",
+        filters: [
+          { field: "userId", operator: "==", value: "user-1" },
+          { field: "categoryIds", operator: "array-contains", value: "cat-1" },
+        ],
+      })
+    );
+    expect(firebaseMocks.cascadePaginatedBatch).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        collection: "creditors",
+        filters: [
+          { field: "userId", operator: "==", value: "user-1" },
+          { field: "categoryIds", operator: "array-contains", value: "cat-1" },
+        ],
+      })
+    );
   });
 
   it("handles report fetch failure gracefully", async () => {
     const t1 = makeTransaction({ categoryIds: ["cat-1"], bankAccountId: "bank-1" });
 
-    firebaseMocks.firebaseList.mockResolvedValueOnce([t1]);
-    firebaseMocks.firebaseList.mockResolvedValueOnce([]);
-    firebaseMocks.firebaseUpdateMany.mockResolvedValue([]);
+    firebaseMocks.cascadePaginatedBatch
+      .mockImplementationOnce(
+        async ({ onPage }: { onPage: (args: { items: unknown[]; batch: typeof pageBatch }) => void | Promise<void> }) => {
+          await onPage({ items: [t1], batch: pageBatch });
+        }
+      )
+      .mockResolvedValueOnce(undefined);
     firebaseMocks.firebaseGet.mockRejectedValueOnce(new Error("not found"));
 
     await cascadeDeleteCategory({ categoryId: "cat-1", userId: "user-1" });
 
-    expect(firebaseMocks.firebaseUpdateMany).toHaveBeenCalledTimes(1);
+    expect(pageBatch.update).toHaveBeenCalledTimes(1);
     expect(mockBatch.update).not.toHaveBeenCalled();
-    expect(mockBatch.commit).toHaveBeenCalledTimes(1);
+    expect(mockBatch.commit).not.toHaveBeenCalled();
   });
 });

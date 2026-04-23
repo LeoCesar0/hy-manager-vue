@@ -1,6 +1,6 @@
 import type { ITransaction } from "~/@schemas/models/transaction";
-import { firebaseList } from "~/services/firebase/firebaseList";
-import { firebaseUpdateMany } from "~/services/firebase/firebaseUpdateMany";
+import { cascadePaginatedBatch } from "~/services/firebase/cascadePaginatedBatch";
+import { createDocRef } from "~/services/firebase/createDocRef";
 import { rebuildReport } from "~/services/api/reports/rebuild-report";
 import { applyCategoryIdsDiffToTransactions } from "./apply-category-ids-diff-to-transactions";
 
@@ -25,37 +25,36 @@ export const cascadeUpdateCounterpartyCategoryIds = async ({
 
   if (addedCategoryIds.length === 0 && removedCategoryIds.length === 0) return;
 
-  const transactions = await firebaseList<ITransaction>({
+  const affectedBankAccountIds = new Set<string>();
+
+  await cascadePaginatedBatch<ITransaction>({
     collection: "transactions",
     filters: [
       { field: "userId", operator: "==", value: userId },
       { field: "counterpartyId", operator: "==", value: counterpartyId },
     ],
+    onPage: ({ items, batch }) => {
+      const changed = applyCategoryIdsDiffToTransactions({
+        counterpartyId,
+        addedCategoryIds,
+        removedCategoryIds,
+        transactions: items,
+      });
+      for (const tx of changed) {
+        affectedBankAccountIds.add(tx.bankAccountId);
+        batch.update(
+          createDocRef({ collection: "transactions", id: tx.id }),
+          { categoryIds: tx.categoryIds }
+        );
+      }
+    },
   });
 
-  const changedTransactions = applyCategoryIdsDiffToTransactions({
-    counterpartyId,
-    addedCategoryIds,
-    removedCategoryIds,
-    transactions,
-  });
+  if (affectedBankAccountIds.size === 0) return;
 
-  if (changedTransactions.length === 0) return;
-
-  await firebaseUpdateMany({
-    collection: "transactions",
-    items: changedTransactions.map((t) => ({
-      id: t.id,
-      data: { categoryIds: t.categoryIds },
-    })),
-  });
-
-  // Rebuild reports for affected bank accounts
-  // Note: Not batched — rebuildReport goes through handleAppRequest/saveReport pipeline with its own reads+writes
-  const bankAccountIds = [...new Set(changedTransactions.map((t) => t.bankAccountId))];
-
+  // Rebuild reports for affected bank accounts — fan-out tracked by deferred observation #12.
   await Promise.all(
-    bankAccountIds.map((bankAccountId) =>
+    [...affectedBankAccountIds].map((bankAccountId) =>
       rebuildReport({
         userId,
         bankAccountId,

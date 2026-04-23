@@ -2,6 +2,8 @@ import { writeBatch, Timestamp, WriteBatch } from "firebase/firestore";
 import { createDocRef } from "./createDocRef";
 import { COLLECTION_SCHEMA, type FirebaseCollection } from "./collections";
 import type { AnyObject } from "~/@types/anyObject";
+import { chunk } from "~/helpers/chunk";
+import { BATCH_MAX } from "./@constants";
 
 type UpdateItem<T extends AnyObject> = {
   id: string;
@@ -26,12 +28,9 @@ export const firebaseUpdateMany = async <T extends AnyObject, R = T>({
     return [];
   }
 
-  const batch = _batch || writeBatch(firebaseDB);
-  const updatedItems: { id: string; data: R }[] = [];
   const schema = COLLECTION_SCHEMA[collectionName];
 
-  for (const item of items) {
-    const { id, data } = item;
+  const prepared = items.map(({ id, data }) => {
     const newData = schema.partial().parse({
       ...data,
       updatedAt: Timestamp.now(),
@@ -40,16 +39,31 @@ export const firebaseUpdateMany = async <T extends AnyObject, R = T>({
     if (newData?.id) delete newData.id;
     if (newData?.createdAt) delete newData.createdAt;
 
-    const docRef = createDocRef({
-      collection: collectionName,
-      id,
-    });
+    return { id, newData };
+  });
 
-    batch.update(docRef, newData);
-    updatedItems.push({ id, data: newData as R });
+  const updatedItems: { id: string; data: R }[] = prepared.map(({ id, newData }) => ({
+    id,
+    data: newData as R,
+  }));
+
+  if (_batch) {
+    // External batch → caller owns the 500-op budget; do not chunk, do not commit.
+    for (const { id, newData } of prepared) {
+      const docRef = createDocRef({ collection: collectionName, id });
+      _batch.update(docRef, newData);
+    }
+    return updatedItems;
   }
 
-  if (!_batch) await batch.commit();
+  for (const group of chunk({ items: prepared, size: BATCH_MAX })) {
+    const batch = writeBatch(firebaseDB);
+    for (const { id, newData } of group) {
+      const docRef = createDocRef({ collection: collectionName, id });
+      batch.update(docRef, newData);
+    }
+    await batch.commit();
+  }
 
   return updatedItems;
 };

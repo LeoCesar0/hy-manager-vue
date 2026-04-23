@@ -1,4 +1,3 @@
-import { writeBatch } from "firebase/firestore";
 import {
   handleAppRequest,
 } from "../@handlers/handle-app-request";
@@ -15,18 +14,14 @@ export type IAPIDeleteCounterparty = {
 export const deleteCounterparty = async ({ id, userId, options }: IAPIDeleteCounterparty) => {
   const response = await handleAppRequest(
     async () => {
-      const { firebaseDB } = useFirebaseStore();
-      const batch = writeBatch(firebaseDB);
-
-      await cascadeDeleteCounterparty({ counterpartyId: id, userId, batch });
+      // Cascade commits its own chunked batches — atomicity across children + parent
+      // was already impossible past Firestore's 500-op batch limit.
+      await cascadeDeleteCounterparty({ counterpartyId: id, userId });
 
       await firebaseDelete({
         collection: "creditors",
         id,
-        batch,
       });
-
-      await batch.commit();
 
       return true;
     },

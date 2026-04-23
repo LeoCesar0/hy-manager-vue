@@ -6,12 +6,22 @@ import {
   resetFactoryCounter,
 } from "../../helpers";
 
-vi.mock("~/services/firebase/firebaseList", () => ({ firebaseList: firebaseMocks.firebaseList }));
-vi.mock("~/services/firebase/firebaseUpdateMany", () => ({ firebaseUpdateMany: firebaseMocks.firebaseUpdateMany }));
-vi.mock("~/services/firebase/firebaseGet", () => ({ firebaseGet: firebaseMocks.firebaseGet }));
-vi.mock("~/services/firebase/firebaseUpdate", () => ({ firebaseUpdate: firebaseMocks.firebaseUpdate }));
+const pageBatch = {
+  commit: vi.fn().mockResolvedValue(undefined),
+  delete: vi.fn(),
+  update: vi.fn(),
+  set: vi.fn(),
+};
 
-// Mock rebuild-report — it uses handleAppRequest internally
+vi.stubGlobal("useFirebaseStore", () => ({ firebaseDB: {} }));
+
+vi.mock("~/services/firebase/cascadePaginatedBatch", () => ({
+  cascadePaginatedBatch: firebaseMocks.cascadePaginatedBatch,
+}));
+vi.mock("~/services/firebase/createDocRef", () => ({
+  createDocRef: vi.fn(({ id }: { id: string }) => ({ __mockRef: true, id })),
+}));
+
 const mockRebuildReport = vi.fn();
 vi.mock("~/services/api/reports/rebuild-report", () => ({
   rebuildReport: (...args: unknown[]) => mockRebuildReport(...args),
@@ -24,6 +34,10 @@ describe("cascadeUpdateCounterpartyCategoryIds", () => {
     resetFactoryCounter();
     resetFirebaseMocks();
     mockRebuildReport.mockReset();
+    pageBatch.commit.mockReset().mockResolvedValue(undefined);
+    pageBatch.update.mockReset();
+    pageBatch.delete.mockReset();
+    pageBatch.set.mockReset();
   });
 
   it("applies diff to matching transactions and rebuilds reports", async () => {
@@ -33,8 +47,11 @@ describe("cascadeUpdateCounterpartyCategoryIds", () => {
       bankAccountId: "bank-1",
     });
 
-    firebaseMocks.firebaseList.mockResolvedValueOnce([t1]);
-    firebaseMocks.firebaseUpdateMany.mockResolvedValue([]);
+    firebaseMocks.cascadePaginatedBatch.mockImplementationOnce(
+      async ({ onPage }: { onPage: (args: { items: unknown[]; batch: typeof pageBatch }) => void | Promise<void> }) => {
+        await onPage({ items: [t1], batch: pageBatch });
+      }
+    );
     mockRebuildReport.mockResolvedValue({ data: {}, error: null });
 
     await cascadeUpdateCounterpartyCategoryIds({
@@ -44,12 +61,11 @@ describe("cascadeUpdateCounterpartyCategoryIds", () => {
       userId: "user-1",
     });
 
-    expect(firebaseMocks.firebaseUpdateMany).toHaveBeenCalledWith({
-      collection: "transactions",
-      items: [
-        { id: t1.id, data: { categoryIds: ["cat-2"] } },
-      ],
-    });
+    expect(pageBatch.update).toHaveBeenCalledTimes(1);
+    expect(pageBatch.update).toHaveBeenCalledWith(
+      expect.objectContaining({ id: t1.id }),
+      { categoryIds: ["cat-2"] }
+    );
 
     expect(mockRebuildReport).toHaveBeenCalledWith({
       userId: "user-1",
@@ -66,13 +82,12 @@ describe("cascadeUpdateCounterpartyCategoryIds", () => {
       userId: "user-1",
     });
 
-    expect(firebaseMocks.firebaseList).not.toHaveBeenCalled();
-    expect(firebaseMocks.firebaseUpdateMany).not.toHaveBeenCalled();
+    expect(firebaseMocks.cascadePaginatedBatch).not.toHaveBeenCalled();
     expect(mockRebuildReport).not.toHaveBeenCalled();
   });
 
   it("does nothing when no transactions are affected", async () => {
-    firebaseMocks.firebaseList.mockResolvedValueOnce([]);
+    firebaseMocks.cascadePaginatedBatch.mockResolvedValueOnce(undefined);
 
     await cascadeUpdateCounterpartyCategoryIds({
       counterpartyId: "cp-1",
@@ -81,7 +96,6 @@ describe("cascadeUpdateCounterpartyCategoryIds", () => {
       userId: "user-1",
     });
 
-    expect(firebaseMocks.firebaseUpdateMany).not.toHaveBeenCalled();
     expect(mockRebuildReport).not.toHaveBeenCalled();
   });
 
@@ -97,8 +111,11 @@ describe("cascadeUpdateCounterpartyCategoryIds", () => {
       bankAccountId: "bank-2",
     });
 
-    firebaseMocks.firebaseList.mockResolvedValueOnce([t1, t2]);
-    firebaseMocks.firebaseUpdateMany.mockResolvedValue([]);
+    firebaseMocks.cascadePaginatedBatch.mockImplementationOnce(
+      async ({ onPage }: { onPage: (args: { items: unknown[]; batch: typeof pageBatch }) => void | Promise<void> }) => {
+        await onPage({ items: [t1, t2], batch: pageBatch });
+      }
+    );
     mockRebuildReport.mockResolvedValue({ data: {}, error: null });
 
     await cascadeUpdateCounterpartyCategoryIds({
@@ -118,8 +135,11 @@ describe("cascadeUpdateCounterpartyCategoryIds", () => {
       bankAccountId: "bank-1",
     });
 
-    firebaseMocks.firebaseList.mockResolvedValueOnce([t1]);
-    firebaseMocks.firebaseUpdateMany.mockResolvedValue([]);
+    firebaseMocks.cascadePaginatedBatch.mockImplementationOnce(
+      async ({ onPage }: { onPage: (args: { items: unknown[]; batch: typeof pageBatch }) => void | Promise<void> }) => {
+        await onPage({ items: [t1], batch: pageBatch });
+      }
+    );
     mockRebuildReport.mockResolvedValue({ data: {}, error: null });
 
     await cascadeUpdateCounterpartyCategoryIds({
@@ -129,11 +149,9 @@ describe("cascadeUpdateCounterpartyCategoryIds", () => {
       userId: "user-1",
     });
 
-    expect(firebaseMocks.firebaseUpdateMany).toHaveBeenCalledWith({
-      collection: "transactions",
-      items: [
-        { id: t1.id, data: { categoryIds: ["cat-1", "cat-2"] } },
-      ],
-    });
+    expect(pageBatch.update).toHaveBeenCalledWith(
+      expect.objectContaining({ id: t1.id }),
+      { categoryIds: ["cat-1", "cat-2"] }
+    );
   });
 });

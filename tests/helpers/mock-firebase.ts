@@ -33,6 +33,7 @@ export const firebaseMocks = {
   firebaseBatchUpdate: vi.fn(),
   firebasePaginatedList: vi.fn(),
   firebaseUpsertData: vi.fn(),
+  cascadePaginatedBatch: vi.fn(),
 };
 
 export type FirebaseMocks = typeof firebaseMocks;

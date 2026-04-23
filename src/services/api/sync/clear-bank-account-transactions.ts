@@ -1,7 +1,6 @@
-import { writeBatch } from "firebase/firestore";
 import type { ITransaction } from "~/@schemas/models/transaction";
-import { firebaseList } from "~/services/firebase/firebaseList";
-import { firebaseDeleteMany } from "~/services/firebase/firebaseDeleteMany";
+import { cascadePaginatedBatch } from "~/services/firebase/cascadePaginatedBatch";
+import { createDocRef } from "~/services/firebase/createDocRef";
 import { firebaseDelete } from "~/services/firebase/firebaseDelete";
 
 type IProps = {
@@ -10,31 +9,21 @@ type IProps = {
 };
 
 export const clearBankAccountTransactions = async ({ bankAccountId, userId }: IProps) => {
-  const { firebaseDB } = useFirebaseStore();
-
-  const transactions = await firebaseList<ITransaction>({
+  await cascadePaginatedBatch<ITransaction>({
     collection: "transactions",
     filters: [
       { field: "userId", operator: "==", value: userId },
       { field: "bankAccountId", operator: "==", value: bankAccountId },
     ],
+    onPage: ({ items, batch }) => {
+      for (const tx of items) {
+        batch.delete(createDocRef({ collection: "transactions", id: tx.id }));
+      }
+    },
   });
-
-  const batch = writeBatch(firebaseDB);
-
-  if (transactions.length > 0) {
-    await firebaseDeleteMany({
-      collection: "transactions",
-      ids: transactions.map((t) => t.id),
-      batch,
-    });
-  }
 
   await firebaseDelete({
     collection: "reports",
     id: bankAccountId,
-    batch,
   });
-
-  await batch.commit();
 };
