@@ -7,7 +7,7 @@ found-in: "src/services/firebase/firebaseCreateMany.ts"
 working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-19
-updated: 2026-04-19
+updated: 2026-04-23
 resolved-date:
 discard-reason:
 deferred:
@@ -58,5 +58,8 @@ Quando um `batch` externo e passado via parametro, o caller assume a responsabil
 ## Observacoes relacionadas
 
 - **Overview**: [Performance: travamento com volume real de dados](../../2026-04-19-performance-overview.md)
-- **Depende deste fix**: [Import cria counterparties uma a uma](2026-04-19-import-sequential-counterparty-creation.md) — usaria `firebaseCreateMany` apos este fix
+- **Depende deste fix**:
+  - [Import cria counterparties uma a uma](2026-04-19-import-sequential-counterparty-creation.md) — usaria `firebaseCreateMany` apos este fix
+  - [Cascade delete fetch-all](2026-04-23-cascade-delete-fetch-all.md) — `firebaseDeleteMany` em cascade ops sofre do mesmo limite
+  - [Cascade update fetch-all](2026-04-23-cascade-update-fetch-all.md) — `firebaseUpdateMany` em cascade ops sofre do mesmo limite
 - **Mesmo fluxo (import)**: [Deduplicacao pesada no import](2026-04-19-import-deduplication-heavy-queries.md)
