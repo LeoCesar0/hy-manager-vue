@@ -1,13 +1,13 @@
 ---
-status: open
+status: awaiting-validation
 type: performance
 severity: high
 found-during: "Production testing with 2000+ transactions import"
 found-in: "src/services/api/transactions/import-transactions.ts"
-working-branch: "main"
+working-branch: "perf/performance-overview"
 found-in-branch: "main"
 date: 2026-04-19
-updated: 2026-04-19
+updated: 2026-06-02
 resolved-date:
 discard-reason:
 deferred:
@@ -62,3 +62,11 @@ for (const cp of created) {
 - **Overview**: [Performance: travamento com volume real de dados](../../2026-04-19-performance-overview.md)
 - **Depende de**: [Batch limit 500](2026-04-19-firebase-batch-500-limit.md) — `firebaseCreateMany` precisa do chunking antes de ser usado aqui
 - **Mesmo fluxo (import)**: [Deduplicacao pesada no import](2026-04-19-import-deduplication-heavy-queries.md) — ambos tornam o import lento juntos
+
+## Pending Validation
+
+**Feito (Onda B, branch `perf/performance-overview`, 2026-06-02)** — `resolveCounterparties` substituiu o loop `for...of` com `await createCounterparty()` por **uma unica `firebaseCreateMany({ collection: "creditors", data })`** (chunkado em 500 pela Onda A). Counterparties existentes continuam reusadas; so os nomes novos entram no bulk. Import `createCounterparty` removido do arquivo.
+
+**Verificado em sessao**: testes unitarios em `tests/unit/services/api/transactions/import-transactions.test.ts` confirmam **1 unica chamada** a `firebaseCreateMany` para `creditors` (3 nomes novos -> 1 call), reuso de counterparty existente (nome conhecido nao recriado), e mapeamento correto de `counterpartyId`/`categoryIds` nas transacoes. `ts-check` limpo; sem regressao (240 testes unit).
+
+**Falta validar (usuario)**: import real com dezenas/centenas de counterparties novos confirmando o ganho de tempo. Nao commitado ainda.

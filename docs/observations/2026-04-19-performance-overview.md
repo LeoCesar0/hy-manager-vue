@@ -4,17 +4,30 @@ type: performance
 severity: critical
 date: 2026-04-19
 updated: 2026-04-23
-current-stage: "Wave A — code complete, awaiting manual smoke test at real volume"
+current-stage: "Waves A+B — code complete (awaiting-validation). NAO e ponto de teste valendo em prod (dashboard #4 e listagem #6/#7 ainda pendentes). Proximo: Onda C (gate de schema/migracao) ou Onda D."
 ---
 
 # Performance: travamento com volume real de dados (2000+ transacoes)
+
+## Objetivo e gate do teste em prod
+
+**Objetivo final**: o app deve aguentar o uso real do dono (app pessoal, sem outros usuarios) com 3 anos de extrato / 2000+ transacoes — import, navegacao, listagem, search e edicoes — sem lentidao severa nem travadas visiveis na UI.
+
+**Validacao tem dois niveis, nao confundir:**
+
+1. **Smoke test de dev (por onda)** — validacao local com dados de desenvolvimento + testes unit/integracao. Feito ao fim de cada onda, antes de passar para a proxima. Barato, repetivel.
+2. **Teste valendo em prod (uma vez)** — o dono popula/usa os dados reais em producao e confirma na pratica. Caro em atencao; deve ser feito **uma unica vez**, no momento em que o conjunto de fixes ja entrega alivio visivel nos fluxos que doem.
+
+**Gate do teste valendo em prod**: so vale apos a **Onda D concluida** (import #2/#3 + listagem #6/#7 + reference data #5/#8/#11 corrigidos). A Onda A sozinha NAO justifica teste em prod — ela so corrige CRUD em cascata (deletar conta/categoria), que nao e o sintoma headline.
+
+**Aviso de expectativa para o teste valendo**: o **#4 (dashboard carrega todas as transacoes) esta deferido**. Mesmo apos a Onda D, a home do dashboard continuara lenta com volume real — divida tecnica conhecida e assumida. Se no teste valendo a lentidao do dashboard for intoleravel, reavaliar tirar o #4 do defer antes de considerar o objetivo atingido.
 
 ## Progresso das ondas
 
 | Onda | Escopo | Status | Branch / commits | Notas |
 |------|--------|--------|-------------------|-------|
-| A | Batch foundation + cascade ops chunkado (#1, #9, #10) | ✅ done (code) · ⏳ smoke test pendente | `perf/performance-overview` | Plano: `~/.claude/plans/graceful-wibbling-wilkes.md`. Falta validar manualmente em volume real antes de passar para B. |
-| B | Import refactor (#2, #3) | ⬜ pending | — | Depende de A estar validada. |
+| A | Batch foundation + cascade ops chunkado (#1, #9, #10) | ✅ done (code) · ⏳ smoke test DEV pendente | `perf/performance-overview` | Plano: `~/.claude/plans/graceful-wibbling-wilkes.md`. Pendente: smoke test com dados de **dev** (nao prod) antes de passar para B. Teste valendo em prod so apos Onda D — ver "Objetivo e gate do teste em prod". |
+| B | Import refactor (#2, #3) | ✅ done (code) · ⏳ smoke test pendente | `perf/performance-overview` | Bulk counterparties via `firebaseCreateMany` + dedup em 1 query por date-range. 7 testes unit verdes (`tests/unit/services/api/transactions/import-transactions.test.ts`); ts-check limpo. Nao commitado. |
 | C | Reference data + counterparty lookup (#5, #8, #11) | ⬜ pending | — | — |
 | D | Listagem de transacoes (#6, #7) | ⬜ pending | — | — |
 | Defer | Dashboard Report + sync fragility (#4, #12) | ⏸ deferred | — | Revisitar apos D. |

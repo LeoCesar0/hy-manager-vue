@@ -25,3 +25,6 @@ logs
 
 .superpowers
 statement-examples/
+
+# Firebase deploy cache (local artifacts, machine-generated)
+.firebase/

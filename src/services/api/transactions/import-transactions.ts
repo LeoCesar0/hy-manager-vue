@@ -1,20 +1,18 @@
 import { Timestamp } from "firebase/firestore";
 import { handleAppRequest } from "../@handlers/handle-app-request";
 import type { ITransaction } from "~/@schemas/models/transaction";
-import type { ICounterparty } from "~/@schemas/models/counterparty";
+import type {
+  ICounterparty,
+  ICreateCounterparty,
+} from "~/@schemas/models/counterparty";
 import type { IAPIRequestCommon } from "../@types";
 import type { IBankStatementRow } from "~/services/csv-import/@types";
 import { firebaseCreateMany } from "~/services/firebase/firebaseCreateMany";
 import { firebaseList } from "~/services/firebase/firebaseList";
-import { getTransactions } from "./get-transactions";
-import { createCounterparty } from "../counterparties/create-counterparty";
 import { slugify } from "~/helpers/slugify";
-import { chunk } from "~/helpers/chunk";
 import { updateReportBulk } from "../reports/update-report-bulk";
 import type { ICategory } from "~/@schemas/models/category";
 import { resolveAutoCategoryId } from "~/services/csv-import/resolve-auto-category-id";
-
-const FIRESTORE_IN_LIMIT = 30;
 
 type IImportResult = {
   created: ITransaction[];
@@ -46,50 +44,26 @@ const buildFieldDedupKey = ({
 };
 
 const checkExistingTransactions = async ({
-  ids,
   rows,
   userId,
   bankAccountId,
 }: {
-  ids: string[];
   rows: IBankStatementRow[];
   userId: string;
   bankAccountId: string;
 }): Promise<Set<string>> => {
   const skipIds = new Set<string>();
+  if (rows.length === 0) return skipIds;
 
-  // 1. Check by ID (handles current-format IDs)
-  const batches = chunk({ items: ids, size: FIRESTORE_IN_LIMIT });
-
-  const results = await Promise.all(
-    batches.map((batchIds) =>
-      getTransactions({
-        userId,
-        bankAccountId,
-        filters: [{ field: "id", operator: "in", value: batchIds }],
-        options: {
-          toastOptions: { loading: false, success: false, error: false },
-        },
-      })
-    )
-  );
-
-  for (const result of results) {
-    if (result.data) {
-      for (const transaction of result.data) {
-        skipIds.add(transaction.id);
-      }
-    }
-  }
-
-  // 2. Field-based fallback for retrocompatibility with old-format IDs.
-  //    Queries existing transactions in the import date range and matches
-  //    by (date, type, amount, description) so that rows already imported
-  //    under a different ID format are still detected as duplicates.
-  const unmatchedRows = rows.filter((r) => !skipIds.has(r.id));
-  if (unmatchedRows.length === 0) return skipIds;
-
-  const timestamps = unmatchedRows.map((r) => r.date.getTime());
+  // Single ranged read covering the whole import batch, used for BOTH the
+  // id match and the field-based fallback. This replaces the previous
+  // ceil(N/30) parallel `id in [...]` queries (67+ for a 2000-row statement).
+  // It is sufficient because every row id encodes its own date — Inter ids are
+  // `inter-{iso-date}-...` and Nubank ids map 1:1 to a dated transaction — so an
+  // already-imported transaction sharing a row's id necessarily shares its date
+  // and falls within [min,max]. (A same-id/different-date pair can't occur:
+  // ids are deterministic/unique per transaction.)
+  const timestamps = rows.map((r) => r.date.getTime());
   const minDate = new Date(Math.min(...timestamps));
   const maxDate = new Date(Math.max(...timestamps));
   maxDate.setHours(23, 59, 59, 999);
@@ -105,6 +79,19 @@ const checkExistingTransactions = async ({
   });
 
   if (existingInRange.length === 0) return skipIds;
+
+  // 1. Exact id match (current-format ids).
+  const existingIds = new Set(existingInRange.map((t) => t.id));
+  for (const row of rows) {
+    if (existingIds.has(row.id)) skipIds.add(row.id);
+  }
+
+  // 2. Field-based fallback for retrocompatibility with old-format IDs.
+  //    Matches by (date, type, amount, description) so rows already imported
+  //    under a different ID format are still detected as duplicates. Count-based
+  //    so legitimately repeated transactions aren't over-skipped.
+  const unmatchedRows = rows.filter((r) => !skipIds.has(r.id));
+  if (unmatchedRows.length === 0) return skipIds;
 
   const existingCounts = new Map<string, number>();
   for (const t of existingInRange) {
@@ -165,31 +152,32 @@ const resolveCounterparties = async ({
     ),
   ];
 
-  for (const name of uniqueNewNames) {
-    const categoryIds = resolveAutoCategoryId({
-      counterpartyName: name,
-      userCategories,
-      enableKeywordMatch: selfDerivedNames.has(slugify(name)),
-    });
+  if (uniqueNewNames.length === 0) return counterpartyMap;
 
-    const result = await createCounterparty({
-      data: {
-        name: name.trim(),
-        userId,
-        categoryIds,
-      },
-      options: {
-        toastOptions: {
-          loading: false,
-          success: false,
-          error: false,
-        },
-      },
-    });
+  // Create every new counterparty in a single chunked bulk write instead of one
+  // sequential round-trip per name (100 new names previously meant 100 awaits).
+  const newCounterpartiesData: ICreateCounterparty[] = uniqueNewNames.map(
+    (name) => ({
+      name: name.trim(),
+      userId,
+      categoryIds: resolveAutoCategoryId({
+        counterpartyName: name,
+        userCategories,
+        enableKeywordMatch: selfDerivedNames.has(slugify(name)),
+      }),
+    })
+  );
 
-    if (result.data) {
-      counterpartyMap.set(slugify(result.data.name), result.data);
-    }
+  const created = await firebaseCreateMany<
+    (typeof newCounterpartiesData)[number],
+    ICounterparty
+  >({
+    collection: "creditors",
+    data: newCounterpartiesData,
+  });
+
+  for (const cp of created) {
+    counterpartyMap.set(slugify(cp.name), cp);
   }
 
   return counterpartyMap;
@@ -203,9 +191,7 @@ export const importTransactions = async ({
 }: IProps) => {
   const response = await handleAppRequest(
     async () => {
-      const rowIds = rows.map((r) => r.id);
       const skipIds = await checkExistingTransactions({
-        ids: rowIds,
         rows,
         userId,
         bankAccountId,

@@ -1,13 +1,13 @@
 ---
-status: open
+status: awaiting-validation
 type: performance
 severity: medium
 found-during: "Production testing with 2000+ transactions import"
 found-in: "src/services/api/transactions/import-transactions.ts"
-working-branch: "main"
+working-branch: "perf/performance-overview"
 found-in-branch: "main"
 date: 2026-04-19
-updated: 2026-04-19
+updated: 2026-06-02
 resolved-date:
 discard-reason:
 deferred:
@@ -68,3 +68,11 @@ Manter um Set de IDs ja importados no client durante a sessao, evitando re-queri
 - **Overview**: [Performance: travamento com volume real de dados](../../2026-04-19-performance-overview.md)
 - **Mesmo fluxo (import)**: [Batch limit 500](2026-04-19-firebase-batch-500-limit.md) — ambos afetam o fluxo de import
 - **Mesmo fluxo (import)**: [Counterparties sequenciais](2026-04-19-import-sequential-counterparty-creation.md) — os 3 problemas de import se somam na percepcao de lentidao
+
+## Pending Validation
+
+**Feito (Onda B, branch `perf/performance-overview`, 2026-06-02)** — adotada a Opcao 1. `checkExistingTransactions` agora faz **uma unica `firebaseList` por date-range** cobrindo todas as rows e casa por ID e por campos em memoria. Removidos: passo de chunking de IDs (`chunk` + `Promise.all` de `getTransactions`), constante `FIRESTORE_IN_LIMIT` e o param `ids`. Seguro porque o ID de cada row codifica a data (Inter `inter-{iso}-...`; Nubank ID estavel 1:1), entao toda transacao existente que casa por ID compartilha a data e cai no range.
+
+**Verificado em sessao**: novos testes unitarios em `tests/unit/services/api/transactions/import-transactions.test.ts` — 7 casos verdes (dedup por ID, fallback por campos count-based, edge de rows vazias/todas duplicadas, **assert de 1 unica query** para `transactions`). `ts-check` limpo. Sem regressao na suite unit (240 testes).
+
+**Falta validar (usuario)**: re-import do mesmo extrato em volume real / dev confirmando que a deduplicacao continua correta e que a query unica performa bem com milhares de docs. Nao commitado ainda.
