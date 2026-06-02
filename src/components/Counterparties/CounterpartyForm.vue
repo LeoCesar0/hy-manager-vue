@@ -5,9 +5,7 @@ import type { ICounterparty, ICreateCounterparty } from "~/@schemas/models/count
 import { zCreateCounterparty, zUpdateCounterparty } from "~/@schemas/models/counterparty";
 import { createCounterparty } from "~/services/api/counterparties/create-counterparty";
 import { updateCounterparty } from "~/services/api/counterparties/update-counterparty";
-import type { ICategory } from "~/@schemas/models/category";
 import type { ISelectOption } from "~/@schemas/select";
-import { getCategories } from "~/services/api/categories/get-categories";
 import { getCategoryIcon } from "~/static/category-icons";
 
 type IProps = {
@@ -26,7 +24,8 @@ const userStore = useUserStore();
 const { currentUser } = storeToRefs(userStore);
 
 const isLoading = ref(false);
-const categories = ref<ICategory[]>([]);
+const referenceDataStore = useReferenceDataStore();
+const { categories } = storeToRefs(referenceDataStore);
 
 const validationSchema = toTypedSchema(
   props.isEditMode ? zUpdateCounterparty : zCreateCounterparty
@@ -49,16 +48,9 @@ watch(
   { immediate: true }
 );
 
-onMounted(async () => {
+onMounted(() => {
   if (!currentUser.value?.id) return;
-
-  const categoriesRes = await getCategories({
-    userId: currentUser.value.id,
-  });
-
-  if (categoriesRes.data) {
-    categories.value = categoriesRes.data;
-  }
+  referenceDataStore.load({ userId: currentUser.value.id });
 });
 
 const categoryOptions = computed<ISelectOption[]>(() => {
@@ -90,7 +82,10 @@ const onSubmit = handleSubmit(async (values) => {
           },
         },
       });
-      if (response.data) emit("success");
+      if (response.data) {
+        referenceDataStore.refreshCurrent();
+        emit("success");
+      }
     } else {
       const response = await createCounterparty({
         data: {
@@ -106,7 +101,10 @@ const onSubmit = handleSubmit(async (values) => {
           },
         },
       });
-      if (response.data) emit("success");
+      if (response.data) {
+        referenceDataStore.refreshCurrent();
+        emit("success");
+      }
     }
   } finally {
     isLoading.value = false;

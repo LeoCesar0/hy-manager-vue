@@ -196,7 +196,12 @@ describe("importTransactions", () => {
 
     const creditorCalls = createManyCallsFor("creditors");
     expect(creditorCalls).toHaveLength(1);
-    expect((creditorCalls[0]![0] as { data: unknown[] }).data).toHaveLength(3);
+    const created = (creditorCalls[0]![0] as { data: Array<{ slugifiedName?: string }> }).data;
+    expect(created).toHaveLength(3);
+    // every bulk-created counterparty carries a slugifiedName (required field)
+    for (const cp of created) {
+      expect(cp.slugifiedName).toBeTruthy();
+    }
 
     // every created transaction got a counterpartyId resolved from the bulk create
     expect(res.data?.created).toHaveLength(3);

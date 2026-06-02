@@ -1,11 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 import type { ITransaction } from "~/@schemas/models/transaction";
-import type { ICategory } from "~/@schemas/models/category";
-import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { IReport } from "~/@schemas/models/report";
 import { getTransactions } from "~/services/api/transactions/get-transactions";
-import { getCategories } from "~/services/api/categories/get-categories";
-import { getCounterparties } from "~/services/api/counterparties/get-counterparties";
 import { getOrCreateReport } from "~/services/api/reports/get-or-create-report";
 import { rebuildReport } from "~/services/api/reports/rebuild-report";
 import { calculateTotals } from "~/services/analytics/calculate-totals";
@@ -66,10 +62,10 @@ export const useDashboardAnalytics = () => {
   const { currentUser } = storeToRefs(userStore);
   const dashboardStore = useDashboardStore();
   const { currentBankAccount } = storeToRefs(dashboardStore);
+  const referenceDataStore = useReferenceDataStore();
+  const { categories, counterparties } = storeToRefs(referenceDataStore);
 
   const filteredTransactions = ref<ITransaction[]>([]);
-  const categories = ref<ICategory[]>([]);
-  const counterparties = ref<ICounterparty[]>([]);
   const report = ref<IReport | null>(null);
   const isLoading = ref(false);
   const isRebuilding = ref(false);
@@ -166,19 +162,13 @@ export const useDashboardAnalytics = () => {
     if (!currentUser.value || !currentBankAccount.value) return;
     isLoading.value = true;
     try {
-      const [transactionsRes, categoriesRes, counterpartiesRes, reportRes] = await Promise.all([
+      // Categories/counterparties come from the shared store (loaded once);
+      // fetched in parallel here only to ensure availability before computeds.
+      const [transactionsRes, reportRes] = await Promise.all([
         getTransactions({
           userId: currentUser.value.id,
           bankAccountId: currentBankAccount.value.id,
           filters: buildDateFilters(),
-          options: { toastOptions: undefined },
-        }),
-        getCategories({
-          userId: currentUser.value.id,
-          options: { toastOptions: undefined },
-        }),
-        getCounterparties({
-          userId: currentUser.value.id,
           options: { toastOptions: undefined },
         }),
         getOrCreateReport({
@@ -186,16 +176,11 @@ export const useDashboardAnalytics = () => {
           bankAccountId: currentBankAccount.value.id,
           options: { toastOptions: undefined },
         }),
+        referenceDataStore.load({ userId: currentUser.value.id }),
       ]);
 
       if (transactionsRes.data) {
         filteredTransactions.value = transactionsRes.data;
-      }
-      if (categoriesRes.data) {
-        categories.value = categoriesRes.data;
-      }
-      if (counterpartiesRes.data) {
-        counterparties.value = counterpartiesRes.data;
       }
       if (reportRes.data) {
         report.value = reportRes.data;

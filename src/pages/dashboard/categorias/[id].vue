@@ -69,6 +69,7 @@ const handleDelete = () => {
           },
         });
         if (response.data !== undefined) {
+          useReferenceDataStore().refreshCurrent();
           router.push(ROUTE.categories.path());
         }
       },

@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { CheckCircle2Icon, SaveIcon } from "lucide-vue-next";
-import type { ICategory } from "~/@schemas/models/category";
-import { getCategories } from "~/services/api/categories/get-categories";
 import { updateCounterparty } from "~/services/api/counterparties/update-counterparty";
 import { ROUTE } from "~/static/routes";
 import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
@@ -16,8 +14,10 @@ const { currentUser } = storeToRefs(userStore);
 const router = useRouter();
 const { toast } = useToast();
 
+const referenceDataStore = useReferenceDataStore();
+const { categories } = storeToRefs(referenceDataStore);
+
 const activeTab = ref<"uncategorized" | "categorized">("uncategorized");
-const categories = ref<ICategory[]>([]);
 
 const {
   uncategorizedItems,
@@ -114,6 +114,7 @@ const handleSaveAll = async () => {
 
     if (successIds.length > 0) {
       toast.success(`${successIds.length} identificador${successIds.length > 1 ? "es" : ""} categorizado${successIds.length > 1 ? "s" : ""}`);
+      referenceDataStore.refreshCurrent();
     }
 
     if (uncategorizedPage.value > uncategorizedTotalPages.value) {
@@ -203,6 +204,7 @@ const handleSaveCategorized = async () => {
 
     if (successIds.length > 0) {
       toast.success(`${successIds.length} identificador${successIds.length > 1 ? "es" : ""} atualizado${successIds.length > 1 ? "s" : ""}`);
+      referenceDataStore.refreshCurrent();
     }
 
     editingId.value = null;
@@ -222,20 +224,9 @@ const handleBack = () => {
   router.push(ROUTE.counterparties.path());
 };
 
-const loadCategories = async () => {
-  if (!currentUser.value) return;
-  const res = await getCategories({
-    userId: currentUser.value.id,
-    options: { toastOptions: undefined },
-  });
-  if (res.data) {
-    categories.value = res.data;
-  }
-};
-
 onMounted(() => {
   loadData();
-  loadCategories();
+  if (currentUser.value) referenceDataStore.load({ userId: currentUser.value.id });
 });
 </script>
 

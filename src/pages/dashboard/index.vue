@@ -33,7 +33,9 @@ const {
   clearFilters,
 } = useDashboardAnalytics();
 
-const { uncategorizedCount, loadData: loadUncategorized } = useCounterpartiesCategorization();
+// Uncategorized counter derived from the shared reference-data store — no
+// longer loads all transactions just for this number.
+const { uncategorizedCount } = storeToRefs(useReferenceDataStore());
 
 const handleUpdateStartDate = (value: Timestamp | null) => {
   filters.value.startDate = value;
@@ -52,7 +54,6 @@ watch(
 
 onMounted(() => {
   loadData();
-  loadUncategorized();
 });
 </script>
 

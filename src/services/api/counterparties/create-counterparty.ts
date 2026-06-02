@@ -8,6 +8,7 @@ import type {
 import type { IAPIRequestCommon } from "../@types";
 import { firebaseCreate } from "~/services/firebase/firebaseCreate";
 import { getDefaultCreateToastOptions } from "~/helpers/toast/get-default-create-toast-options";
+import { slugify } from "~/helpers/slugify";
 
 type Item = ICounterparty;
 
@@ -18,9 +19,10 @@ export type IAPICreateCounterparty = {
 export const createCounterparty = async ({ data, options }: IAPICreateCounterparty) => {
   const response = await handleAppRequest(
     async () => {
-      return firebaseCreate({
+      const dataWithSlug = { ...data, slugifiedName: slugify(data.name) };
+      return firebaseCreate<ICreateCounterparty & { slugifiedName: string }, Item>({
         collection: "creditors",
-        data,
+        data: dataWithSlug,
       });
     },
     {

@@ -102,6 +102,7 @@ const handleDelete = (category: ICategory) => {
           },
         });
         if (response.data !== undefined) {
+          useReferenceDataStore().refreshCurrent();
           loadCategories();
         }
       },

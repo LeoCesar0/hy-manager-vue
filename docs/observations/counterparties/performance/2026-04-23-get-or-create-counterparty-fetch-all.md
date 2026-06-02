@@ -1,13 +1,13 @@
 ---
-status: open
+status: awaiting-validation
 type: performance
 severity: medium
 found-during: "Investigacao de fetches desnecessarios sem servidor"
 found-in: "src/services/api/counterparties/get-or-create-counterparty.ts"
-working-branch: "main"
+working-branch: "perf/performance-overview"
 found-in-branch: "main"
 date: 2026-04-23
-updated: 2026-04-23
+updated: 2026-06-02
 resolved-date:
 discard-reason:
 deferred:
@@ -71,3 +71,17 @@ const existing = existingList[0];
 - **Overview**: [Performance: travamento com volume real de dados](../../2026-04-19-performance-overview.md)
 - **Mesmo padrao (fetch-all)**: [Search full-fetch](../../transactions/performance/2026-04-19-search-full-collection-fetch.md) — habilita o fix da search de counterparties
 - **Mesmo padrao (referencias re-baixadas)**: [Reference data refetched](2026-04-23-reference-data-refetched-everywhere.md)
+
+## Pending Validation
+
+**Feito (Onda C, branch `perf/performance-overview`, 2026-06-02)**:
+- `slugifiedName: z.string()` adicionado ao schema persistido `zCounterparty` (so no doc armazenado; tipos de input nao o carregam — services injetam). Populado em `create-counterparty`, `update-counterparty` (recomputa no rename) e no bulk do import.
+- `getOrCreateCounterparty` agora faz `firebaseList` com filtros `userId ==` + `slugifiedName ==` (1 doc), em vez de baixar tudo e `.find()`.
+- Indice composto `creditors: userId + slugifiedName` adicionado a `firestore.indexes.json`.
+- Migracao one-shot `migrate-counterparty-slugified-name.ts` awaited em `auth.global.ts` faz backfill dos docs existentes (idempotente, marca `user.migrations.counterpartySlug`).
+
+**Verificado em sessao**: testes unit `get-or-create-counterparty.test.ts` (filtro slugifiedName + 1 query; create no miss) e `migrate-counterparty-slugified-name.test.ts` (backfill so dos faltantes, idempotente, marca user, nunca throw). `ts-check` limpo.
+
+**Falta (usuario)**: **deploy do indice** (`pnpm deploy:indexes`) antes do teste valendo — sem ele a query falha com "index required". Depois, validar create/edit de transacao com counterparty em volume real (1 leitura vs N). Nao commitado.
+
+> **Prefix search de counterparties (#7) ADIADO para a Onda D.** O `slugifiedName` indexado entregue aqui e o groundwork; o refactor de `paginate-counterparties` (fetch-all+substring → range query prefix) acontece na D junto com a paginacao de transacoes.

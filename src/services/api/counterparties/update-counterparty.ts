@@ -10,6 +10,7 @@ import { firebaseGet } from "~/services/firebase/firebaseGet";
 import { firebaseUpdate } from "~/services/firebase/firebaseUpdate";
 import { getDefaultUpdateToastOptions } from "~/helpers/toast/get-default-update-toast-options";
 import { cascadeUpdateCounterpartyCategoryIds } from "../sync/cascade-update-counterparty-category-ids";
+import { slugify } from "~/helpers/slugify";
 
 type Item = ICounterparty;
 
@@ -27,10 +28,18 @@ export const updateCounterparty = async ({ id, userId, data, options }: IAPIUpda
         id,
       });
 
-      const result = await firebaseUpdate<IUpdateCounterparty, Item>({
+      // Keep slugifiedName in sync whenever the name changes.
+      const dataWithSlug = data.name
+        ? { ...data, slugifiedName: slugify(data.name) }
+        : data;
+
+      const result = await firebaseUpdate<
+        IUpdateCounterparty & { slugifiedName?: string },
+        Item
+      >({
         collection: "creditors",
         id,
-        data,
+        data: dataWithSlug,
       });
 
       if (data.categoryIds) {

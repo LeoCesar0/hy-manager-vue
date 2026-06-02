@@ -3,7 +3,6 @@ import { ArrowLeftIcon } from "lucide-vue-next";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { ICategory } from "~/@schemas/models/category";
 import { getCounterparty } from "~/services/api/counterparties/get-counterparty";
-import { getCategories } from "~/services/api/categories/get-categories";
 import { deleteCounterparty } from "~/services/api/counterparties/delete-counterparty";
 import { formatDate } from "~/helpers/formatDate";
 import { ROUTE } from "~/static/routes";
@@ -24,9 +23,11 @@ const userStore = useUserStore();
 const { currentUser } = storeToRefs(userStore);
 const counterpartyId = route.params.id as string;
 
+const referenceDataStore = useReferenceDataStore();
+const { categories } = storeToRefs(referenceDataStore);
+
 const isLoadingData = ref(false);
 const counterparty = ref<ICounterparty | null>(null);
-const categories = ref<ICategory[]>([]);
 const isSheetOpen = ref(false);
 
 const resolvedCategories = computed(() => {
@@ -41,26 +42,20 @@ const loadData = async () => {
 
   isLoadingData.value = true;
   try {
-    const [counterpartyRes, categoriesRes] = await Promise.all([
+    const [counterpartyRes] = await Promise.all([
       getCounterparty({
         id: counterpartyId,
         options: { toastOptions: undefined },
       }),
       currentUser.value
-        ? getCategories({
-            userId: currentUser.value.id,
-            options: { toastOptions: undefined },
-          })
-        : Promise.resolve({ data: null }),
+        ? referenceDataStore.load({ userId: currentUser.value.id })
+        : Promise.resolve(),
     ]);
 
     if (counterpartyRes.data) {
       counterparty.value = counterpartyRes.data;
     } else {
       router.push(ROUTE.counterparties.path());
-    }
-    if (categoriesRes?.data) {
-      categories.value = categoriesRes.data;
     }
   } finally {
     isLoadingData.value = false;
@@ -91,6 +86,7 @@ const handleDelete = () => {
           },
         });
         if (response.data !== undefined) {
+          referenceDataStore.refreshCurrent();
           router.push(ROUTE.counterparties.path());
         }
       },

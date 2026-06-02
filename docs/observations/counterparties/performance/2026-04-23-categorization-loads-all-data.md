@@ -1,13 +1,13 @@
 ---
-status: open
+status: awaiting-validation
 type: performance
 severity: medium
 found-during: "Investigacao de fetches desnecessarios sem servidor"
 found-in: "src/composables/useCounterpartiesCategorization.ts"
-working-branch: "main"
+working-branch: "perf/performance-overview"
 found-in-branch: "main"
 date: 2026-04-23
-updated: 2026-04-23
+updated: 2026-06-02
 resolved-date:
 discard-reason:
 deferred:
@@ -71,9 +71,20 @@ Nao precisa baixar transacoes.
 
 3. **Se ainda precisar de transacoes brutas para casos especificos** — limitar por janela de tempo (ex: ultimos 6 meses) ou carregar sob demanda quando o usuario abrir o detalhe de um counterparty especifico.
 
+## Pending Validation
+
+**Feito (Onda C, branch `perf/performance-overview`, 2026-06-02)** — separados os dois casos de uso:
+- **Contador (`uncategorizedCount`)**: dashboard home e terceiros home pararam de usar `useCounterpartiesCategorization` (que baixava TODAS as transacoes) e passaram a derivar do `useReferenceDataStore` em memoria: `counterparties.filter(sem categoria).length`. **Zero leitura de transacoes** para o contador. Optou-se por derivar do store (que ja carrega counterparties) em vez de `getCountFromServer` — sem indice novo, reusa dados ja carregados.
+- **Tela "categorizar"**: `useCounterpartiesCategorization` **continua self-loading** counterparties + transacoes (precisa de stats reais e de updates otimistas locais via `updateLocalCounterparty`). So o dashboard home e o terceiros home deixaram de usar esse composable. Apos salvar, a tela chama `refreshCurrent()` para sincronizar o store. Tirar o load de transacoes da categorizar ficou **fora de escopo** (o Report nao tem lista de tx por counterparty — confirmado em `report.ts`).
+
+**Verificado em sessao**: `ts-check` limpo; suite unit sem regressao (248). Reatividade do contador derivado nao e verificavel em teste node.
+
+**Falta (usuario / manual)**: confirmar que o dashboard home abre sem baixar a base de transacoes e que o contador reflete a realidade.
+
 ## Observacoes relacionadas
 
 - **Overview**: [Performance: travamento com volume real de dados](../../2026-04-19-performance-overview.md)
 - **Mesmo padrao (fetch-all transacoes)**: [Dashboard carrega tudo](../../dashboard/performance/2026-04-19-dashboard-loads-all-transactions.md)
+- **Cache reutilizado**: [Reference data refetched](2026-04-23-reference-data-refetched-everywhere.md)
 - **Habilita uso do Report**: depende dos mesmos campos investigados em [Best-effort report sync fragility](../../reports/bug/2026-04-23-best-effort-report-sync-fragility.md)
 - **Reduz contagem de fetches**: [Reference data refetched](2026-04-23-reference-data-refetched-everywhere.md) — counterparties carregadas aqui se beneficiariam do cache

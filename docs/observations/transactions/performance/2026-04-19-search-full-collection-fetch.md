@@ -60,6 +60,8 @@ O mesmo padrao "fetch-all + filter + slice no client" aparece em:
 
 Para counterparties, a observation [get-or-create-counterparty fetch-all](../../counterparties/performance/2026-04-23-get-or-create-counterparty-fetch-all.md) propoe adicionar `slugifiedName` ao schema — o mesmo campo habilita prefix search nativo no Firestore (`where("slugifiedName", ">=", q)` + `where("slugifiedName", "<", q + "")`), eliminando o fetch-all aqui tambem.
 
+> **Status (Onda C, 2026-06-02)**: o campo `slugifiedName` + indice `userId + slugifiedName` + migracao **ja foram entregues na Onda C** (groundwork pronto). O refactor de `paginate-counterparties` (fetch-all+substring → prefix range query) e a aplicacao aqui em transacoes ficaram **para a Onda D** (este item permanece `open`, parte da D).
+
 Para categorias, o volume e naturalmente pequeno (dezenas) — o antipadrao tem impacto baixo, mas vale aplicar a mesma estrategia se a abordagem com `slugifiedName` for adotada para counterparties.
 
 ## Observacoes relacionadas

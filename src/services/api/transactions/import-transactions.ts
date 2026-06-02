@@ -156,17 +156,19 @@ const resolveCounterparties = async ({
 
   // Create every new counterparty in a single chunked bulk write instead of one
   // sequential round-trip per name (100 new names previously meant 100 awaits).
-  const newCounterpartiesData: ICreateCounterparty[] = uniqueNewNames.map(
-    (name) => ({
-      name: name.trim(),
-      userId,
-      categoryIds: resolveAutoCategoryId({
-        counterpartyName: name,
-        userCategories,
-        enableKeywordMatch: selfDerivedNames.has(slugify(name)),
-      }),
-    })
-  );
+  // slugifiedName is required on the stored doc, so it must be set here too.
+  const newCounterpartiesData: (ICreateCounterparty & {
+    slugifiedName: string;
+  })[] = uniqueNewNames.map((name) => ({
+    name: name.trim(),
+    slugifiedName: slugify(name),
+    userId,
+    categoryIds: resolveAutoCategoryId({
+      counterpartyName: name,
+      userCategories,
+      enableKeywordMatch: selfDerivedNames.has(slugify(name)),
+    }),
+  }));
 
   const created = await firebaseCreateMany<
     (typeof newCounterpartiesData)[number],

@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import { ArrowLeftIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-vue-next";
 import type { ITransaction } from "~/@schemas/models/transaction";
-import type { ICategory } from "~/@schemas/models/category";
-import type { ICounterparty } from "~/@schemas/models/counterparty";
 import { getTransaction } from "~/services/api/transactions/get-transaction";
 import { deleteTransaction } from "~/services/api/transactions/delete-transaction";
-import { getCategories } from "~/services/api/categories/get-categories";
-import { getCounterparties } from "~/services/api/counterparties/get-counterparties";
 import { formatDate } from "~/helpers/formatDate";
 import { formatCurrency } from "~/helpers/formatCurrency";
 import { getTransactionColor } from "~/helpers/getTransactionColor";
@@ -32,10 +28,11 @@ const { currentUser } = storeToRefs(userStore);
 const dashboardStore = useDashboardStore();
 const { bankAccounts: storeBankAccounts } = storeToRefs(dashboardStore);
 
+const referenceDataStore = useReferenceDataStore();
+const { categories, counterparties } = storeToRefs(referenceDataStore);
+
 const isLoadingData = ref(false);
 const transaction = ref<ITransaction | null>(null);
-const categories = ref<ICategory[]>([]);
-const counterparties = ref<ICounterparty[]>([]);
 const isSheetOpen = ref(false);
 
 const bankAccounts = computed(() => storeBankAccounts.value);
@@ -60,24 +57,7 @@ const counterparty = computed(() => {
 
 const loadAuxiliaryData = async () => {
   if (!currentUser.value) return;
-
-  const [categoriesRes, counterpartiesRes] = await Promise.all([
-    getCategories({
-      userId: currentUser.value.id,
-      options: { toastOptions: undefined },
-    }),
-    getCounterparties({
-      userId: currentUser.value.id,
-      options: { toastOptions: undefined },
-    }),
-  ]);
-
-  if (categoriesRes.data) {
-    categories.value = categoriesRes.data;
-  }
-  if (counterpartiesRes.data) {
-    counterparties.value = counterpartiesRes.data;
-  }
+  await referenceDataStore.load({ userId: currentUser.value.id });
 };
 
 const loadTransaction = async () => {

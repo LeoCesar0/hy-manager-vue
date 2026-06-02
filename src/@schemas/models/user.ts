@@ -7,6 +7,14 @@ export const zUserBase = z.object({
   email: z.email(),
   imageUrl: z.string().nullish(),
   hasCompletedOnboarding: z.boolean().nullish(),
+  // One-shot data migrations already applied for this user. Each flag is set
+  // once the corresponding client-side backfill completes (see
+  // services/api/migrations/). Optional so existing user docs stay valid.
+  migrations: z
+    .object({
+      counterpartySlug: z.boolean().optional(),
+    })
+    .nullish(),
 });
 
 export const zCreateUser = zUserBase.extend({

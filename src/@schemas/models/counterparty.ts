@@ -14,7 +14,16 @@ export const zCreateCounterparty = zCounterpartyBase.extend({
 
 export const zUpdateCounterparty = zCounterpartyBase;
 
-export const zCounterparty = zCounterpartyBase.extend(zCommonDoc.shape);
+// `slugifiedName` is a persisted, indexed normalization of `name` used for
+// O(1) lookups (getOrCreateCounterparty) and future prefix search. It lives
+// only on the stored doc — write services derive it from `name`, callers never
+// pass it. Reads don't run Zod, so pre-migration docs (missing the field) load
+// fine; a one-shot login migration backfills them.
+export const zCounterparty = zCounterpartyBase
+  .extend(zCommonDoc.shape)
+  .extend({
+    slugifiedName: z.string(),
+  });
 
 export type ICounterpartyBase = z.infer<typeof zCounterpartyBase>;
 export type ICounterparty = z.infer<typeof zCounterparty>;

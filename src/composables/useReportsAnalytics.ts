@@ -1,13 +1,9 @@
 import type { IReport, IMonthlyEntry } from "~/@schemas/models/report";
 import type { IBudget } from "~/@schemas/models/budget";
-import type { ICategory } from "~/@schemas/models/category";
-import type { ICounterparty } from "~/@schemas/models/counterparty";
 import { getOrCreateReport } from "~/services/api/reports/get-or-create-report";
 import { rebuildReport } from "~/services/api/reports/rebuild-report";
 import { getOrCreateBudget } from "~/services/api/budgets/get-or-create-budget";
 import { updateBudget } from "~/services/api/budgets/update-budget";
-import { getCategories } from "~/services/api/categories/get-categories";
-import { getCounterparties } from "~/services/api/counterparties/get-counterparties";
 import { compareMonths, type IMonthlyComparison } from "~/services/analytics/compare-months";
 import { calculateBudgetProgress, type IBudgetProgress } from "~/services/analytics/calculate-budget-progress";
 import { calculateReportInsights, type IReportInsights } from "~/services/analytics/calculate-report-insights";
@@ -43,10 +39,11 @@ export const useReportsAnalytics = () => {
   const dashboardStore = useDashboardStore();
   const { currentBankAccount } = storeToRefs(dashboardStore);
 
+  const referenceDataStore = useReferenceDataStore();
+  const { categories, counterparties } = storeToRefs(referenceDataStore);
+
   const report = ref<IReport | null>(null);
   const budget = ref<IBudget | null>(null);
-  const categories = ref<ICategory[]>([]);
-  const counterparties = ref<ICounterparty[]>([]);
   const selectedMonths = ref<string[]>([]);
   const selectedCategoryId = ref<string | null>(null);
   const selectedCounterpartyId = ref<string | null>(null);
@@ -253,15 +250,8 @@ export const useReportsAnalytics = () => {
     if (!currentUser.value || !currentBankAccount.value) return;
     isLoading.value = true;
     try {
-      const [categoriesRes, counterpartiesRes, reportRes, budgetRes] = await Promise.all([
-        getCategories({
-          userId: currentUser.value.id,
-          options: { toastOptions: undefined },
-        }),
-        getCounterparties({
-          userId: currentUser.value.id,
-          options: { toastOptions: undefined },
-        }),
+      // Categories/counterparties come from the shared store (loaded once).
+      const [reportRes, budgetRes] = await Promise.all([
         getOrCreateReport({
           userId: currentUser.value.id,
           bankAccountId: currentBankAccount.value.id,
@@ -272,10 +262,9 @@ export const useReportsAnalytics = () => {
           bankAccountId: currentBankAccount.value.id,
           options: { toastOptions: undefined },
         }),
+        referenceDataStore.load({ userId: currentUser.value.id }),
       ]);
 
-      if (categoriesRes.data) categories.value = categoriesRes.data;
-      if (counterpartiesRes.data) counterparties.value = counterpartiesRes.data;
       if (reportRes.data) report.value = reportRes.data;
       if (budgetRes.data) budget.value = budgetRes.data;
 

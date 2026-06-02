@@ -5,15 +5,11 @@ import type { ITransaction, ICreateTransaction } from "~/@schemas/models/transac
 import { zCreateTransaction } from "~/@schemas/models/transaction";
 import { createTransaction } from "~/services/api/transactions/create-transaction";
 import { updateTransaction } from "~/services/api/transactions/update-transaction";
-import type { ICategory } from "~/@schemas/models/category";
 import type { IBankAccount } from "~/@schemas/models/bank-account";
-import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { ISelectOption } from "~/@schemas/select";
 import { Timestamp } from "firebase/firestore";
 import { getCategoryIcon } from "~/static/category-icons";
-import { getCategories } from "~/services/api/categories/get-categories";
 import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
-import { getCounterparties } from "~/services/api/counterparties/get-counterparties";
 import { ChevronsUpDownIcon, CheckIcon, XIcon } from "lucide-vue-next";
 
 type IProps = {
@@ -52,9 +48,9 @@ watch(
   { immediate: true }
 );
 
-const categories = ref<ICategory[]>([]);
+const referenceDataStore = useReferenceDataStore();
+const { categories, counterparties } = storeToRefs(referenceDataStore);
 const bankAccounts = ref<IBankAccount[]>([]);
-const counterparties = ref<ICounterparty[]>([]);
 
 const counterpartySearchQuery = ref("");
 const selectedCounterpartyId = ref<string | undefined>(
@@ -66,27 +62,16 @@ const comboboxOpen = ref(false);
 onMounted(async () => {
   if (!currentUser.value?.id) return;
 
-  const [categoriesRes, bankAccountsRes, counterpartiesRes] = await Promise.all([
-    getCategories({
-      userId: currentUser.value.id,
-    }),
+  const [bankAccountsRes] = await Promise.all([
     getBankAccounts({
       userId: currentUser.value.id,
       pagination: { page: 1, limit: 100 },
     }),
-    getCounterparties({
-      userId: currentUser.value.id,
-    }),
+    referenceDataStore.load({ userId: currentUser.value.id }),
   ]);
 
-  if (categoriesRes.data) {
-    categories.value = categoriesRes.data;
-  }
   if (bankAccountsRes.data?.list) {
     bankAccounts.value = bankAccountsRes.data.list;
-  }
-  if (counterpartiesRes.data) {
-    counterparties.value = counterpartiesRes.data;
   }
 
   if (selectedCounterpartyId.value) {

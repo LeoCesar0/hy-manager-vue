@@ -2,10 +2,8 @@
 import { watchDebounced } from "@vueuse/core";
 import { PlusIcon, ArrowDownIcon, ArrowUpIcon, TagsIcon } from "lucide-vue-next";
 import type { ICounterparty, ICreateCounterparty } from "~/@schemas/models/counterparty";
-import type { ICategory } from "~/@schemas/models/category";
 import type { IPaginationResult } from "~/@types/pagination";
 import { paginateCounterparties } from "~/services/api/counterparties/paginate-counterparties";
-import { getCategories } from "~/services/api/categories/get-categories";
 import { deleteCounterparty } from "~/services/api/counterparties/delete-counterparty";
 import { ROUTE } from "~/static/routes";
 import CounterpartyCard from "~/components/Counterparties/CounterpartyCard.vue";
@@ -25,11 +23,14 @@ const userStore = useUserStore();
 const { currentUser } = storeToRefs(userStore);
 const router = useRouter();
 
-const { uncategorizedCount, loadData: loadUncategorized } = useCounterpartiesCategorization();
+// Categories and the uncategorized counter come from the shared reference-data
+// store (loaded once) instead of re-fetching here. The counter no longer needs
+// to load all transactions.
+const referenceDataStore = useReferenceDataStore();
+const { categories, uncategorizedCount } = storeToRefs(referenceDataStore);
 
 const isLoadingData = ref(false);
 const counterparties = ref<IPaginationResult<ICounterparty> | null>(null);
-const categories = ref<ICategory[]>([]);
 const searchQuery = ref("");
 const categoryFilter = ref<string[]>([]);
 
@@ -67,19 +68,6 @@ const createCounterpartyInitialValues = computed<ICreateCounterparty>(() => ({
 }));
 
 const counterpartiesList = computed(() => counterparties.value?.list ?? []);
-
-const loadAuxiliaryData = async () => {
-  if (!currentUser.value) return;
-
-  const categoriesRes = await getCategories({
-    userId: currentUser.value.id,
-    options: { toastOptions: undefined },
-  });
-
-  if (categoriesRes.data) {
-    categories.value = categoriesRes.data;
-  }
-};
 
 const loadCounterparties = async () => {
   if (!currentUser.value) return;
@@ -122,6 +110,7 @@ const handleDelete = (counterparty: ICounterparty) => {
           },
         });
         if (response.data !== undefined) {
+          referenceDataStore.refreshCurrent();
           loadCounterparties();
         }
       },
@@ -179,9 +168,8 @@ watchDebounced(
 );
 
 onMounted(() => {
-  loadAuxiliaryData();
+  if (currentUser.value) referenceDataStore.load({ userId: currentUser.value.id });
   loadCounterparties();
-  loadUncategorized();
 });
 </script>
 

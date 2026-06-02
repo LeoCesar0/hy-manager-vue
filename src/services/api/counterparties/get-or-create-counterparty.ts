@@ -26,6 +26,8 @@ export const getOrCreateCounterparty = async ({
     async () => {
       const normalizedName = slugify(name);
 
+      // Indexed lookup by slugifiedName (userId + slugifiedName composite index)
+      // instead of fetching the whole collection and matching in memory.
       const existingList = await firebaseList<Item>({
         collection: "creditors",
         filters: [
@@ -34,12 +36,15 @@ export const getOrCreateCounterparty = async ({
             operator: "==",
             value: userId,
           },
+          {
+            field: "slugifiedName",
+            operator: "==",
+            value: normalizedName,
+          },
         ],
       });
 
-      const existing = existingList.find(
-        (c) => slugify(c.name) === normalizedName
-      );
+      const existing = existingList[0];
 
       if (existing) {
         return existing;

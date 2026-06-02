@@ -1,5 +1,6 @@
 import { onAuthStateChanged } from "firebase/auth";
 import { handleInitializeUser } from "~/services/api/@handlers/handle-initialize-user";
+import { migrateCounterpartySlugifiedName } from "~/services/api/migrations/migrate-counterparty-slugified-name";
 import { AUTH_ROUTES } from "~/static/routes";
 
 export default defineNuxtRouteMiddleware(async (to) => {
@@ -15,6 +16,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
         if (firebaseUser && currentUser.value?.id !== firebaseUser.uid) {
           const res = await handleInitializeUser({ user: firebaseUser });
           currentUser.value = res.data;
+          // Awaited so the slugifiedName backfill finishes before any page or
+          // store load queries counterparties (avoids duplicate creation).
+          if (res.data) {
+            await migrateCounterpartySlugifiedName({ user: res.data });
+          }
         }
         if (!firebaseUser) {
           currentUser.value = null;

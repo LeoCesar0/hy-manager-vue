@@ -3,14 +3,10 @@ import { watchDebounced } from "@vueuse/core";
 import { PlusIcon, DownloadIcon, UploadIcon, ArrowDownIcon, ArrowUpIcon, Trash2Icon } from "lucide-vue-next";
 import { Timestamp } from "firebase/firestore";
 import type { ITransaction, ICreateTransaction } from "~/@schemas/models/transaction";
-import type { ICategory } from "~/@schemas/models/category";
-import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { IPaginationResult } from "~/@types/pagination";
 import { paginateTransactions } from "~/services/api/transactions/paginate-transactions";
 import { deleteTransaction } from "~/services/api/transactions/delete-transaction";
 import { clearTransactions } from "~/services/api/transactions/clear-transactions";
-import { getCategories } from "~/services/api/categories/get-categories";
-import { getCounterparties } from "~/services/api/counterparties/get-counterparties";
 import { ROUTE } from "~/static/routes";
 import EmptyState from "~/components/Dashboard/EmptyState.vue";
 import SummaryCards from "~/components/Transactions/SummaryCards.vue";
@@ -42,10 +38,11 @@ const dashboardStore = useDashboardStore();
 const { currentBankAccount, bankAccounts: storeBankAccounts } = storeToRefs(dashboardStore);
 const router = useRouter();
 
+const referenceDataStore = useReferenceDataStore();
+const { categories, counterparties } = storeToRefs(referenceDataStore);
+
 const isLoadingData = ref(false);
 const transactions = ref<IPaginationResult<ITransaction> | null>(null);
-const categories = ref<ICategory[]>([]);
-const counterparties = ref<ICounterparty[]>([]);
 
 const bankAccounts = computed(() => storeBankAccounts.value);
 
@@ -120,24 +117,7 @@ const transactionsList = computed(() => transactions.value?.list || []);
 
 const loadAuxiliaryData = async () => {
   if (!currentUser.value) return;
-
-  const [categoriesRes, counterpartiesRes] = await Promise.all([
-    getCategories({
-      userId: currentUser.value.id,
-      options: { toastOptions: undefined },
-    }),
-    getCounterparties({
-      userId: currentUser.value.id,
-      options: { toastOptions: undefined },
-    }),
-  ]);
-
-  if (categoriesRes.data) {
-    categories.value = categoriesRes.data;
-  }
-  if (counterpartiesRes.data) {
-    counterparties.value = counterpartiesRes.data;
-  }
+  await referenceDataStore.load({ userId: currentUser.value.id });
 };
 
 const loadTransactions = async () => {

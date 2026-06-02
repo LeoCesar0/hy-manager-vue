@@ -1,13 +1,13 @@
 ---
-status: open
+status: awaiting-validation
 type: performance
 severity: medium
 found-during: "Investigacao de fetches desnecessarios sem servidor"
 found-in: "src/services/api/categories/get-categories.ts; src/services/api/counterparties/get-counterparties.ts"
-working-branch: "main"
+working-branch: "perf/performance-overview"
 found-in-branch: "main"
 date: 2026-04-23
-updated: 2026-04-23
+updated: 2026-06-02
 resolved-date:
 discard-reason:
 deferred:
@@ -99,3 +99,15 @@ Componentes/composables param de chamar `getCategories`/`getCounterparties` dire
 - **Overview**: [Performance: travamento com volume real de dados](../../2026-04-19-performance-overview.md)
 - **Beneficiario direto**: [Categorization composable carrega tudo](2026-04-23-categorization-loads-all-data.md) — outra fonte de leitura de counterparties que se beneficiaria do cache
 - **Relacionado (mesmo antipadrao)**: [get-or-create-counterparty fetch-all](2026-04-23-get-or-create-counterparty-fetch-all.md)
+
+## Pending Validation
+
+**Feito (Onda C, branch `perf/performance-overview`, 2026-06-02)** — adotada a **Opcao 1 (load-once + refresh on mutation)**:
+- Novo `src/composables/stores/useReferenceDataStore.ts`: carrega categorias + counterparties uma vez por sessao (`load` idempotente com de-dupe de chamadas concorrentes), expoe getters reativos, `refresh`/`refreshCurrent`, e `uncategorizedCount` derivado. Watcher em `currentUser` carrega no login e reseta no logout.
+- Consumidores migrados para o store (param de chamar `getCategories`/`getCounterparties` diretamente): `useDashboardAnalytics`, `useReportsAnalytics`, paginas `terceiros/index`, `terceiros/[id]`, `transacoes/[id]`, `categorizar` (categorias), e componentes `TransactionForm`, `TransactionListSection`, `CounterpartyForm`.
+- **Excecao**: `useCounterpartiesCategorization` (so usado pela tela categorizar) continua self-loading counterparties+transacoes por causa dos updates otimistas — ver [categorization-loads-all-data](2026-04-23-categorization-loads-all-data.md). `setup-default-categories` (onboarding one-shot) tambem mantem leitura propria.
+- **Refresh on mutation**: `CounterpartyForm`/`CategoryForm` (create+update) e os handlers de delete (terceiros e categorias) + saves da `categorizar` chamam `refreshCurrent()` apos sucesso. Mantido no nivel de componente (contexto Pinia ativo) para nao acoplar os services ao store.
+
+**Verificado em sessao**: `ts-check` limpo; suite unit sem regressao (248). O store em si **nao** tem teste unitario (o repo nao tem infra de teste Pinia/Nuxt em node) — logica simples (load-once, refresh, filtro de contagem).
+
+**Falta (usuario / manual)**: validar reatividade na UI (selects de form populados a partir do store; listas refletindo create/edit/delete sem reload manual; consistencia ao navegar). Nao verificavel em testes node. Nao commitado.

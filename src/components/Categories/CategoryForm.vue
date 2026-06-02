@@ -22,6 +22,7 @@ const emit = defineEmits<{
 
 const userStore = useUserStore();
 const { currentUser } = storeToRefs(userStore);
+const referenceDataStore = useReferenceDataStore();
 
 const isLoading = ref(false);
 
@@ -69,7 +70,10 @@ const onSubmit = handleSubmit(async (values) => {
           },
         },
       });
-      if (response.data) emit("success");
+      if (response.data) {
+        referenceDataStore.refreshCurrent();
+        emit("success");
+      }
     } else {
       const response = await createCategory({
         data: {
@@ -87,7 +91,10 @@ const onSubmit = handleSubmit(async (values) => {
           },
         },
       });
-      if (response.data) emit("success");
+      if (response.data) {
+        referenceDataStore.refreshCurrent();
+        emit("success");
+      }
     }
   } finally {
     isLoading.value = false;
