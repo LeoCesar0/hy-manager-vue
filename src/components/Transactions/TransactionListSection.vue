@@ -42,24 +42,12 @@ const router = useRouter();
 const referenceDataStore = useReferenceDataStore();
 const { categories, counterparties } = storeToRefs(referenceDataStore);
 
-const isLoadingData = ref(false);
-const transactions = ref<ICursorPaginationResult<ITransaction> | null>(null);
-
 const bankAccounts = computed(() => storeBankAccounts.value);
 
-// Cursor-based pagination (Next/Previous only). `cursorStack[p]` is the
-// `startAfter` cursor needed to load page `p` (page 1 = null). In search mode
-// navigation falls back to offset (the bounded result set paginates in memory),
-// so the cursor stack is ignored. Page is intentionally NOT synced to the URL —
-// a Firestore cursor isn't restorable from a query param.
+// Page-size and sort are owned here (UI controls); the cursor state machine
+// itself lives in `useCursorPagination`.
 const limit = ref(20);
 const orderBy = ref<{ field: string; direction: 'asc' | 'desc' }>({ field: 'date', direction: 'desc' });
-const pageIndex = ref(1);
-const cursorStack = ref<(QueryDocumentSnapshot<DocumentData> | null)[]>([]);
-const hasNext = ref(false);
-const count = ref(0);
-
-const hasPrev = computed(() => pageIndex.value > 1);
 
 const filters = ref<{
   startDate: Timestamp | null;
@@ -122,79 +110,46 @@ const createTransactionInitialValues = computed<ICreateTransaction>(() => ({
   bankAccountId: currentBankAccount.value?.id || '',
 }));
 
-const transactionsList = computed(() => transactions.value?.list || []);
-
 const loadAuxiliaryData = async () => {
   if (!currentUser.value) return;
   await referenceDataStore.load({ userId: currentUser.value.id });
 };
 
+// Pure fetcher closing over the active filters; the cursor bookkeeping and the
+// loading flag are owned by `useCursorPagination`.
 const fetchPage = async (args: {
   cursor: QueryDocumentSnapshot<DocumentData> | null;
   page: number;
 }): Promise<ICursorPaginationResult<ITransaction> | null> => {
   if (!currentUser.value) return null;
 
-  isLoadingData.value = true;
-  try {
-    const response = await paginateTransactions({
-      userId: currentUser.value.id,
-      search: filters.value.search || undefined,
-      startDate: filters.value.startDate || undefined,
-      endDate: filters.value.endDate || undefined,
-      type: filters.value.type || undefined,
-      categoryIds: filters.value.categoryIds.length > 0 ? filters.value.categoryIds : undefined,
-      bankAccountId: currentBankAccount.value?.id || undefined,
-      counterpartyId: props.fixedCounterpartyId || filters.value.counterpartyId || undefined,
-      pagination: { page: args.page, limit: limit.value, orderBy: orderBy.value },
-      cursor: args.cursor,
-    });
-    return response.data ?? null;
-  } finally {
-    isLoadingData.value = false;
-  }
+  const response = await paginateTransactions({
+    userId: currentUser.value.id,
+    search: filters.value.search || undefined,
+    startDate: filters.value.startDate || undefined,
+    endDate: filters.value.endDate || undefined,
+    type: filters.value.type || undefined,
+    categoryIds: filters.value.categoryIds.length > 0 ? filters.value.categoryIds : undefined,
+    bankAccountId: currentBankAccount.value?.id || undefined,
+    counterpartyId: props.fixedCounterpartyId || filters.value.counterpartyId || undefined,
+    pagination: { page: args.page, limit: limit.value, orderBy: orderBy.value },
+    cursor: args.cursor,
+  });
+  return response.data ?? null;
 };
 
-const applyResult = (data: ICursorPaginationResult<ITransaction>) => {
-  transactions.value = data;
-  count.value = data.count;
-  hasNext.value = data.hasNext;
-};
-
-// Reset to page 1 — used on mount and whenever filters/sort/account/page-size
-// change. Also the entry point when toggling search on/off (rebuilds the stack).
-const reload = async () => {
-  pageIndex.value = 1;
-  cursorStack.value = [];
-  cursorStack.value[1] = null;
-
-  const data = await fetchPage({ cursor: null, page: 1 });
-  if (!data) {
-    transactions.value = null;
-    count.value = 0;
-    hasNext.value = false;
-    return;
-  }
-  applyResult(data);
-  if (!isSearchMode.value) cursorStack.value[2] = data.cursor;
-};
-
-const navigate = async (target: number) => {
-  const cursor = isSearchMode.value ? null : cursorStack.value[target] ?? null;
-  const data = await fetchPage({ cursor, page: target });
-  if (!data) return;
-  applyResult(data);
-  if (!isSearchMode.value) cursorStack.value[target + 1] = data.cursor;
-  pageIndex.value = target;
-};
-
-const goNext = () => {
-  if (hasNext.value) navigate(pageIndex.value + 1);
-};
-
-const goPrev = () => {
-  if (pageIndex.value > 1) navigate(pageIndex.value - 1);
-};
+const {
+  list: transactionsList,
+  pageIndex,
+  hasPrev,
+  hasNext,
+  count,
+  isLoading: isLoadingData,
+  initialized,
+  reload,
+  goNext,
+  goPrev,
+} = useCursorPagination<ITransaction>({ fetchPage, isSearchMode });
 
 const { openDialog } = useAlertDialog();
 
@@ -406,7 +361,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <div v-if="isLoadingData && !transactions" class="flex items-center justify-center py-12">
+    <div v-if="isLoadingData && !initialized" class="flex items-center justify-center py-12">
       <Loading :is-loading="true" size="lg" />
     </div>
 
