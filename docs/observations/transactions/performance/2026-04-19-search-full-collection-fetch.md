@@ -1,13 +1,13 @@
 ---
-status: open
+status: awaiting-validation
 type: performance
 severity: high
 found-during: "Production testing with 2000+ transactions"
 found-in: "src/services/api/transactions/paginate-transactions.ts"
-working-branch: "main"
+working-branch: "perf/performance-overview"
 found-in-branch: "main"
 date: 2026-04-19
-updated: 2026-04-23
+updated: 2026-06-02
 resolved-date:
 discard-reason:
 deferred:
@@ -60,9 +60,19 @@ O mesmo padrao "fetch-all + filter + slice no client" aparece em:
 
 Para counterparties, a observation [get-or-create-counterparty fetch-all](../../counterparties/performance/2026-04-23-get-or-create-counterparty-fetch-all.md) propoe adicionar `slugifiedName` ao schema — o mesmo campo habilita prefix search nativo no Firestore (`where("slugifiedName", ">=", q)` + `where("slugifiedName", "<", q + "")`), eliminando o fetch-all aqui tambem.
 
-> **Status (Onda C, 2026-06-02)**: o campo `slugifiedName` + indice `userId + slugifiedName` + migracao **ja foram entregues na Onda C** (groundwork pronto). O refactor de `paginate-counterparties` (fetch-all+substring → prefix range query) e a aplicacao aqui em transacoes ficaram **para a Onda D** (este item permanece `open`, parte da D).
+> **Status (Onda D, 2026-06-02)**: resolvido por **outra** estrategia que a originalmente proposta. Em vez de prefix search por `slugifiedName`, a busca de terceiros/categorias passou a filtrar o `useReferenceDataStore` **em memoria** (a Onda C ja carrega tudo uma vez) — zero leituras Firebase e mantem substring (`'mercado'` acha `'Supermercado'`), o que o prefix search nao faria. O `slugifiedName` indexado da Onda C permanece justificado por #8 (`getOrCreateCounterparty`).
 
-Para categorias, o volume e naturalmente pequeno (dezenas) — o antipadrao tem impacto baixo, mas vale aplicar a mesma estrategia se a abordagem com `slugifiedName` for adotada para counterparties.
+## Pending Validation
+
+**Feito (Onda D, branch `perf/performance-overview`, 2026-06-02)**:
+- **Busca de transacoes (#7 principal)**: quando ha `search` sem filtro de data, injeta janela padrao de **6 meses** (`getDefaultSearchWindow`) antes do fetch — limita o `firebaseList` a ~300-500 docs em vez de toda a base. Substring em `description` segue no client, mas sobre o subconjunto limitado. Filtro de data explicito do usuario e respeitado (sem injecao).
+- **Busca de terceiros**: `terceiros/index.vue` deixou de chamar `paginateCounterparties` (fetch-all+substring server) e passou a paginar/filtrar o store em memoria via novo helper `paginateInMemory` — zero leituras.
+- **Busca de categorias**: `categorias/index.vue` idem, sobre `categories` do store.
+- `paginate-counterparties.ts` / `paginate-categories.ts` ficaram **sem uso pela UI** (marcados; mantidos por causa dos integration tests de indice; remocao e follow-up opcional).
+
+**Verificado em sessao**: testes unit `get-default-search-window.test.ts`, `paginate-in-memory.test.ts` e `paginate-transactions.test.ts` (injecao de janela na busca sem data; respeito a data explicita). `ts-check` limpo; suite unit sem regressao.
+
+**Falta (usuario / manual)**: confirmar que a busca de transacoes sem data opera sobre os ultimos 6 meses (e que setar um intervalo amplia), e que terceiros/categorias buscam sem ida ao Firebase. Nao commitado.
 
 ## Observacoes relacionadas
 

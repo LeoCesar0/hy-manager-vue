@@ -4,7 +4,7 @@ type: performance
 severity: critical
 date: 2026-04-19
 updated: 2026-04-23
-current-stage: "Waves A+B+C — code complete (awaiting-validation). NAO e ponto de teste valendo em prod (listagem #6/#7 e dashboard #4 ainda pendentes). Onda C exige deploy de indice (pnpm deploy:indexes) antes do uso. Proximo: Onda D."
+current-stage: "Waves A+B+C+D — code complete (awaiting-validation). Onda D (listagem #6/#7) fecha o conjunto antes do teste valendo. Onda C exige deploy de indice (pnpm deploy:indexes); Onda D NAO exige indice novo. Gate do teste valendo em prod: liberado apos validacao manual da Onda D, com #4 (dashboard) deferido como divida conhecida."
 ---
 
 # Performance: travamento com volume real de dados (2000+ transacoes)
@@ -29,7 +29,7 @@ current-stage: "Waves A+B+C — code complete (awaiting-validation). NAO e ponto
 | A | Batch foundation + cascade ops chunkado (#1, #9, #10) | ✅ done (code) · ⏳ smoke test DEV pendente | `perf/performance-overview` | Plano: `~/.claude/plans/graceful-wibbling-wilkes.md`. Pendente: smoke test com dados de **dev** (nao prod) antes de passar para B. Teste valendo em prod so apos Onda D — ver "Objetivo e gate do teste em prod". |
 | B | Import refactor (#2, #3) | ✅ done (code) · ⏳ smoke test pendente | `perf/performance-overview` | Bulk counterparties via `firebaseCreateMany` + dedup em 1 query por date-range. 7 testes unit verdes (`tests/unit/services/api/transactions/import-transactions.test.ts`); ts-check limpo. Nao commitado. |
 | C | Reference data + counterparty lookup (#5, #8, #11) | ✅ done (code) · ⏳ deploy de indice + smoke test pendentes | `perf/performance-overview` | Store `useReferenceDataStore` (load-once + refresh on mutation); `slugifiedName` indexado em counterparty + query direta no get-or-create; migracao one-shot awaited no login; `uncategorizedCount` derivado do store. **Mudanca de schema** (`creditors.slugifiedName` required, `user.migrations`). Requer `pnpm deploy:indexes`. 15 testes unit verdes. Prefix search de counterparties (#7) **adiado para D**. |
-| D | Listagem de transacoes (#6, #7) | ⬜ pending | — | #7 inclui prefix search de counterparties via `slugifiedName` (groundwork ja entregue na C). |
+| D | Listagem de transacoes (#6, #7) | ✅ done (code) · ⏳ smoke test/manual pendente | `perf/performance-overview` | Paginacao cursor (Next/Prev) em transacoes via novo `firebaseCursorList`; busca de transacoes limitada a 6 meses quando sem filtro de data; busca de terceiros/categorias movida para o `useReferenceDataStore` em memoria (zero leituras) via `paginateInMemory` — optou-se por isso em vez do prefix search por `slugifiedName` (melhor UX, mantem substring). **Nenhum indice novo** (NAO requer `pnpm deploy:indexes`). 16 testes unit verdes; ts-check limpo. Nao commitado. |
 | Defer | Dashboard Report + sync fragility (#4, #12) | ⏸ deferred | — | Revisitar apos D. |
 
 Legenda: ⬜ pending · 🟡 in progress · ✅ done · ⏸ deferred

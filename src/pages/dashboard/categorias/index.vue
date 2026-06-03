@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { watchDebounced } from "@vueuse/core";
 import { PlusIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-vue-next";
 import type { ICategory, ICreateCategory } from "~/@schemas/models/category";
 import type { IPaginationResult } from "~/@types/pagination";
-import { paginateCategories } from "~/services/api/categories/paginate-categories";
+import { paginateInMemory } from "~/helpers/paginate-in-memory";
 import { deleteCategory } from "~/services/api/categories/delete-category";
 import { ROUTE } from "~/static/routes";
 import CategoryCard from "~/components/Categories/CategoryCard.vue";
@@ -22,11 +21,26 @@ const userStore = useUserStore();
 const { currentUser } = storeToRefs(userStore);
 const router = useRouter();
 
-const isLoadingData = ref(false);
-const categories = ref<IPaginationResult<ICategory> | null>(null);
+const referenceDataStore = useReferenceDataStore();
+const { categories: allCategories, isLoading: isLoadingData } = storeToRefs(referenceDataStore);
+
 const searchQuery = ref("");
+// Loading flag for the "load default categories" action (kept separate from the
+// store's own load flag).
+const isProcessing = ref(false);
 
 const { paginationBody } = usePagination({ limit: 50, orderBy: { field: 'name', direction: 'asc' } });
+
+// List + search run off the reference-data store (loaded once) — zero Firebase
+// reads per page/search.
+const categories = computed<IPaginationResult<ICategory>>(() =>
+  paginateInMemory({
+    items: allCategories.value,
+    searchField: "name",
+    search: searchQuery.value || undefined,
+    pagination: paginationBody.value,
+  })
+);
 
 const pageSizeOptions = [20, 50, 100] as const;
 
@@ -36,13 +50,11 @@ const toggleSortDirection = () => {
   const newDirection = sortDirection.value === 'asc' ? 'desc' : 'asc';
   paginationBody.value.orderBy = { field: 'name', direction: newDirection };
   paginationBody.value.page = 1;
-  loadCategories();
 };
 
 const handlePageSizeChange = (value: unknown) => {
   paginationBody.value.limit = Number(String(value));
   paginationBody.value.page = 1;
-  loadCategories();
 };
 
 const isCreateSheetOpen = ref(false);
@@ -60,25 +72,7 @@ const createCategoryInitialValues = computed<ICreateCategory>(() => ({
   userId: currentUser.value?.id || "",
 }));
 
-const categoriesList = computed(() => categories.value?.list ?? []);
-
-const loadCategories = async () => {
-  if (!currentUser.value) return;
-
-  isLoadingData.value = true;
-  try {
-    const response = await paginateCategories({
-      userId: currentUser.value.id,
-      search: searchQuery.value || undefined,
-      pagination: paginationBody.value,
-    });
-    if (response.data) {
-      categories.value = response.data;
-    }
-  } finally {
-    isLoadingData.value = false;
-  }
-};
+const categoriesList = computed(() => categories.value.list);
 
 const { openDialog } = useAlertDialog();
 
@@ -102,8 +96,7 @@ const handleDelete = (category: ICategory) => {
           },
         });
         if (response.data !== undefined) {
-          useReferenceDataStore().refreshCurrent();
-          loadCategories();
+          referenceDataStore.refreshCurrent();
         }
       },
     },
@@ -125,33 +118,26 @@ const handleCreate = () => {
 
 const handleCreateSuccess = () => {
   isCreateSheetOpen.value = false;
-  loadCategories();
+  referenceDataStore.refreshCurrent();
 };
 
 const handleUpdateSuccess = () => {
   updatingCategory.value = null;
   isUpdateSheetOpen.value = false;
-  loadCategories();
+  referenceDataStore.refreshCurrent();
 };
 
+// The `categories` computed reacts to the store + filters; search/sort only
+// reset to page 1.
 watch(
-  () => paginationBody.value.page,
-  () => {
-    loadCategories();
-  }
-);
-
-watchDebounced(
   () => searchQuery.value,
   () => {
     paginationBody.value.page = 1;
-    loadCategories();
-  },
-  { debounce: 400 }
+  }
 );
 
 onMounted(() => {
-  loadCategories();
+  if (currentUser.value) referenceDataStore.load({ userId: currentUser.value.id });
 });
 
 const handleCreateDefaultCategories = async () => {
@@ -165,11 +151,11 @@ const handleCreateDefaultCategories = async () => {
           success: { message: "Categorias padrão criadas com sucesso!" },
           error: true,
         },
-        loadingRefs: [isLoadingData]
+        loadingRefs: [isProcessing]
       }
     });
     if (response.data) {
-      loadCategories();
+      referenceDataStore.refreshCurrent();
     }
   }
 
@@ -200,10 +186,10 @@ const handleCreateDefaultCategories = async () => {
   <DashboardSection
     title="Categorias"
     subtitle="Gerencie suas categorias de transações"
-    :loading="isLoadingData && !categories"
+    :loading="isLoadingData && categoriesList.length === 0"
   >
     <template #actions>
-      <UiButton @click="handleCreateDefaultCategories" :disabled="isLoadingData" variant="outline">
+      <UiButton @click="handleCreateDefaultCategories" :disabled="isProcessing" variant="outline">
         Carregar Categorias Padrão
       </UiButton>
       <UiButton @click="handleCreate">
@@ -259,7 +245,7 @@ const handleCreateDefaultCategories = async () => {
         :handle-view="handleView" :handle-edit="handleEdit" :handle-delete="handleDelete" />
     </CardGrid>
 
-    <div v-if="categories" class="mt-6">
+    <div v-if="categoriesList.length > 0" class="mt-6">
       <TablePagination :pagination-body="paginationBody" :pagination-result="categories" />
     </div>
 

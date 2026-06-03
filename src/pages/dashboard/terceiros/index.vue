@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { watchDebounced } from "@vueuse/core";
 import { PlusIcon, ArrowDownIcon, ArrowUpIcon, TagsIcon } from "lucide-vue-next";
 import type { ICounterparty, ICreateCounterparty } from "~/@schemas/models/counterparty";
 import type { IPaginationResult } from "~/@types/pagination";
-import { paginateCounterparties } from "~/services/api/counterparties/paginate-counterparties";
+import { paginateInMemory } from "~/helpers/paginate-in-memory";
 import { deleteCounterparty } from "~/services/api/counterparties/delete-counterparty";
 import { ROUTE } from "~/static/routes";
 import CounterpartyCard from "~/components/Counterparties/CounterpartyCard.vue";
@@ -27,14 +26,29 @@ const router = useRouter();
 // store (loaded once) instead of re-fetching here. The counter no longer needs
 // to load all transactions.
 const referenceDataStore = useReferenceDataStore();
-const { categories, uncategorizedCount } = storeToRefs(referenceDataStore);
+const {
+  categories,
+  counterparties: allCounterparties,
+  uncategorizedCount,
+  isLoading: isLoadingData,
+} = storeToRefs(referenceDataStore);
 
-const isLoadingData = ref(false);
-const counterparties = ref<IPaginationResult<ICounterparty> | null>(null);
 const searchQuery = ref("");
 const categoryFilter = ref<string[]>([]);
 
 const { paginationBody } = usePagination({ limit: 50, orderBy: { field: 'name', direction: 'asc' } });
+
+// List + search run entirely off the reference-data store (loaded once), so
+// paging/searching costs zero Firebase reads — just in-memory filter/sort/slice.
+const counterparties = computed<IPaginationResult<ICounterparty>>(() =>
+  paginateInMemory({
+    items: allCounterparties.value,
+    searchField: "name",
+    search: searchQuery.value || undefined,
+    categoryIds: categoryFilter.value.length > 0 ? categoryFilter.value : undefined,
+    pagination: paginationBody.value,
+  })
+);
 
 const pageSizeOptions = [20, 50, 100] as const;
 
@@ -44,13 +58,11 @@ const toggleSortDirection = () => {
   const newDirection = sortDirection.value === 'asc' ? 'desc' : 'asc';
   paginationBody.value.orderBy = { field: 'name', direction: newDirection };
   paginationBody.value.page = 1;
-  loadCounterparties();
 };
 
 const handlePageSizeChange = (value: unknown) => {
   paginationBody.value.limit = Number(String(value));
   paginationBody.value.page = 1;
-  loadCounterparties();
 };
 
 const isCreateSheetOpen = ref(false);
@@ -67,26 +79,7 @@ const createCounterpartyInitialValues = computed<ICreateCounterparty>(() => ({
   userId: currentUser.value?.id || "",
 }));
 
-const counterpartiesList = computed(() => counterparties.value?.list ?? []);
-
-const loadCounterparties = async () => {
-  if (!currentUser.value) return;
-
-  isLoadingData.value = true;
-  try {
-    const response = await paginateCounterparties({
-      userId: currentUser.value.id,
-      search: searchQuery.value || undefined,
-      categoryIds: categoryFilter.value.length > 0 ? categoryFilter.value : undefined,
-      pagination: paginationBody.value,
-    });
-    if (response.data) {
-      counterparties.value = response.data;
-    }
-  } finally {
-    isLoadingData.value = false;
-  }
-};
+const counterpartiesList = computed(() => counterparties.value.list);
 
 const { openDialog } = useAlertDialog();
 
@@ -111,7 +104,6 @@ const handleDelete = (counterparty: ICounterparty) => {
         });
         if (response.data !== undefined) {
           referenceDataStore.refreshCurrent();
-          loadCounterparties();
         }
       },
     },
@@ -133,43 +125,34 @@ const handleCreate = () => {
 
 const handleCreateSuccess = () => {
   isCreateSheetOpen.value = false;
-  loadCounterparties();
+  referenceDataStore.refreshCurrent();
 };
 
 const handleUpdateSuccess = () => {
   updatingCounterparty.value = null;
   isUpdateSheetOpen.value = false;
-  loadCounterparties();
+  referenceDataStore.refreshCurrent();
 };
 
-watch(
-  () => paginationBody.value.page,
-  () => {
-    loadCounterparties();
-  }
-);
-
+// Filter/sort/search changes only reset to page 1 — the `counterparties`
+// computed reacts to the store + filter state on its own (no refetch).
 watch(
   () => categoryFilter.value,
   () => {
     paginationBody.value.page = 1;
-    loadCounterparties();
   },
   { deep: true }
 );
 
-watchDebounced(
+watch(
   () => searchQuery.value,
   () => {
     paginationBody.value.page = 1;
-    loadCounterparties();
-  },
-  { debounce: 400 }
+  }
 );
 
 onMounted(() => {
   if (currentUser.value) referenceDataStore.load({ userId: currentUser.value.id });
-  loadCounterparties();
 });
 </script>
 
@@ -177,7 +160,7 @@ onMounted(() => {
   <DashboardSection
     title="Identificadores"
     subtitle="Gerencie seus identificadores"
-    :loading="isLoadingData && !counterparties"
+    :loading="isLoadingData && counterpartiesList.length === 0"
   >
     <UncategorizedBanner :count="uncategorizedCount" />
 
@@ -255,7 +238,7 @@ onMounted(() => {
       />
     </CardGrid>
 
-    <div v-if="counterparties" class="mt-6">
+    <div v-if="counterpartiesList.length > 0" class="mt-6">
       <TablePagination :pagination-body="paginationBody" :pagination-result="counterparties" />
     </div>
 

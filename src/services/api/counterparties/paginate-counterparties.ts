@@ -1,3 +1,6 @@
+// NOTE: No longer used by the UI — the /terceiros list paginates/searches the
+// `useReferenceDataStore` in memory (Onda D). Kept for its index integration
+// test; removal is an optional follow-up.
 import { handleAppRequest } from "../@handlers/handle-app-request";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { FirebaseFilterFor } from "~/services/firebase/@type";

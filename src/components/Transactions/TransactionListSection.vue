@@ -2,9 +2,10 @@
 import { watchDebounced } from "@vueuse/core";
 import { PlusIcon, DownloadIcon, UploadIcon, ArrowDownIcon, ArrowUpIcon, Trash2Icon } from "lucide-vue-next";
 import { Timestamp } from "firebase/firestore";
+import type { QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 import type { ITransaction, ICreateTransaction } from "~/@schemas/models/transaction";
-import type { IPaginationResult } from "~/@types/pagination";
 import { paginateTransactions } from "~/services/api/transactions/paginate-transactions";
+import type { ICursorPaginationResult } from "~/services/api/transactions/paginate-transactions";
 import { deleteTransaction } from "~/services/api/transactions/delete-transaction";
 import { clearTransactions } from "~/services/api/transactions/clear-transactions";
 import { ROUTE } from "~/static/routes";
@@ -42,15 +43,23 @@ const referenceDataStore = useReferenceDataStore();
 const { categories, counterparties } = storeToRefs(referenceDataStore);
 
 const isLoadingData = ref(false);
-const transactions = ref<IPaginationResult<ITransaction> | null>(null);
+const transactions = ref<ICursorPaginationResult<ITransaction> | null>(null);
 
 const bankAccounts = computed(() => storeBankAccounts.value);
 
-const { paginationBody } = usePagination({
-  limit: 20,
-  orderBy: { field: 'date', direction: 'desc' },
-  queryKey: props.paginationQueryKey,
-});
+// Cursor-based pagination (Next/Previous only). `cursorStack[p]` is the
+// `startAfter` cursor needed to load page `p` (page 1 = null). In search mode
+// navigation falls back to offset (the bounded result set paginates in memory),
+// so the cursor stack is ignored. Page is intentionally NOT synced to the URL —
+// a Firestore cursor isn't restorable from a query param.
+const limit = ref(20);
+const orderBy = ref<{ field: string; direction: 'asc' | 'desc' }>({ field: 'date', direction: 'desc' });
+const pageIndex = ref(1);
+const cursorStack = ref<(QueryDocumentSnapshot<DocumentData> | null)[]>([]);
+const hasNext = ref(false);
+const count = ref(0);
+
+const hasPrev = computed(() => pageIndex.value > 1);
 
 const filters = ref<{
   startDate: Timestamp | null;
@@ -68,6 +77,8 @@ const filters = ref<{
   search: '',
 });
 
+const isSearchMode = computed(() => !!filters.value.search);
+
 const computedHiddenFilters = computed(() => {
   const hidden = [...(props.hiddenFilters || [])];
   if (props.fixedCounterpartyId && !hidden.includes('counterparty')) {
@@ -76,21 +87,19 @@ const computedHiddenFilters = computed(() => {
   return hidden;
 });
 
-const sortDirection = computed(() => paginationBody.value.orderBy?.direction ?? 'desc');
+const sortDirection = computed(() => orderBy.value.direction);
 
 const toggleSortDirection = () => {
   const newDirection = sortDirection.value === 'desc' ? 'asc' : 'desc';
-  paginationBody.value.orderBy = { field: 'date', direction: newDirection };
-  paginationBody.value.page = 1;
-  loadTransactions();
+  orderBy.value = { field: 'date', direction: newDirection };
+  reload();
 };
 
 const pageSizeOptions = [10, 20, 30] as const;
 
 const handlePageSizeChange = (value: unknown) => {
-  paginationBody.value.limit = Number(String(value));
-  paginationBody.value.page = 1;
-  loadTransactions();
+  limit.value = Number(String(value));
+  reload();
 };
 
 const isCreateSheetOpen = ref(false);
@@ -120,8 +129,11 @@ const loadAuxiliaryData = async () => {
   await referenceDataStore.load({ userId: currentUser.value.id });
 };
 
-const loadTransactions = async () => {
-  if (!currentUser.value) return;
+const fetchPage = async (args: {
+  cursor: QueryDocumentSnapshot<DocumentData> | null;
+  page: number;
+}): Promise<ICursorPaginationResult<ITransaction> | null> => {
+  if (!currentUser.value) return null;
 
   isLoadingData.value = true;
   try {
@@ -134,14 +146,54 @@ const loadTransactions = async () => {
       categoryIds: filters.value.categoryIds.length > 0 ? filters.value.categoryIds : undefined,
       bankAccountId: currentBankAccount.value?.id || undefined,
       counterpartyId: props.fixedCounterpartyId || filters.value.counterpartyId || undefined,
-      pagination: paginationBody.value,
+      pagination: { page: args.page, limit: limit.value, orderBy: orderBy.value },
+      cursor: args.cursor,
     });
-    if (response.data) {
-      transactions.value = response.data;
-    }
+    return response.data ?? null;
   } finally {
     isLoadingData.value = false;
   }
+};
+
+const applyResult = (data: ICursorPaginationResult<ITransaction>) => {
+  transactions.value = data;
+  count.value = data.count;
+  hasNext.value = data.hasNext;
+};
+
+// Reset to page 1 — used on mount and whenever filters/sort/account/page-size
+// change. Also the entry point when toggling search on/off (rebuilds the stack).
+const reload = async () => {
+  pageIndex.value = 1;
+  cursorStack.value = [];
+  cursorStack.value[1] = null;
+
+  const data = await fetchPage({ cursor: null, page: 1 });
+  if (!data) {
+    transactions.value = null;
+    count.value = 0;
+    hasNext.value = false;
+    return;
+  }
+  applyResult(data);
+  if (!isSearchMode.value) cursorStack.value[2] = data.cursor;
+};
+
+const navigate = async (target: number) => {
+  const cursor = isSearchMode.value ? null : cursorStack.value[target] ?? null;
+  const data = await fetchPage({ cursor, page: target });
+  if (!data) return;
+  applyResult(data);
+  if (!isSearchMode.value) cursorStack.value[target + 1] = data.cursor;
+  pageIndex.value = target;
+};
+
+const goNext = () => {
+  if (hasNext.value) navigate(pageIndex.value + 1);
+};
+
+const goPrev = () => {
+  if (pageIndex.value > 1) navigate(pageIndex.value - 1);
 };
 
 const { openDialog } = useAlertDialog();
@@ -165,7 +217,7 @@ const handleDelete = (transaction: ITransaction) => {
           },
         });
         if (response.data !== undefined) {
-          loadTransactions();
+          reload();
         }
       },
     },
@@ -191,7 +243,7 @@ const handleClearTransactions = () => {
           userId,
         });
         if (!response.error) {
-          loadTransactions();
+          reload();
         }
       },
     },
@@ -213,22 +265,21 @@ const handleCreate = () => {
 
 const handleCreateSuccess = () => {
   isCreateSheetOpen.value = false;
-  loadTransactions();
+  reload();
 };
 
 const handleUpdateSuccess = () => {
   updatingTransaction.value = null;
   isUpdateSheetOpen.value = false;
-  loadTransactions();
+  reload();
 };
 
 const handleApplyFilters = () => {
-  paginationBody.value.page = 1;
-  loadTransactions();
+  reload();
 };
 
 const handleClearFilters = () => {
-  loadTransactions();
+  reload();
 };
 
 const handleExport = () => {
@@ -277,32 +328,23 @@ const handleExport = () => {
 };
 
 watch(
-  () => paginationBody.value.page,
-  () => {
-    loadTransactions();
-  }
-);
-
-watch(
   () => currentBankAccount.value?.id,
   () => {
-    paginationBody.value.page = 1;
-    loadTransactions();
+    reload();
   }
 );
 
 watchDebounced(
   () => filters.value.search,
   () => {
-    paginationBody.value.page = 1;
-    loadTransactions();
+    reload();
   },
   { debounce: 400 }
 );
 
 onMounted(() => {
   loadAuxiliaryData();
-  loadTransactions();
+  reload();
 });
 </script>
 
@@ -348,7 +390,7 @@ onMounted(() => {
       <div class="flex items-center gap-2">
         <span class="text-sm text-muted-foreground">Exibir</span>
         <UiSelect
-          :model-value="String(paginationBody.limit)"
+          :model-value="String(limit)"
           @update:model-value="handlePageSizeChange"
         >
           <UiSelectTrigger class="w-[70px] h-8">
@@ -392,8 +434,17 @@ onMounted(() => {
         />
       </div>
 
-      <div v-if="transactions" class="mt-6">
-        <TablePagination :pagination-body="paginationBody" :pagination-result="transactions" />
+      <div v-if="transactionsList.length > 0" class="mt-6">
+        <TableCursorPagination
+          :has-prev="hasPrev"
+          :has-next="hasNext"
+          :count="count"
+          :page-index="pageIndex"
+          :limit="limit"
+          :is-loading="isLoadingData"
+          :on-prev="goPrev"
+          :on-next="goNext"
+        />
       </div>
     </template>
 
@@ -416,7 +467,7 @@ onMounted(() => {
       v-model:is-open="isImportSheetOpen"
       :bank-account-id="currentBankAccount?.id || ''"
       :user-id="currentUser?.id || ''"
-      :on-success="() => { isImportSheetOpen = false; loadTransactions(); }"
+      :on-success="() => { isImportSheetOpen = false; reload(); }"
       :on-cancel="() => { isImportSheetOpen = false }"
     />
 
