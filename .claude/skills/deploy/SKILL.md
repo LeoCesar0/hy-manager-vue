@@ -50,9 +50,17 @@ Run in order. Each gate is blocking — if it fails, stop, report, and do not pr
 - Run `firebase deploy --only hosting`.
 - If it fails with an auth error, the CLI is not logged in — report it and tell the user to run `! firebase login` in the prompt, then re-invoke. Do not attempt interactive login yourself.
 
-### 6. Post-deploy
+### 6. Final gate — verify the new version is served (blocking)
 
-- Report: the deployed version, the `firebase deploy` summary, and the live URL (`https://hyfinances-1532e.web.app`).
+- `firebase deploy` reporting "complete" is **not** sufficient proof. Confirm the live site actually serves the new bundle.
+- `curl` the prod URL and assert the new version string is present **and the previous version string is absent**:
+  - `curl -s "https://hyfinances-1532e.web.app/?cb=$(date +%s%N)"` then grep for the new version.
+- The version lives in the prerendered **`index.html`** payload (`window.__NUXT__` → `appVersion`), **not** in the `/_nuxt/*.js` chunks. Grep the HTML, not the JS.
+- Pass only when the new version count is ≥1 and the old version count is 0. If the old version still serves (CDN cache lag), wait and re-curl before declaring success; do not claim the deploy is live on a failed grep.
+
+### 7. Post-deploy
+
+- Report: the deployed version, the `firebase deploy` summary, the live URL (`https://hyfinances-1532e.web.app`), and the step-6 grep result (new present / old absent).
 - Tell the user to hard-refresh and confirm the version label in the sidebar footer (`AppVersionLabel`) matches the deployed version.
 
 ## Git
