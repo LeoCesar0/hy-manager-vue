@@ -43,7 +43,11 @@ export const updateCounterparty = async ({ id, userId, data, options }: IAPIUpda
       });
 
       if (data.categoryIds) {
-        cascadeUpdateCounterpartyCategoryIds({
+        // Awaited: a fire-and-forget cascade let this resolve (and the success
+        // toast fire) while the heavy transaction+report sync still ran, which
+        // froze the UI right after "saved". See observation
+        // counterparties/performance/2026-06-16-categorizar-save-freeze.
+        await cascadeUpdateCounterpartyCategoryIds({
           counterpartyId: id,
           oldCategoryIds: oldCounterparty.categoryIds,
           newCategoryIds: data.categoryIds,

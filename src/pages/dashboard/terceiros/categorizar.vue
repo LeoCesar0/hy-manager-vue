@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { CheckCircle2Icon, SaveIcon } from "lucide-vue-next";
-import { updateCounterparty } from "~/services/api/counterparties/update-counterparty";
+import { bulkUpdateCounterpartyCategories } from "~/services/api/counterparties/bulk-update-counterparty-categories";
+import type { IBulkCounterpartyCategoryUpdate } from "~/services/api/counterparties/bulk-update-counterparty-categories";
 import { ROUTE } from "~/static/routes";
 import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
 import CounterpartyCategorizationRow from "~/components/Counterparties/CounterpartyCategorizationRow.vue";
@@ -67,7 +68,7 @@ const getSelectedCategoryIds = (counterpartyId: string): string[] => {
 };
 
 const handleSaveAll = async () => {
-  if (!hasPendingChanges.value) return;
+  if (!hasPendingChanges.value || !currentUser.value) return;
 
   isSaving.value = true;
   try {
@@ -78,31 +79,28 @@ const handleSaveAll = async () => {
       uncategorizedItems.value.map((item) => [item.counterparty.id, item.counterparty])
     );
 
-    const results = await Promise.allSettled(
-      validEntries.map(([counterpartyId, categoryIds]) => {
+    const updates: IBulkCounterpartyCategoryUpdate[] = validEntries
+      .map(([counterpartyId, categoryIds]) => {
         const counterparty = counterpartyMap.get(counterpartyId);
-        if (!counterparty) return Promise.resolve(null);
-
-        return updateCounterparty({
+        if (!counterparty) return null;
+        return {
           id: counterpartyId,
-          userId: counterparty.userId,
-          data: {
-            name: counterparty.name,
-            categoryIds,
-            userId: counterparty.userId,
-          },
-          options: { toastOptions: undefined },
-        });
+          name: counterparty.name,
+          oldCategoryIds: counterparty.categoryIds,
+          newCategoryIds: categoryIds,
+        };
       })
-    );
+      .filter((update): update is IBulkCounterpartyCategoryUpdate => update !== null);
 
-    const successIds: string[] = [];
-    results.forEach((result, index) => {
-      const entry = validEntries[index];
-      if (entry && result.status === "fulfilled" && result.value && "data" in result.value && result.value.data) {
-        successIds.push(entry[0]);
-      }
+    const toastId = toast.loading("Salvando categorizações...");
+
+    const response = await bulkUpdateCounterpartyCategories({
+      userId: currentUser.value.id,
+      updates,
+      options: { toastOptions: undefined },
     });
+
+    const successIds = response.data?.successIds ?? [];
 
     for (const id of successIds) {
       const categoryIds = pendingChanges.value.get(id);
@@ -113,8 +111,20 @@ const handleSaveAll = async () => {
     }
 
     if (successIds.length > 0) {
-      toast.success(`${successIds.length} identificador${successIds.length > 1 ? "es" : ""} categorizado${successIds.length > 1 ? "s" : ""}`);
+      toast.update(toastId, {
+        render: `${successIds.length} identificador${successIds.length > 1 ? "es" : ""} categorizado${successIds.length > 1 ? "s" : ""}`,
+        type: "success",
+        isLoading: false,
+        autoClose: 5000,
+      });
       referenceDataStore.refreshCurrent();
+    } else {
+      toast.update(toastId, {
+        render: "Não foi possível salvar as categorizações",
+        type: "error",
+        isLoading: false,
+        autoClose: 8000,
+      });
     }
 
     if (uncategorizedPage.value > uncategorizedTotalPages.value) {
@@ -159,7 +169,7 @@ const getCategorizedSelectedIds = (counterpartyId: string): string[] => {
 };
 
 const handleSaveCategorized = async () => {
-  if (!hasCategorizedPendingChanges.value) return;
+  if (!hasCategorizedPendingChanges.value || !currentUser.value) return;
 
   isSavingCategorized.value = true;
   try {
@@ -169,31 +179,28 @@ const handleSaveCategorized = async () => {
       categorizedItems.value.map((i) => [i.counterparty.id, i.counterparty])
     );
 
-    const results = await Promise.allSettled(
-      validEntries.map(([counterpartyId, categoryIds]) => {
+    const updates: IBulkCounterpartyCategoryUpdate[] = validEntries
+      .map(([counterpartyId, categoryIds]) => {
         const counterparty = counterpartyMap.get(counterpartyId);
-        if (!counterparty) return Promise.resolve(null);
-
-        return updateCounterparty({
+        if (!counterparty) return null;
+        return {
           id: counterpartyId,
-          userId: counterparty.userId,
-          data: {
-            name: counterparty.name,
-            categoryIds,
-            userId: counterparty.userId,
-          },
-          options: { toastOptions: undefined },
-        });
+          name: counterparty.name,
+          oldCategoryIds: counterparty.categoryIds,
+          newCategoryIds: categoryIds,
+        };
       })
-    );
+      .filter((update): update is IBulkCounterpartyCategoryUpdate => update !== null);
 
-    const successIds: string[] = [];
-    results.forEach((result, index) => {
-      const entry = validEntries[index];
-      if (entry && result.status === "fulfilled" && result.value && "data" in result.value && result.value.data) {
-        successIds.push(entry[0]);
-      }
+    const toastId = toast.loading("Salvando alterações...");
+
+    const response = await bulkUpdateCounterpartyCategories({
+      userId: currentUser.value.id,
+      updates,
+      options: { toastOptions: undefined },
     });
+
+    const successIds = response.data?.successIds ?? [];
 
     for (const id of successIds) {
       const categoryIds = categorizedPendingChanges.value.get(id);
@@ -203,8 +210,20 @@ const handleSaveCategorized = async () => {
     }
 
     if (successIds.length > 0) {
-      toast.success(`${successIds.length} identificador${successIds.length > 1 ? "es" : ""} atualizado${successIds.length > 1 ? "s" : ""}`);
+      toast.update(toastId, {
+        render: `${successIds.length} identificador${successIds.length > 1 ? "es" : ""} atualizado${successIds.length > 1 ? "s" : ""}`,
+        type: "success",
+        isLoading: false,
+        autoClose: 5000,
+      });
       referenceDataStore.refreshCurrent();
+    } else {
+      toast.update(toastId, {
+        render: "Não foi possível salvar as alterações",
+        type: "error",
+        isLoading: false,
+        autoClose: 8000,
+      });
     }
 
     editingId.value = null;

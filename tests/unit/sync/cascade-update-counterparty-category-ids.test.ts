@@ -154,4 +154,49 @@ describe("cascadeUpdateCounterpartyCategoryIds", () => {
       { categoryIds: ["cat-1", "cat-2"] }
     );
   });
+
+  it("returns the affected bank account ids", async () => {
+    const t1 = makeTransaction({ counterpartyId: "cp-1", categoryIds: ["cat-1"], bankAccountId: "bank-1" });
+    const t2 = makeTransaction({ counterpartyId: "cp-1", categoryIds: ["cat-1"], bankAccountId: "bank-2" });
+
+    firebaseMocks.cascadePaginatedBatch.mockImplementationOnce(
+      async ({ onPage }: { onPage: (args: { items: unknown[]; batch: typeof pageBatch }) => void | Promise<void> }) => {
+        await onPage({ items: [t1, t2], batch: pageBatch });
+      }
+    );
+    mockRebuildReport.mockResolvedValue({ data: {}, error: null });
+
+    const accounts = await cascadeUpdateCounterpartyCategoryIds({
+      counterpartyId: "cp-1",
+      oldCategoryIds: ["cat-1"],
+      newCategoryIds: ["cat-2"],
+      userId: "user-1",
+    });
+
+    expect([...accounts].sort()).toEqual(["bank-1", "bank-2"]);
+  });
+
+  it("with rebuildReports:false, propagates the diff but skips the rebuild", async () => {
+    const t1 = makeTransaction({ counterpartyId: "cp-1", categoryIds: ["cat-1"], bankAccountId: "bank-1" });
+    const t2 = makeTransaction({ counterpartyId: "cp-1", categoryIds: ["cat-1"], bankAccountId: "bank-2" });
+
+    firebaseMocks.cascadePaginatedBatch.mockImplementationOnce(
+      async ({ onPage }: { onPage: (args: { items: unknown[]; batch: typeof pageBatch }) => void | Promise<void> }) => {
+        await onPage({ items: [t1, t2], batch: pageBatch });
+      }
+    );
+
+    const accounts = await cascadeUpdateCounterpartyCategoryIds({
+      counterpartyId: "cp-1",
+      oldCategoryIds: ["cat-1"],
+      newCategoryIds: ["cat-2"],
+      userId: "user-1",
+      rebuildReports: false,
+    });
+
+    // transactions still updated, but no report rebuild — caller dedupes instead
+    expect(pageBatch.update).toHaveBeenCalledTimes(2);
+    expect(mockRebuildReport).not.toHaveBeenCalled();
+    expect([...accounts].sort()).toEqual(["bank-1", "bank-2"]);
+  });
 });
