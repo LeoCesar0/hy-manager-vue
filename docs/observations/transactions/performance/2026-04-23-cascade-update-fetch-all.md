@@ -7,7 +7,7 @@ found-in: "src/services/api/sync/cascade-delete-category.ts"
 working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-23
-updated: 2026-04-23
+updated: 2026-06-16
 resolved-date:
 discard-reason:
 deferred:
@@ -17,6 +17,7 @@ related-observations:
   - docs/observations/transactions/performance/2026-04-19-firebase-batch-500-limit.md
   - docs/observations/transactions/performance/2026-04-23-cascade-delete-fetch-all.md
   - docs/observations/reports/bug/2026-04-23-best-effort-report-sync-fragility.md
+  - docs/observations/counterparties/performance/2026-06-16-categorizar-save-freeze.html
 ---
 
 # Cascade updates carregam todas as transacoes afetadas antes de atualizar
@@ -32,6 +33,13 @@ Quando o usuario deleta uma categoria, deleta um counterparty, ou edita os `cate
 Para uma categoria muito usada ou um counterparty recorrente, o volume de transacoes afetadas pode passar de 500 e quebrar o batch. Mesmo abaixo de 500, o padrao desperdica memoria e bandwidth.
 
 Especificamente em `cascade-update-counterparty-category-ids`, alem do problema acima, ha uma chamada subsequente a `rebuildReport` por bank account afetada — que por sua vez carrega TODAS as transacoes de cada conta para reconstruir o Report. Cascade dentro de cascade.
+
+### Confirmado em producao (2026-06-16) — freeze ao salvar na tela Categorizar
+
+Apos o deploy da Onda D, esse caminho produziu um **freeze critico observado em producao** na tela `dashboard/terceiros/categorizar/`. Duas agravantes runtime, nao capturadas na descricao original acima, foram identificadas e estao detalhadas na observation dedicada [categorizar-save-freeze](../../counterparties/performance/2026-06-16-categorizar-save-freeze.html):
+
+1. **Cascade fire-and-forget** — em `update-counterparty.ts:45-52`, `cascadeUpdateCounterpartyCategoryIds` e chamado **sem `await`**. `updateCounterparty` retorna antes do trabalho pesado; o `Promise.allSettled` da pagina resolve, o toast "salvo" aparece, e so entao o cascade satura o navegador. Por isso o travamento acontece *depois* do toast e sem nenhum feedback de "processando".
+2. **Amplificacao N-paralela** — `handleSaveAll` salva N identificadores em paralelo, disparando N cascades simultaneos. Como nao ha dedup entre eles, varias contas em comum tem `rebuildReport` rodando concorrentemente, cada execucao relendo toda a base de transacoes da conta e refazendo o `reduce` sincrono. A mesma conta e reconstruida varias vezes ao mesmo tempo.
 
 ## Examples
 
@@ -58,6 +66,8 @@ Aplicar a mesma estrategia do `cascade-delete-fetch-all`: paginacao + chunked ba
 
 Para `cascade-update-counterparty-category-ids` adicionalmente:
 - Em vez de chamar `rebuildReport` (que recarrega TODAS as transacoes), aplicar deltas direcionados ao Report somente para as transacoes que mudaram. Funcao similar a `applyTransactionToReport` mas que recebe o diff de `categoryIds`.
+- **Deduplicar `rebuildReport` por conta no save em lote** — coletar as contas afetadas por todos os identificadores salvos e reconstruir cada conta uma unica vez, em vez de uma vez por cascade concorrente (ver [categorizar-save-freeze](../../counterparties/performance/2026-06-16-categorizar-save-freeze.html)).
+- **Resolver o cascade fire-and-forget** — em `update-counterparty.ts`, o cascade roda sem `await` e sem feedback; decidir entre await com estado de "sincronizando" na UI ou execucao em background explicitamente fora do main thread (detalhado na obs do freeze).
 - Alternativa pragmatica: continuar usando `rebuildReport` por enquanto, tratar essa fragilidade como parte da observation `best-effort-report-sync-fragility`, e priorizar o fix de paginacao do cascade.
 
 ## Observacoes relacionadas

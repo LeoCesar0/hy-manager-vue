@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Quick-scan metadata · MUST stay in sync with the <dl class="frontmatter"> in <body> -->
+    <meta name="obs-status" content="resolved" />
+    <meta name="obs-type" content="performance" />
+    <meta name="obs-severity" content="high" />
+    <meta name="obs-understanding" content="confident" />
+    <meta name="obs-execution" content="uncertain" />
+    <meta name="obs-retention" content="reference" />
+    <meta name="obs-date" content="2026-06-16" />
+    <meta name="obs-updated" content="2026-06-16" />
+    <meta name="obs-found-in" content="src/services/api/counterparties/update-counterparty.ts" />
+    <title>Freeze ao salvar na tela Categorizar — Observation</title>
+    <style>
+      :root {
+        --bg: #fafaf7;
+        --surface: #ffffff;
+        --surface-2: #f3f1ea;
+        --text: #1a1a1a;
+        --text-muted: #5a5a5a;
+        --text-soft: #7a7a7a;
+        --border: #e1ddd2;
+        --border-strong: #c9c4b5;
+        --accent: #0a4d8c;
+        --accent-soft: #e3edf7;
+        --good: #1f6f3c;
+        --good-bg: #e6f3ec;
+        --warn: #a85a00;
+        --warn-bg: #fbeed7;
+        --bad: #a32820;
+        --bad-bg: #fbe4e2;
+        --neutral: #5a5a5a;
+        --neutral-bg: #ececea;
+        --code-bg: #1f1f1f;
+        --code-text: #f1f1f1;
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
+        --serif: Georgia, "Times New Roman", "Liberation Serif", serif;
+        --sans:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .container { max-width: 1180px; margin: 0 auto; padding: 48px 32px 96px; }
+
+      header.title-block {
+        border-bottom: 2px solid var(--text);
+        padding-bottom: 20px;
+        margin-bottom: 28px;
+      }
+
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+      }
+
+      h1 {
+        font-family: var(--serif);
+        font-size: 42px;
+        line-height: 1.15;
+        margin: 0 0 12px;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 18px;
+        color: var(--text-muted);
+        margin: 0;
+      }
+
+      h2 {
+        font-family: var(--serif);
+        font-size: 30px;
+        margin: 56px 0 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      h3 { font-family: var(--serif); font-size: 22px; margin: 32px 0 12px; }
+      h4 {
+        font-family: var(--sans);
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin: 24px 0 8px;
+      }
+
+      p { margin: 0 0 14px; }
+
+      .lead {
+        font-family: var(--serif);
+        font-size: 20px;
+        line-height: 1.55;
+        color: var(--text);
+      }
+
+      dl.frontmatter {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 8px 18px;
+        margin: 24px 0 32px;
+        padding: 18px 22px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        box-shadow: var(--shadow);
+        font-size: 13px;
+      }
+      dl.frontmatter dt {
+        font-family: var(--mono);
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-size: 11px;
+        padding-top: 4px;
+      }
+      dl.frontmatter dd { margin: 0; color: var(--text); }
+      dl.frontmatter code,
+      dl.frontmatter .path {
+        font-family: var(--mono);
+        font-size: 12px;
+        background: var(--surface-2);
+        padding: 1px 6px;
+        border-radius: 3px;
+        border: 1px solid var(--border);
+      }
+
+      .verdict {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .verdict.good { background: var(--good-bg); color: var(--good); }
+      .verdict.warn { background: var(--warn-bg); color: var(--warn); }
+      .verdict.bad { background: var(--bad-bg); color: var(--bad); }
+      .verdict.neutral { background: var(--neutral-bg); color: var(--neutral); }
+      .verdict.accent { background: var(--accent-soft); color: var(--accent); }
+
+      .callout {
+        background: var(--surface);
+        border-left: 4px solid var(--accent);
+        padding: 18px 22px;
+        margin: 24px 0;
+        box-shadow: var(--shadow);
+      }
+      .callout.bad { border-left-color: var(--bad); background: var(--bad-bg); }
+      .callout.warn { border-left-color: var(--warn); background: var(--warn-bg); }
+      .callout.good { border-left-color: var(--good); background: var(--good-bg); }
+      .callout h4 { margin: 0 0 8px; color: var(--text); }
+      .callout p:last-child { margin-bottom: 0; }
+
+      pre.code {
+        background: var(--code-bg);
+        color: var(--code-text);
+        padding: 14px 18px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        line-height: 1.5;
+        margin: 12px 0;
+      }
+      code.inline {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        background: var(--surface-2);
+        padding: 1px 6px;
+        border-radius: 3px;
+        border: 1px solid var(--border);
+      }
+
+      ul.bullets, ol.bullets { margin: 8px 0 18px; padding-left: 22px; }
+      ul.bullets li, ol.bullets li { margin: 4px 0; }
+
+      .recs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        margin: 20px 0;
+      }
+      .rec-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+      }
+      .rec-card .prio {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .rec-card.p1 .prio { color: var(--bad); }
+      .rec-card.p2 .prio { color: var(--warn); }
+      .rec-card.p3 .prio { color: var(--neutral); }
+      .rec-card h4 {
+        margin: 0 0 8px;
+        color: var(--text);
+        font-family: var(--serif);
+        font-size: 17px;
+        text-transform: none;
+        letter-spacing: 0;
+      }
+      .rec-card p { font-size: 13px; color: var(--text-muted); margin: 0 0 6px; }
+
+      .footer {
+        margin-top: 64px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text-soft);
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      @media (max-width: 800px) {
+        dl.frontmatter { grid-template-columns: 1fr; gap: 4px 0; }
+        dl.frontmatter dt { padding-top: 10px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="title-block">
+        <div class="eyebrow">Observation · counterparties · performance</div>
+        <h1>Freeze da UI logo após "Salvar" na tela Categorizar</h1>
+        <p class="subtitle">O toast de sucesso aparece e a aplicação trava — o cascade de sincronização roda fire-and-forget depois do retorno.</p>
+      </header>
+
+      <dl class="frontmatter">
+        <dt>status</dt><dd><span class="verdict good">resolved</span></dd>
+        <dt>type</dt><dd><span class="verdict warn">performance</span></dd>
+        <dt>severity</dt><dd><span class="verdict bad">high</span></dd>
+        <dt>understanding</dt><dd><span class="verdict good">confident</span></dd>
+        <dt>execution</dt><dd><span class="verdict warn">uncertain</span></dd>
+        <dt>retention</dt><dd><span class="verdict accent">reference</span></dd>
+        <dt>found-during</dt><dd>Teste em produção da Onda D — usuário relatou freeze após salvar categorias</dd>
+        <dt>found-in</dt><dd><span class="path">src/services/api/counterparties/update-counterparty.ts</span></dd>
+        <dt>working-branch</dt><dd><span class="path">perf/performance-overview</span></dd>
+        <dt>found-in-branch</dt><dd><span class="path">perf/performance-overview</span></dd>
+        <dt>date</dt><dd>2026-06-16</dd>
+        <dt>updated</dt><dd>2026-06-16</dd>
+        <dt>resolved-date</dt><dd>2026-06-16</dd>
+        <dt>related-commits</dt><dd><code>c820426</code></dd>
+        <dt>related-observations</dt><dd>
+          <code>transactions/performance/2026-04-23-cascade-update-fetch-all.md</code>,
+          <code>counterparties/performance/2026-04-23-categorization-loads-all-data.md</code>,
+          <code>reports/bug/2026-04-23-best-effort-report-sync-fragility.md</code>
+        </dd>
+      </dl>
+
+      <section id="summary">
+        <h2>Summary</h2>
+        <p class="lead">
+          Na tela <em>Dashboard → Identificadores → Categorizar</em>, o usuário seleciona categorias para
+          alguns identificadores e clica em "Salvar". Um toast confirma o salvamento e, em seguida, a
+          interface inteira congela por vários segundos. A causa é um efeito colateral pesado de
+          sincronização (atualizar todas as transações afetadas + reconstruir os relatórios das contas)
+          que é disparado <strong>sem <code class="inline">await</code></strong> dentro de
+          <code class="inline">updateCounterparty</code> — então ele roda em segundo plano, depois que a
+          função já retornou e o toast já apareceu.
+        </p>
+        <div class="callout bad">
+          <p>
+            <span class="verdict warn">type · performance</span>
+            <span class="verdict bad">severity · high</span>
+            <span class="verdict warn">status · open</span>
+            O save dispara N cascades em paralelo (um por identificador); cada cascade reconstrói o
+            relatório de cada conta afetada relendo <strong>todas</strong> as transações da conta — e a
+            mesma conta é reconstruída repetidamente, sem dedup entre os cascades.
+          </p>
+        </div>
+      </section>
+
+      <section id="context">
+        <h2>Context</h2>
+        <p>
+          O app não tem backend; toda a manutenção de dados derivados acontece no cliente. Quando o
+          usuário atribui categorias a um identificador (counterparty/"creditor"), o sistema precisa
+          propagar esses <code class="inline">categoryIds</code> para todas as transações daquele
+          identificador e reconstruir o documento <code class="inline">Report</code> pré-agregado de cada
+          conta bancária afetada. Essa propagação é o "cascade".
+        </p>
+        <p>
+          O ponto central é <em>como</em> esse cascade é chamado. Em
+          <code class="inline">updateCounterparty</code>, depois de gravar o doc do identificador, o
+          cascade é invocado <strong>sem <code class="inline">await</code></strong>:
+        </p>
+        <pre class="code">// update-counterparty.ts (dentro do handleAppRequest)
+const result = await firebaseUpdate({ collection: "creditors", id, data: dataWithSlug });
+
+if (data.categoryIds) {
+  cascadeUpdateCounterpartyCategoryIds({   // &lt;-- NÃO awaited (fire-and-forget)
+    counterpartyId: id,
+    oldCategoryIds: oldCounterparty.categoryIds,
+    newCategoryIds: data.categoryIds,
+    userId,
+  });
+}
+
+return result;   // retorna imediatamente; o cascade segue rodando solto</pre>
+        <p>
+          Como <code class="inline">updateCounterparty</code> retorna sem esperar o cascade, a sequência
+          em <code class="inline">handleSaveAll</code> (<code class="inline">Promise.allSettled</code> →
+          <code class="inline">toast.success</code> → <code class="inline">refreshCurrent()</code>)
+          completa <strong>antes</strong> de o trabalho pesado começar de verdade. O toast aparece, e só
+          então o navegador fica saturado processando o cascade — o que o usuário percebe como "travou
+          logo depois de salvar".
+        </p>
+        <p>
+          O cascade em si é caro e <strong>amplificado</strong>. <code class="inline">handleSaveAll</code>
+          salva todos os identificadores pendentes em paralelo
+          (<code class="inline">Promise.allSettled</code> sobre N <code class="inline">updateCounterparty</code>),
+          então N cascades sobem ao mesmo tempo. Cada cascade:
+        </p>
+        <ol class="bullets">
+          <li>pagina e atualiza todas as transações daquele identificador (<code class="inline">cascadePaginatedBatch</code>);</li>
+          <li>para cada conta bancária afetada, chama <code class="inline">rebuildReport</code>, que
+            <strong>relê todas as transações da conta</strong> (<code class="inline">getTransactions</code> sem
+            limite) e faz um <code class="inline">reduce</code> síncrono sobre elas para reconstruir o relatório.</li>
+        </ol>
+        <p>
+          Não há coordenação entre os N cascades: se vários identificadores pertencem à mesma conta, o
+          <code class="inline">rebuildReport</code> daquela conta roda várias vezes concorrentemente,
+          cada vez relendo a base inteira de transações da conta e refazendo o <code class="inline">reduce</code>.
+          Com 2000+ transações isso vira uma tempestade de leituras do Firestore somada a múltiplos
+          <code class="inline">reduce</code> síncronos no main thread.
+        </p>
+
+        <h3>Examples</h3>
+        <ul class="bullets">
+          <li>Usuário categoriza 8 identificadores de uma vez, sendo 6 deles da mesma conta "Nubank". Ao
+            salvar: 8 cascades sobem; cada um dos 6 dispara <code class="inline">rebuildReport("Nubank")</code>
+            → o relatório do Nubank é reconstruído 6× em paralelo, cada vez relendo todas as transações da conta.</li>
+          <li>Um identificador recorrente ("Mercado") com centenas de transações: o
+            <code class="inline">cascadePaginatedBatch</code> lê+grava todas elas, e em seguida o
+            <code class="inline">reduce</code> do report percorre a base inteira da conta.</li>
+        </ul>
+
+        <h3>User report</h3>
+        <p>
+          Em <code class="inline">dashboard/terceiros/categorizar/</code>, ao selecionar categorias e
+          clicar em "Salvar", aparece o toast informando que foi salvo e, logo em seguida, tudo trava. O
+          usuário suspeita que o travamento aconteça por causa de um refresh ou de algum processo interno
+          disparado logo após o clique em salvar.
+        </p>
+
+        <h3>How to observe or reproduce</h3>
+        <ol class="bullets">
+          <li>Ter volume real de dados (2000+ transações, várias contas).</li>
+          <li>Abrir <code class="inline">dashboard/terceiros/categorizar/</code>, aba "Sem categoria".</li>
+          <li>Selecionar categorias para vários identificadores (idealmente alguns da mesma conta).</li>
+          <li>Clicar em "Salvar". O toast de sucesso aparece e a UI congela na sequência.</li>
+        </ol>
+      </section>
+
+      <section id="where">
+        <h2>Where</h2>
+        <ul class="bullets">
+          <li><code class="inline">src/services/api/counterparties/update-counterparty.ts:45-52</code> — cascade chamado <strong>sem <code class="inline">await</code></strong> (fire-and-forget); a função retorna antes do trabalho pesado.</li>
+          <li><code class="inline">src/pages/dashboard/terceiros/categorizar.vue:81-118</code> — <code class="inline">handleSaveAll</code> dispara N <code class="inline">updateCounterparty</code> em paralelo e mostra o toast assim que resolvem.</li>
+          <li><code class="inline">src/services/api/sync/cascade-update-counterparty-category-ids.ts:30-64</code> — pagina+atualiza transações e faz <code class="inline">Promise.all</code> de <code class="inline">rebuildReport</code> por conta; sem dedup entre os N cascades concorrentes.</li>
+          <li><code class="inline">src/services/api/reports/rebuild-report.ts:22-46</code> — <code class="inline">getTransactions</code> sem limite + <code class="inline">reduce</code> síncrono sobre toda a base da conta.</li>
+        </ul>
+      </section>
+
+      <section id="why">
+        <h2>Why it matters</h2>
+        <p>
+          É a única regressão de performance <strong>crítica</strong> reportada após o deploy da Onda D:
+          um fluxo legítimo e comum (categorizar identificadores em lote) deixa a aplicação inutilizável
+          por vários segundos. Por o cascade ser fire-and-forget, não há nenhum feedback de "processando"
+          — o usuário vê "salvo" e em seguida um congelamento inexplicável, o que mina a confiança no app
+          justamente depois de uma melhoria de performance.
+        </p>
+        <p>
+          Além do custo de UX, há custo de Firebase: a mesma base de transações de uma conta é relida uma
+          vez por cascade que a afeta, multiplicando leituras desnecessariamente.
+        </p>
+      </section>
+
+      <section id="approach">
+        <h2>Suggested approach</h2>
+        <p>
+          O root cause tem duas camadas: (a) <strong>quando</strong> o cascade roda (fire-and-forget,
+          sem feedback) e (b) <strong>quanto</strong> trabalho ele faz (fetch-all + rebuild redundante).
+          A correção ideal ataca as duas. As observations de componente já cobrem (b); esta acrescenta (a)
+          e a amplificação N-paralela.
+        </p>
+        <div class="recs">
+          <div class="rec-card p1">
+            <div class="prio">Prioridade 1 · mecanismo</div>
+            <h4>Dar feedback e não bloquear</h4>
+            <p>Tornar o cascade visível: ou <code class="inline">await</code>-á-lo com um estado de
+              "sincronizando..." na UI, ou mantê-lo em background mas explicitamente fora do main thread
+              de render (yield/idle), nunca disparado solto sem indicação. Decide-se o trade-off
+              latência-percebida vs. bloqueio.</p>
+          </div>
+          <div class="rec-card p1">
+            <div class="prio">Prioridade 1 · amplificação</div>
+            <h4>Deduplicar o rebuild por conta</h4>
+            <p>No save em lote, coletar o conjunto de contas afetadas por <em>todos</em> os identificadores
+              e rodar <code class="inline">rebuildReport</code> <strong>uma vez por conta</strong>, não uma
+              vez por cascade. Elimina os rebuilds concorrentes redundantes da mesma conta.</p>
+          </div>
+          <div class="rec-card p2">
+            <div class="prio">Prioridade 2 · custo</div>
+            <h4>Report incremental por delta</h4>
+            <p>Em vez de <code class="inline">rebuildReport</code> (relê tudo), aplicar um delta direcionado
+              ao Report só para as transações que mudaram de categoria — já proposto em
+              <code class="inline">cascade-update-fetch-all</code>. Remove o fetch-all do caminho.</p>
+          </div>
+        </div>
+        <p>
+          <strong>Atenção (gate):</strong> mexer no comportamento de <code class="inline">rebuildReport</code>
+          e na atomicidade da sincronização toca a área da observation deferida
+          <code class="inline">best-effort-report-sync-fragility</code> e do item #12 do overview (report
+          sync). Qualquer mudança que altere quando/como o Report é gravado deve ser validada contra
+          aquelas observations antes de executar.
+        </p>
+      </section>
+
+      <section id="progress">
+        <h2>Progress</h2>
+        <div class="progress-entry">
+          <div class="when">2026-06-16 · investigação (sem fix)</div>
+          <div class="what">Root cause rastreado no código a partir do relato do usuário.</div>
+          <p>
+            Cadeia confirmada por leitura de código: <code class="inline">categorizar.vue</code> →
+            <code class="inline">handleSaveAll</code> (N em paralelo) →
+            <code class="inline">updateCounterparty</code> (cascade <strong>sem await</strong>) →
+            <code class="inline">cascadeUpdateCounterpartyCategoryIds</code> →
+            <code class="inline">rebuildReport</code> (fetch-all + reduce síncrono, repetido por conta).
+            <strong>Honestidade:</strong> a <em>cadeia que dispara</em> o freeze está clara no código. O
+            <em>mecanismo exato</em> do congelamento (CPU-bound pelos <code class="inline">reduce</code>
+            síncronos vs. saturação de callbacks de I/O do SDK do Firebase + re-renders das promises
+            soltas resolvendo) <strong>não foi medido com profiler</strong> — é inferência. Confirmar com
+            um trace de performance no navegador, sob volume real, fortaleceria o diagnóstico do mecanismo.
+          </p>
+        </div>
+        <div class="progress-entry good">
+          <div class="when">2026-06-16 · fix implementado</div>
+          <div class="what">Corrigidas as duas camadas do root cause; status → awaiting-validation.</div>
+          <p>
+            (1) <code class="inline">update-counterparty.ts</code> passou a <strong>await</strong> o cascade
+            (fim do fire-and-forget; o trabalho agora acontece sob o estado de "salvando", não solto após o toast).
+            (2) Novo service <code class="inline">bulkUpdateCounterpartyCategories</code>: propaga as categorias de
+            todos os identificadores (cascade com <code class="inline">rebuildReports:false</code>, que agora retorna
+            as contas afetadas) e reconstrói <strong>cada conta uma única vez, sequencialmente</strong> — elimina os
+            rebuilds concorrentes redundantes da mesma conta. As duas abas de <code class="inline">categorizar.vue</code>
+            (Sem categoria e Categorizados) passaram a usar esse service em vez de N <code class="inline">updateCounterparty</code> paralelos.
+          </p>
+          <p>
+            Testes: <code class="inline">cascade-update-counterparty-category-ids.test.ts</code> (flag
+            <code class="inline">rebuildReports:false</code> retorna contas e pula o rebuild) e
+            <code class="inline">bulk-update-counterparty-categories.test.ts</code> (rebuild deduplicado por conta;
+            falha parcial não rebuilda a conta do que falhou). <code class="inline">ts-check</code> limpo; suíte unit
+            286 verdes.
+          </p>
+        </div>
+      </section>
+
+      <section id="resolution">
+        <h2>Resolution</h2>
+        <p>
+          Corrigido no commit <code>c820426</code> (branch <span class="path">perf/performance-overview</span>),
+          deployado em produção como <code class="inline">1.1.1-beta</code> e <strong>confirmado pelo usuário</strong>:
+          o freeze ao salvar na tela Categorizar desapareceu.
+        </p>
+        <p>
+          <strong>Root cause:</strong> o cascade de sincronização rodava fire-and-forget (sem
+          <code class="inline">await</code>) e o save em lote disparava N cascades em paralelo, reconstruindo o
+          relatório da mesma conta N vezes concorrentemente (cada rebuild = fetch-all + reduce síncrono). O toast de
+          sucesso aparecia e a UI travava enquanto esse trabalho rodava solto.
+        </p>
+        <p>
+          <strong>Fix:</strong> (1) <code class="inline">update-counterparty.ts</code> passou a aguardar o cascade;
+          (2) novo <code class="inline">bulkUpdateCounterpartyCategories</code> propaga as categorias de todos os
+          identificadores e reconstrói cada conta afetada <strong>uma única vez, sequencialmente</strong>
+          (<code class="inline">cascadeUpdateCounterpartyCategoryIds</code> ganhou o flag
+          <code class="inline">rebuildReports:false</code> e passou a retornar as contas afetadas). Testes: flag do
+          cascade + dedup do bulk (incl. falha parcial).
+        </p>
+        <p>
+          <strong>Nota:</strong> as partes (1) e (2) acima foram o que de fato eliminou o freeze e estão live em
+          <code class="inline">1.1.1-beta</code> (confirmado). Um polimento de UX adicional — toast loading → success
+          em ambas as abas de <code class="inline">categorizar.vue</code> — entrou no mesmo commit
+          <code>c820426</code> <strong>após</strong> esse deploy, então só fica visível em produção no próximo deploy.
+        </p>
+        <p>
+          <strong>Follow-up (não bloqueia):</strong> o custo base de um <code class="inline">rebuildReport</code> por
+          conta (fetch-all + reduce) permanece — esta correção removeu a amplificação N×, não o custo de uma
+          reconstrução. O report incremental por delta segue rastreado em
+          <code>cascade-update-fetch-all.md</code> e no item #12 do overview.
+        </p>
+      </section>
+
+      <footer class="footer">
+        <span>Observation · counterparties · performance · 2026-06-16</span>
+        <span>perf/performance-overview</span>
+      </footer>
+    </div>
+  </body>
+</html>
