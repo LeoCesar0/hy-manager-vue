@@ -1,22 +1,11 @@
 <script setup lang="ts">
-import { h } from "vue";
-import type { ColumnDef } from "@tanstack/vue-table";
-import { WalletIcon, TargetIcon } from "lucide-vue-next";
-import type { IBudget, ICategoryBudget } from "~/@schemas/models/budget";
-import { listBudgets } from "~/services/api/budgets/list-budgets";
+import { TargetIcon } from "lucide-vue-next";
+import type { IBudget } from "~/@schemas/models/budget";
 import { getOrCreateBudget } from "~/services/api/budgets/get-or-create-budget";
 import { updateBudget } from "~/services/api/budgets/update-budget";
-import { deleteBudget } from "~/services/api/budgets/delete-budget";
-import {
-  buildObjetivoRows,
-  type IObjetivoRow,
-} from "~/helpers/budget/buildObjetivoRows";
-import { formatCurrency } from "~/helpers/formatCurrency";
-import type { IPaginationBody, IPaginationResult } from "~/@types/pagination";
 import DashboardSection from "~/components/Dashboard/DashboardSection.vue";
 import EmptyState from "~/components/Dashboard/EmptyState.vue";
-import ActionButtons from "~/components/Dashboard/ActionButtons.vue";
-import BudgetSettingsDialog from "~/components/Reports/BudgetSettingsDialog.vue";
+import BudgetSettingsForm from "~/components/Reports/BudgetSettingsForm.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -26,214 +15,159 @@ const userStore = useUserStore();
 const { currentUser } = storeToRefs(userStore);
 
 const dashboardStore = useDashboardStore();
-const { bankAccounts, isLoadingBankAccounts } = storeToRefs(dashboardStore);
+const { currentBankAccount } = storeToRefs(dashboardStore);
 
 const referenceDataStore = useReferenceDataStore();
 const { categories } = storeToRefs(referenceDataStore);
 
-const budgets = ref<IBudget[]>([]);
-const isLoadingBudgets = ref(false);
+const budget = ref<IBudget | null>(null);
+const isLoading = ref(false);
+const isSaving = ref(false);
+const formRef = ref<InstanceType<typeof BudgetSettingsForm> | null>(null);
 
-const isLoading = computed(
-  () => isLoadingBankAccounts.value || isLoadingBudgets.value,
+// Bumped on every (re)load and after save/clear so the keyed form remounts and
+// re-hydrates from the freshly persisted budget.
+const formVersion = ref(0);
+const formKey = computed(
+  () => `${currentBankAccount.value?.id ?? "none"}:${formVersion.value}`,
 );
 
-const rows = computed<IObjetivoRow[]>(() =>
-  buildObjetivoRows({
-    bankAccounts: bankAccounts.value,
-    budgets: budgets.value,
-  }),
+const isConfigured = computed(
+  () =>
+    !!budget.value &&
+    (budget.value.monthlyExpenseLimit !== null ||
+      budget.value.monthlyIncomeGoal !== null ||
+      budget.value.categoryBudgets.length > 0),
 );
 
-// One row per bank account — small, fully in-memory. A single page sized to fit
-// all rows keeps the shared Table component happy without paginated fetching.
-const paginationBody = ref<IPaginationBody>({ page: 1, limit: 1000 });
-
-const paginationResult = computed<IPaginationResult<IObjetivoRow>>(() => ({
-  count: rows.value.length,
-  pages: 1,
-  currentPage: 1,
-  list: rows.value,
-}));
-
-const loadBudgets = async () => {
-  if (!currentUser.value) return;
-  isLoadingBudgets.value = true;
+const loadBudget = async () => {
+  if (!currentUser.value || !currentBankAccount.value) {
+    budget.value = null;
+    return;
+  }
+  isLoading.value = true;
   try {
-    const response = await listBudgets({
+    const response = await getOrCreateBudget({
       userId: currentUser.value.id,
+      bankAccountId: currentBankAccount.value.id,
       options: { toastOptions: undefined },
     });
-    if (response.data) budgets.value = response.data;
+    budget.value = response.data ?? null;
+    formVersion.value++;
   } finally {
-    isLoadingBudgets.value = false;
+    isLoading.value = false;
   }
 };
 
-// --- Edit dialog ---------------------------------------------------------
-const dialogOpen = ref(false);
-const editingRow = ref<IObjetivoRow | null>(null);
-const editingBudget = ref<IBudget | null>(null);
-
-const handleConfigure = async (row: IObjetivoRow) => {
-  editingRow.value = row;
-  // Reuse the existing per-account get-or-create so the dialog always receives
-  // a real budget doc (id === bankAccountId); for accounts without one this
-  // lazily creates the bare doc, matching the reports flow.
-  const response = await getOrCreateBudget({
-    userId: currentUser.value!.id,
-    bankAccountId: row.bankAccountId,
-    options: { toastOptions: undefined },
-  });
-  if (!response.data) return;
-  editingBudget.value = response.data;
-  dialogOpen.value = true;
-};
-
-const handleCloseDialog = () => {
-  dialogOpen.value = false;
-  editingRow.value = null;
-  editingBudget.value = null;
-};
-
-const handleSave = async (data: {
-  monthlyExpenseLimit: number | null;
-  monthlyIncomeGoal: number | null;
-  categoryBudgets: ICategoryBudget[];
-}) => {
-  const row = editingRow.value;
-  if (!row) return;
-  const response = await updateBudget({
-    bankAccountId: row.bankAccountId,
-    data,
-  });
-  if (response.data) {
-    await loadBudgets();
+const handleSave = async () => {
+  if (!formRef.value || !currentBankAccount.value) return;
+  isSaving.value = true;
+  try {
+    const response = await updateBudget({
+      bankAccountId: currentBankAccount.value.id,
+      data: formRef.value.getPayload(),
+    });
+    if (response.data) {
+      budget.value = response.data;
+      formVersion.value++;
+    }
+  } finally {
+    isSaving.value = false;
   }
 };
 
-// --- Delete --------------------------------------------------------------
 const { openDialog } = useAlertDialog();
 
-const handleDelete = (row: IObjetivoRow) => {
+const handleClear = () => {
+  if (!currentBankAccount.value) return;
   openDialog({
-    title: "Deletar Objetivo",
-    message: `Tem certeza que deseja deletar o objetivo da conta "${row.bankAccountName}"?`,
+    title: "Limpar objetivo",
+    message: `Isto remove o limite de gastos, a meta de receita e os objetivos por categoria de "${currentBankAccount.value.name}". Deseja continuar?`,
     confirm: {
-      label: "Deletar",
+      label: "Limpar",
       action: async () => {
-        const response = await deleteBudget({
-          bankAccountId: row.bankAccountId,
+        const response = await updateBudget({
+          bankAccountId: currentBankAccount.value!.id,
+          data: {
+            monthlyExpenseLimit: null,
+            monthlyIncomeGoal: null,
+            categoryBudgets: [],
+          },
           options: {
             toastOptions: {
-              loading: { message: "Deletando objetivo..." },
-              success: { message: "Objetivo deletado com sucesso!" },
+              loading: { message: "Limpando objetivo..." },
+              success: { message: "Objetivo limpo." },
               error: true,
             },
           },
         });
-        if (response.data) await loadBudgets();
+        if (response.data) {
+          budget.value = response.data;
+          formVersion.value++;
+        }
       },
     },
   });
 };
 
-const renderAmount = (value: number | null) =>
-  value === null
-    ? h("span", { class: "text-sm text-muted-foreground" }, "—")
-    : h("span", { class: "text-sm font-medium" }, formatCurrency({ amount: value }));
-
-const columns: ColumnDef<IObjetivoRow>[] = [
-  {
-    accessorKey: "bankAccountName",
-    header: "Conta Bancária",
-    cell: ({ row }) =>
-      h("div", { class: "flex items-center gap-2" }, [
-        h(WalletIcon, { class: "h-4 w-4 text-muted-foreground" }),
-        h("span", { class: "font-medium" }, row.original.bankAccountName),
-      ]),
+watch(
+  () => currentBankAccount.value?.id,
+  () => {
+    loadBudget();
   },
-  {
-    id: "monthlyExpenseLimit",
-    header: "Limite de gastos mensal",
-    cell: ({ row }) => renderAmount(row.original.monthlyExpenseLimit),
-  },
-  {
-    id: "monthlyIncomeGoal",
-    header: "Meta de receita mensal",
-    cell: ({ row }) => renderAmount(row.original.monthlyIncomeGoal),
-  },
-  {
-    id: "categoryBudgetsCount",
-    header: "Categorias configuradas",
-    cell: ({ row }) =>
-      h(
-        "span",
-        { class: "text-sm text-muted-foreground" },
-        String(row.original.categoryBudgetsCount),
-      ),
-  },
-  {
-    id: "actions",
-    header: "Ações",
-    cell: ({ row }) => {
-      const objetivoRow = row.original;
-      if (!objetivoRow.isConfigured) {
-        return h(
-          "button",
-          {
-            class:
-              "inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline",
-            onClick: () => handleConfigure(objetivoRow),
-          },
-          [h(TargetIcon, { class: "h-4 w-4" }), "Criar objetivo"],
-        );
-      }
-      return h(ActionButtons, {
-        editVariant: "ghost",
-        deleteVariant: "ghost",
-        onEdit: () => handleConfigure(objetivoRow),
-        onDelete: () => handleDelete(objetivoRow),
-      });
-    },
-  },
-];
+);
 
 onMounted(() => {
   if (currentUser.value) {
     referenceDataStore.load({ userId: currentUser.value.id });
   }
-  loadBudgets();
+  loadBudget();
 });
 </script>
 
 <template>
   <DashboardSection
     title="Objetivos"
-    subtitle="Defina limites de gastos e metas de receita por conta bancária"
-    :loading="isLoading && rows.length === 0"
+    :subtitle="
+      currentBankAccount
+        ? `Limites e metas de ${currentBankAccount.name} para o mês atual`
+        : 'Defina limites de gastos e metas de receita por conta'
+    "
+    :loading="isLoading && !budget"
   >
     <EmptyState
-      v-if="rows.length === 0 && !isLoading"
-      title="Nenhuma conta bancária encontrada"
-      description="Crie uma conta bancária para começar a definir objetivos."
+      v-if="!currentBankAccount"
+      title="Nenhuma conta selecionada"
+      description="Selecione uma conta bancária no topo para definir seus objetivos."
       :show-create-button="false"
     />
 
-    <Table
-      v-else
-      :columns="columns"
-      :pagination-body="paginationBody"
-      :pagination-result="paginationResult"
-      :is-loading="isLoading"
-    />
+    <div v-else class="mx-auto w-full max-w-3xl space-y-6">
+      <UiCard class="p-6">
+        <BudgetSettingsForm
+          :key="formKey"
+          ref="formRef"
+          :budget="budget"
+          :categories="categories"
+        />
+      </UiCard>
 
-    <BudgetSettingsDialog
-      :open="dialogOpen"
-      :budget="editingBudget"
-      :categories="categories"
-      :on-close="handleCloseDialog"
-      :on-save="handleSave"
-    />
+      <div class="flex items-center justify-between gap-3">
+        <UiButton
+          v-if="isConfigured"
+          variant="ghost"
+          class="text-destructive hover:text-destructive"
+          @click="handleClear"
+        >
+          Limpar objetivo
+        </UiButton>
+        <span v-else aria-hidden="true" />
+
+        <UiButton :disabled="isSaving || !budget" @click="handleSave">
+          <TargetIcon class="h-4 w-4 mr-1" />
+          Salvar objetivo
+        </UiButton>
+      </div>
+    </div>
   </DashboardSection>
 </template>

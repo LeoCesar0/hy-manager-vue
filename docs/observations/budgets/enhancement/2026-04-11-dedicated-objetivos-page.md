@@ -1,5 +1,5 @@
 ---
-status: awaiting-validation
+status: resolved
 type: enhancement
 severity: medium
 retention: reference
@@ -9,9 +9,11 @@ working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-11
 updated: 2026-06-19
-resolved-date:
+resolved-date: 2026-06-19
 discard-reason:
 deferred:
+related-commits:
+  - e99c8a8
 ---
 
 # Dedicated "Objetivos" page with sidebar entry
@@ -142,29 +144,75 @@ Verification:
 - The `.vue` page rendering and sidebar wiring are visual/DOM and are
   NOT verified by unit tests — see Pending Validation.
 
-New user-facing copy uses "Objetivos" (not "Orçamento") on the new page
-and sidebar, per the upcoming rename task. The existing reports
-card/dialog copy ("Orçamento") was intentionally left untouched.
+### 2026-06-19 — Redesign: scoped to current account + expanded form (supersedes the table approach above)
 
-## Pending Validation
+User feedback after seeing the first cut: the table-of-all-accounts
+contradicts the app's core pattern (every dashboard page operates on the
+**currently-selected bank account**, like Relatórios), and a conventional
+table was not the desired surface. The requested direction: take the
+content of the "Configurar Objetivo" dialog and expand it to fill the
+page, scoped to the current account.
 
-What was done: see Progress. The following require manual eyeballing in a
-running dev server (`pnpm run dev`) because they are visual/DOM and
-Firestore-backed:
+What changed:
+- **Form extracted for reuse**: the dialog's field body became a shared
+  presentational component `src/components/Reports/BudgetSettingsForm.vue`
+  (two overall inputs + the per-category list). It hydrates from the
+  `budget` prop on mount and exposes `getPayload()` via `defineExpose`;
+  parents own the action buttons and remount it via `:key` to re-hydrate.
+  It also exports the shared `IBudgetFormPayload` type (single source for
+  the `onSave` contract).
+- **Dialog now wraps the form**: `BudgetSettingsDialog.vue` renders
+  `BudgetSettingsForm` with `v-if="open"` (remount-on-open preserves the
+  old "cancelled edit doesn't carry over" behaviour) and keeps its
+  Cancelar/Salvar footer. Reports flow is behaviourally unchanged.
+- **Page rebuilt** (`objetivos/index.vue`): no table. It reads
+  `currentBankAccount` from `useDashboardStore`, loads that account's
+  budget via `getOrCreateBudget`, and renders `BudgetSettingsForm`
+  full-width in a `UiCard` (max-w-3xl). Actions: **Salvar objetivo**
+  (`updateBudget`) and **Limpar objetivo** (only when configured — clears
+  to null/null/[] via `updateBudget` behind an `useAlertDialog` confirm).
+  Subtitle names the current account to make the scope explicit. Empty
+  state when no account is selected. A `watch` on
+  `currentBankAccount.id` reloads on account switch.
+- **Dead code removed**: `list-budgets.ts`, `buildObjetivoRows.ts` and
+  `tests/unit/helpers/build-objetivo-rows.test.ts` (the table-only join +
+  list-all service) were deleted — the page no longer lists all accounts,
+  so the per-account `getOrCreateBudget` is sufficient and cheaper (no
+  full-collection read).
 
-1. **Sidebar entry** — "Objetivos" appears under "Gerenciamento" with a
-   target icon, navigates to `/dashboard/objetivos`.
-2. **List** — the page shows one row per bank account, including accounts
-   with no objetivo (showing "—" for the money columns, `0` categories,
-   and a "Criar objetivo" link instead of edit/delete).
-3. **Create/edit** — clicking "Criar objetivo" or the edit (pencil) icon
-   opens `BudgetSettingsDialog`; saving persists and the row updates
-   (money columns + category count reflect the new values; the row
-   switches to edit/delete actions).
-4. **Delete** — the trash icon prompts a confirm dialog and, on confirm,
-   removes the objetivo (row reverts to "Criar objetivo").
-5. **Reports unchanged** — `/dashboard/relatorios` still shows the
-   Orçamento card and its "Configurar" dialog still works for the
-   currently-selected account.
+Resolved the original open questions: still **always-current-month**
+(no month field in schema); reports keeps its dialog shortcut.
 
-Do not mark resolved until the user confirms the above.
+Verification after redesign:
+- `pnpm run ts-check` → clean.
+- `pnpm test:unit` → 48 files, 299 tests passing (the 6 now-obsolete
+  `buildObjetivoRows` tests were removed with the helper).
+- The page rendering, sidebar wiring and live save/clear are visual/DOM +
+  Firestore-backed → NOT unit-verifiable; see Pending Validation.
+
+## Resolution
+
+Resolved 2026-06-19. Shipped in two steps: the initial build (table of all
+accounts) in commit `e99c8a8`, then the redesign described in the Progress
+note above — the authoritative final shape. The page is now a per-account
+configuration workspace, not a list.
+
+Final delivered behavior:
+- **Sidebar entry** — "Objetivos" under "Gerenciamento" (target icon) →
+  `/dashboard/objetivos`, auto-derived from the `ROUTE` entry.
+- **Scoped to current account** — reads `currentBankAccount` from
+  `useDashboardStore`; the subtitle names the account and switching
+  accounts reloads that account's objetivo (matches the app's per-account
+  page pattern).
+- **Expanded form** — the shared `BudgetSettingsForm` (overall expense
+  limit + income goal + per-category list) renders full-width in a card;
+  the same component backs the reports "Configurar Objetivo" dialog.
+- **Save / Clear** — "Salvar objetivo" persists via `updateBudget`;
+  "Limpar objetivo" (only when configured) resets to null/null/[] behind
+  an `useAlertDialog` confirm.
+- **Empty state** — "Nenhuma conta selecionada" when no account is active.
+- **Reports unchanged** — the budget card + dialog still work.
+
+Code-level verification: `pnpm run ts-check` clean; `pnpm test:unit` 299
+passing. The user validated the rendered page, sidebar and live save/clear
+in production at deploy time.
