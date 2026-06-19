@@ -5,7 +5,6 @@ import { WalletIcon, PlusIcon } from "lucide-vue-next";
 import type { IBankAccount, ICreateBankAccount } from "~/@schemas/models/bank-account";
 import type { IPaginationBody, IPaginationResult } from "~/@types/pagination";
 import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
-import { deleteBankAccount } from "~/services/api/bank-accounts/delete-bank-account";
 import { formatDate } from "~/helpers/formatDate";
 import FancyLink from "~/components/FancyLink/index.vue";
 import { ROUTE } from "~/static/routes";
@@ -18,6 +17,8 @@ definePageMeta({
 
 const userStore = useUserStore();
 const { currentUser } = storeToRefs(userStore);
+
+const dashboardStore = useDashboardStore();
 
 const isLoadingData = ref(false);
 const bankAccounts = ref<IPaginationResult<IBankAccount> | null>(null);
@@ -75,7 +76,7 @@ const handleDelete = async (bankAccount: IBankAccount) => {
             label: "Deletar",
             action: async () => {
                 if (!bankAccount?.id || !currentUser.value?.id) return;
-                const response = await deleteBankAccount({
+                const response = await dashboardStore.deleteBankAccount({
                     id: bankAccount.id,
                     userId: currentUser.value.id,
                     options: {

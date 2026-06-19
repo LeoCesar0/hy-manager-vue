@@ -1,14 +1,17 @@
 ---
-status: open
+status: resolved
 type: enhancement
 severity: low
+understanding: confident
+execution: confident
+retention: disposable
 found-during: "discussing budget feature scope"
 found-in: "src/components/Reports/BudgetSettingsDialog.vue"
-working-branch: ""
+working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-11
-updated: 2026-04-11
-resolved-date:
+updated: 2026-06-19
+resolved-date: 2026-06-19
 discard-reason:
 deferred:
 ---
@@ -58,3 +61,32 @@ gain.
    user actually reads on the bars and adjust if needed.
 4. Reuse the rename opportunity to audit for stale copy while the
    strings are already in hand — but don't extend scope beyond UI.
+
+## Resolution
+
+Resolved 2026-06-19. UI-copy-only rename "Orçamento"/"orçamento" →
+"Objetivo"/"objetivos" (singular for one item, plural for the feature).
+No type/file/collection/schema change. The new `objetivos` page and
+route (created earlier in the same run) already used correct copy and
+were left untouched.
+
+User-visible strings changed (before → after):
+
+- `src/services/api/budgets/create-budget.ts` — toast `itemName: "Orçamento"` → `"Objetivo"`
+- `src/services/api/budgets/update-budget.ts` — toast `itemName: "Orçamento"` → `"Objetivo"`
+- `src/services/api/budgets/delete-budget.ts` — toast `itemName: "Orçamento"` → `"Objetivo"`
+- `src/components/Dashboard/InsightsGrid.vue` — `"Dentro do orçamento"` → `"Dentro do objetivo"`
+- `src/components/Reports/BudgetSettingsDialog.vue` — dialog title `Configurar Orçamento` → `Configurar Objetivo`; label `Orçamento por Categoria` → `Objetivo por Categoria`; empty-state `Nenhum orçamento por categoria configurado` → `Nenhum objetivo por categoria configurado`
+- `src/components/Reports/ReportsBudgetTracking.vue` — card title `Orçamento` → `Objetivos`; empty-state `Nenhum orçamento configurado…` → `Nenhum objetivo configurado…`; button `Configurar Orçamento` → `Configurar Objetivo`
+
+Deliberately left internal (unchanged): types `IBudget`/`IBudgetBase`,
+collection `budgets`, file/service names (`*-budget.ts`,
+`BudgetSettingsDialog.vue`, `ReportsBudgetTracking.vue`), analytics
+helper `calculate-budget-progress.ts`, and its sub-labels
+"Limite de gastos mensal" / "Meta de receita mensal" (confirmed they
+read as sub-labels on the progress bars, not the feature name).
+
+Verification: `grep -rniE 'or[çc]amento' src/` → no matches.
+`pnpm run ts-check` clean. `pnpm test:unit` → 305 passed (no test
+asserted on old copy). Rendered on-screen labels still warrant a manual
+eyeball, but all string sources are updated.

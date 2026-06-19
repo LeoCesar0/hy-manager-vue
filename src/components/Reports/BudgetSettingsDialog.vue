@@ -92,7 +92,7 @@ const handleSave = async () => {
   <UiDialog :open="open" @update:open="(v) => !v && onClose()">
     <UiDialogContent class="max-w-lg max-h-[80vh] overflow-y-auto overflow-x-hidden">
       <UiDialogHeader>
-        <UiDialogTitle>Configurar Orçamento</UiDialogTitle>
+        <UiDialogTitle>Configurar Objetivo</UiDialogTitle>
         <UiDialogDescription>
           Defina limites de gastos e metas de receita para o mês atual.
         </UiDialogDescription>
@@ -123,7 +123,7 @@ const handleSave = async () => {
 
         <div class="space-y-3">
           <div class="flex items-center justify-between">
-            <label class="text-sm font-medium">Orçamento por Categoria</label>
+            <label class="text-sm font-medium">Objetivo por Categoria</label>
             <UiButton
               size="sm"
               variant="outline"
@@ -202,7 +202,7 @@ const handleSave = async () => {
             v-if="categoryBudgets.length === 0"
             class="text-xs text-muted-foreground text-center py-2"
           >
-            Nenhum orçamento por categoria configurado
+            Nenhum objetivo por categoria configurado
           </p>
         </div>
       </div>

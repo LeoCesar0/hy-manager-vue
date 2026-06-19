@@ -1,6 +1,14 @@
 import type { IBankAccount } from "~/@schemas/models/bank-account";
 import { makeStoreKey } from "~/helpers/makeStoreKey";
+import { applyBankAccountUpsert } from "~/helpers/bank-account/applyBankAccountUpsert";
+import { applyBankAccountRemoval } from "~/helpers/bank-account/applyBankAccountRemoval";
 import { getBankAccounts } from "~/services/api/bank-accounts/get-bank-accounts";
+import { createBankAccount as createBankAccountService } from "~/services/api/bank-accounts/create-bank-account";
+import { updateBankAccount as updateBankAccountService } from "~/services/api/bank-accounts/update-bank-account";
+import { deleteBankAccount as deleteBankAccountService } from "~/services/api/bank-accounts/delete-bank-account";
+import type { IAPICreateBankAccount } from "~/services/api/bank-accounts/create-bank-account";
+import type { IAPIUpdateBankAccount } from "~/services/api/bank-accounts/update-bank-account";
+import type { IAPIDeleteBankAccount } from "~/services/api/bank-accounts/delete-bank-account";
 
 // Namespaced by user id so two users on the same browser don't cross-pollinate
 // the "last selected account" preference. The `__anon` bucket only exists so
@@ -100,6 +108,53 @@ export const useDashboardStore = defineStore(makeStoreKey("dashboard"), () => {
     currentBankAccount.value = bankAccount;
   };
 
+  // Mutation-aware actions. UI goes through these instead of calling the API
+  // services directly so the globally-shared store (account switcher, header,
+  // reports filters, onboarding) stays in sync without a page reload. The
+  // services still own the Firestore write + toast; the store only patches its
+  // in-memory snapshot on success.
+  const createBankAccount = async (props: IAPICreateBankAccount) => {
+    const response = await createBankAccountService(props);
+    if (response.data) {
+      const { accounts, current } = applyBankAccountUpsert({
+        accounts: bankAccounts.value,
+        current: currentBankAccount.value,
+        account: response.data,
+      });
+      bankAccounts.value = accounts;
+      currentBankAccount.value = current;
+    }
+    return response;
+  };
+
+  const updateBankAccount = async (props: IAPIUpdateBankAccount) => {
+    const response = await updateBankAccountService(props);
+    if (response.data) {
+      const { accounts, current } = applyBankAccountUpsert({
+        accounts: bankAccounts.value,
+        current: currentBankAccount.value,
+        account: response.data,
+      });
+      bankAccounts.value = accounts;
+      currentBankAccount.value = current;
+    }
+    return response;
+  };
+
+  const deleteBankAccount = async (props: IAPIDeleteBankAccount) => {
+    const response = await deleteBankAccountService(props);
+    if (response.data) {
+      const { accounts, current } = applyBankAccountRemoval({
+        accounts: bankAccounts.value,
+        current: currentBankAccount.value,
+        removedId: props.id,
+      });
+      bankAccounts.value = accounts;
+      currentBankAccount.value = current;
+    }
+    return response;
+  };
+
   const resetStore = () => {
     // Clear the current user's stored pointer so a subsequent login by a
     // different user on the same browser doesn't inherit it. The read path
@@ -145,6 +200,9 @@ export const useDashboardStore = defineStore(makeStoreKey("dashboard"), () => {
     hasNoBankAccounts,
     loadBankAccounts,
     setCurrentBankAccount,
+    createBankAccount,
+    updateBankAccount,
+    deleteBankAccount,
     resetStore,
   };
 });

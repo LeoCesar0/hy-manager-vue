@@ -19,7 +19,7 @@ export const deleteBudget = async ({ bankAccountId, options }: IProps) => {
       return true;
     },
     {
-      toastOptions: getDefaultDeleteToastOptions({ itemName: "Orçamento" }),
+      toastOptions: getDefaultDeleteToastOptions({ itemName: "Objetivo" }),
       ...options,
     }
   );

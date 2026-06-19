@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="cw-updated" content="2026-06-19" />
+    <meta name="cw-branch" content="main" />
+    <title>Current Work — Sprint de melhorias · hy-manager-vue</title>
+    <link rel="stylesheet" href="assets/report.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="title-block">
+        <div class="eyebrow">Current Work · hy-manager-vue · main</div>
+        <h1>Sprint de melhorias</h1>
+        <p class="subtitle">
+          Observations abertas que dá pra tocar agora — features e correções de UX,
+          separadas do que está bloqueado/adiado e da faxina de status.
+        </p>
+      </header>
+
+      <section id="resumo">
+        <p class="lead">
+          Das 9 observations com <code class="inline">status: open</code>, só
+          <strong>3 são trabalho real de sprint</strong>. Duas estão adiadas por decisão
+          do usuário, uma é meta-doc de rastreio, e duas já foram <em>resolvidas no código</em>
+          (Onda A de performance, merge em 2026-06-19) mas ficaram com o arquivo desatualizado.
+        </p>
+
+        <div class="callout">
+          <p>
+            <span class="verdict accent">foco</span>
+            Esta sprint entrega a <strong>feature de Objetivos</strong> (página dedicada +
+            renomeação na UI) e corrige o <strong>bug de store stale</strong> das contas
+            bancárias. Performance pesada de dashboard fica fora — está adiada e bloqueada
+            por uma fragilidade de sync também adiada.
+          </p>
+        </div>
+
+        <div class="legend">
+          <span class="legend-item"><span class="verdict accent">enhancement</span> feature nova</span>
+          <span class="legend-item"><span class="verdict bad">bug</span> comportamento errado</span>
+          <span class="legend-item"><span class="verdict warn">performance</span> lento/custoso</span>
+          <span class="legend-item"><span class="verdict bad">high</span> / <span class="verdict warn">medium</span> / <span class="verdict neutral">low</span> severidade</span>
+          <span class="legend-item"><span class="verdict warn">open</span> ativa · <span class="verdict neutral">deferred</span> adiada · <span class="verdict good">resolved-no-código</span></span>
+        </div>
+      </section>
+
+      <!-- ============================================================= -->
+      <!-- LANE 1 · SPRINT                                               -->
+      <!-- ============================================================= -->
+      <div class="lane" id="sprint">
+        <h2>Na sprint <span class="count">· 3 itens acionáveis</span></h2>
+        <p class="lane-note">
+          Não bloqueadas, escopo fechado, validáveis com testes unit/integração + verificação
+          manual local. Recomendação de ordem abaixo.
+        </p>
+
+        <div class="rec-banner">
+          <h4>Pacote recomendado</h4>
+          <p>
+            Tratar a <strong>página de Objetivos</strong> e a <strong>renomeação para "Objetivos"</strong>
+            como um único entregável coeso (a página já assume o rótulo "Objetivos"), e levar o
+            <strong>bug de store stale</strong> junto como quick-win — ele toca a mesma área de contas
+            bancárias que o seletor da nova página vai consumir.
+          </p>
+        </div>
+
+        <div class="obs-grid">
+          <!-- 1. Objetivos page -->
+          <article class="obs-card sev-medium">
+            <div class="obs-eyebrow">budgets · enhancement</div>
+            <h3>Página dedicada "Objetivos" com entrada na sidebar</h3>
+            <div class="meta-row">
+              <span class="verdict accent">enhancement</span>
+              <span class="verdict warn">medium</span>
+              <span class="verdict warn">open</span>
+            </div>
+            <p>
+              Hoje objetivos/orçamentos só são acessíveis por um botão "Configurar" dentro de
+              Relatórios, presos à conta selecionada. Criar <code class="inline">/dashboard/objetivos</code>
+              com rota na sidebar e uma lista de objetivos por conta — paridade com Categorias,
+              Identificadores e Contas. Reaproveita o <code class="inline">BudgetSettingsDialog</code>
+              para edição; precisa de um novo serviço <code class="inline">listBudgets({ userId })</code>.
+            </p>
+            <p class="deps">
+              <strong>Independente de:</strong> objetivos globais (adiado). Trabalha no modelo
+              atual, 1 objetivo por conta bancária.
+            </p>
+            <div class="obs-foot">
+              <a href="observations/budgets/enhancement/2026-04-11-dedicated-objetivos-page.md">obs ↗</a>
+              <span class="effort">esforço: M · novo page + serviço de lista</span>
+            </div>
+          </article>
+
+          <!-- 2. Rename -->
+          <article class="obs-card sev-low">
+            <div class="obs-eyebrow">budgets · enhancement</div>
+            <h3>Renomear "Orçamento" → "Objetivos" na UI</h3>
+            <div class="meta-row">
+              <span class="verdict accent">enhancement</span>
+              <span class="verdict neutral">low</span>
+              <span class="verdict warn">open</span>
+            </div>
+            <p>
+              Troca só de texto visível ao usuário (títulos, copy do dialog, toasts), mantendo
+              schema, coleção, serviços e tipos (<code class="inline">budget</code>,
+              <code class="inline">IBudget</code>, <code class="inline">budgets/*</code>) intactos.
+              Casa com a página acima, que já usa o rótulo "Objetivos".
+            </p>
+            <p class="deps">
+              <strong>Pareia com:</strong> página de Objetivos — fazer no mesmo PR evita label
+              inconsistente.
+            </p>
+            <div class="obs-foot">
+              <a href="observations/budgets/enhancement/2026-04-11-rename-budgets-to-objetivos.md">obs ↗</a>
+              <span class="effort">esforço: S · grep + replace de copy</span>
+            </div>
+          </article>
+
+          <!-- 3. Store stale bug -->
+          <article class="obs-card sev-medium">
+            <div class="obs-eyebrow">bank-accounts · bug</div>
+            <h3>Store do dashboard fica stale após criar/editar/deletar conta</h3>
+            <div class="meta-row">
+              <span class="verdict bad">bug</span>
+              <span class="verdict warn">medium</span>
+              <span class="verdict warn">open</span>
+            </div>
+            <p>
+              Mutações de conta bancária não atualizam o <code class="inline">useDashboardStore</code>:
+              seletor de conta, header, filtros de relatório e onboarding seguem mostrando o snapshot
+              antigo até um reload. Conta recém-criada não aparece no seletor; conta deletada continua
+              selecionável (apontando query para id inexistente).
+            </p>
+            <p class="deps">
+              <strong>Abordagem:</strong> actions <code class="inline">upsertBankAccount</code> /
+              <code class="inline">removeBankAccount</code> no store, chamadas pelos serviços (mantém
+              a regra "UI nunca toca Firebase direto").
+            </p>
+            <div class="obs-foot">
+              <a href="observations/bank-accounts/bug/2026-04-11-dashboard-store-stale-after-mutation.md">obs ↗</a>
+              <span class="effort">esforço: S–M · sync de estado no store</span>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- LANE 2 · ADIADAS / BLOQUEADAS                                 -->
+      <!-- ============================================================= -->
+      <div class="lane" id="adiadas">
+        <h2>Fora da sprint — adiadas / bloqueadas <span class="count">· 3 itens</span></h2>
+        <p class="lane-note">
+          Abertas, mas não dá pra tocar agora sem antes destravar uma dependência ou reverter uma
+          decisão de adiamento do usuário. Mantidas no radar.
+        </p>
+
+        <div class="obs-grid">
+          <article class="obs-card muted sev-high">
+            <div class="obs-eyebrow">dashboard · performance · #4</div>
+            <h3>Dashboard carrega todas as transações brutas</h3>
+            <div class="meta-row">
+              <span class="verdict warn">performance</span>
+              <span class="verdict bad">critical</span>
+              <span class="verdict neutral">deferred</span>
+            </div>
+            <p>
+              Maior gargalo de performance: a home reprocessa centenas de transações em 6+ computeds.
+              A migração para consumir o <code class="inline">Report</code> pré-agregado depende da
+              robustez do sync do Report (#12, também adiado). Dívida técnica assumida.
+            </p>
+            <p class="deps"><strong>Bloqueado por:</strong> #12 (best-effort report sync).</p>
+            <div class="obs-foot">
+              <a href="observations/dashboard/performance/2026-04-19-dashboard-loads-all-transactions.md">obs ↗</a>
+              <span class="effort">revisitar quando #4 sair do defer</span>
+            </div>
+          </article>
+
+          <article class="obs-card muted sev-medium">
+            <div class="obs-eyebrow">reports · bug · #12</div>
+            <h3>Sync best-effort do Report pode dessincronizar em silêncio</h3>
+            <div class="meta-row">
+              <span class="verdict bad">bug</span>
+              <span class="verdict warn">medium</span>
+              <span class="verdict neutral">deferred</span>
+            </div>
+            <p>
+              Catch silencioso, escritas não atômicas e race condition no padrão "ler Report → delta →
+              regravar". É pré-requisito de confiabilidade para o #4. Solução completa pede Cloud
+              Functions; mitigação client-only é possível mas parcial.
+            </p>
+            <p class="deps"><strong>Bloqueia:</strong> #4 (dashboard via Report).</p>
+            <div class="obs-foot">
+              <a href="observations/reports/bug/2026-04-23-best-effort-report-sync-fragility.md">obs ↗</a>
+              <span class="effort">adiado por decisão do usuário</span>
+            </div>
+          </article>
+
+          <article class="obs-card muted sev-low">
+            <div class="obs-eyebrow">budgets · enhancement</div>
+            <h3>Objetivos globais (cross-conta)</h3>
+            <div class="meta-row">
+              <span class="verdict accent">enhancement</span>
+              <span class="verdict neutral">low</span>
+              <span class="verdict neutral">deferred</span>
+            </div>
+            <p>
+              Objetivo único aplicado a todas as contas. Só faz sentido quando existir uma visão de
+              relatórios agregada cross-conta — sem essa tela, um limite "global" não tem onde ser
+              medido no modelo mental do usuário.
+            </p>
+            <p class="deps"><strong>Bloqueado por:</strong> feature de relatórios globais (inexistente).</p>
+            <div class="obs-foot">
+              <a href="observations/budgets/enhancement/2026-04-11-global-vs-per-account-scope.md">obs ↗</a>
+              <span class="effort">reabrir só com relatórios globais em pauta</span>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- LANE 3 · FAXINA DE STATUS                                     -->
+      <!-- ============================================================= -->
+      <div class="lane" id="faxina">
+        <h2>Faxina de status <span class="count">· 3 arquivos desatualizados</span></h2>
+        <p class="lane-note">
+          Não é trabalho de código — é alinhar os arquivos com a realidade. Estas observations
+          aparecem como <code class="inline">open</code> mas a Onda A de performance já foi resolvida,
+          validada e mergeada em <strong>2026-06-19</strong>. Verifiquei no código:
+          <code class="inline">firebaseDeleteMany</code> já faz chunking por
+          <code class="inline">BATCH_MAX</code> e <code class="inline">cascadeDeleteBankAccount</code>
+          já usa <code class="inline">cascadePaginatedBatch</code> (cursor).
+        </p>
+
+        <div class="table-wrap">
+          <table class="eval">
+            <thead>
+              <tr>
+                <th>Observation</th>
+                <th>Diz</th>
+                <th>Realidade no código</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <a href="observations/transactions/performance/2026-04-19-firebase-batch-500-limit.md">
+                    firebase-batch-500-limit (#1)
+                  </a>
+                </td>
+                <td><span class="verdict warn">open</span></td>
+                <td>Chunking por 500 implementado em <code class="inline">firebase{Create,Update,Delete}Many</code></td>
+                <td>Marcar <span class="verdict good">resolved</span> (Onda A, <code class="inline">bc58a55</code>)</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="observations/transactions/performance/2026-04-23-cascade-delete-fetch-all.md">
+                    cascade-delete-fetch-all (#9)
+                  </a>
+                </td>
+                <td><span class="verdict warn">open</span></td>
+                <td>Cascade por cursor via <code class="inline">cascadePaginatedBatch</code></td>
+                <td>Marcar <span class="verdict good">resolved</span> (Onda A, <code class="inline">c820426</code>)</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="observations/2026-04-19-performance-overview.md">
+                    performance-overview
+                  </a>
+                </td>
+                <td><span class="verdict warn">open</span></td>
+                <td>Ondas A–D resolvidas; segue aberta só pra rastrear o defer (#4, #12)</td>
+                <td>Manter aberta — é meta-doc de rastreio proposital</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout warn">
+          <p>
+            <strong>Antes de fechar #1 e #9:</strong> seguir o ritual de resolve das observations
+            (validar contra o diff da Onda A, confirmar com o usuário, registrar os SHAs em
+            <code class="inline">related-commits</code>). São arquivos <code class="inline">.md</code> —
+            editar in-place, não recriar em HTML.
+          </p>
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- ORDEM SUGERIDA                                                -->
+      <!-- ============================================================= -->
+      <section id="ordem">
+        <h2>Ordem sugerida</h2>
+        <ol class="bullets">
+          <li>
+            <strong>Quick-win primeiro</strong> — fechar a faxina de status (#1, #9) com o ritual de
+            resolve. Tira ruído do board e não envolve código.
+          </li>
+          <li>
+            <strong>Bug de store stale</strong> — corrigir o <code class="inline">useDashboardStore</code>
+            antes da página de Objetivos, já que a nova página vai consumir o seletor de contas e se
+            beneficia do estado sincronizado.
+          </li>
+          <li>
+            <strong>Feature de Objetivos</strong> — página dedicada + renomeação no mesmo PR. Maior
+            entrega de valor da sprint.
+          </li>
+        </ol>
+      </section>
+
+      <!-- ============================================================= -->
+      <!-- LOG DE EXECUÇÃO · autopilot (never-commit, branch main)        -->
+      <!-- ============================================================= -->
+      <section id="execucao">
+        <h2>Log de execução — autopilot</h2>
+        <p class="lane-note">
+          Run autônomo iniciado 2026-06-19. Modo never-commit: tudo unstaged na branch
+          <code class="inline">main</code> para revisão. Um subagent fresco por tarefa.
+        </p>
+
+        <div class="progress-entry good">
+          <div class="when">2026-06-19 · T0 · faxina de status · done</div>
+          <div class="what">Resolvidas as obs já corrigidas no código (Onda A de performance)</div>
+          <p>
+            <strong>Feito:</strong> confirmado no código que o chunking por
+            <code class="inline">BATCH_MAX</code> (500) está em
+            <code class="inline">firebase{Create,Update,Delete}Many.ts</code> e que o cascade usa
+            <code class="inline">cascadePaginatedBatch</code> (cursor + batch por página). Os dois
+            arquivos <code class="inline">firebase-batch-500-limit.md</code> (#1) e
+            <code class="inline">cascade-delete-fetch-all.md</code> (#9) viraram
+            <span class="verdict good">resolved</span> (resolved-date 2026-06-19, retention reference,
+            seção Resolution adicionada).
+          </p>
+          <p>
+            <strong>Decisão:</strong> registrado só <code class="inline">bc58a55</code> em
+            <code class="inline">related-commits</code>. O overview citava também
+            <code class="inline">c820426</code>, mas <code class="inline">git show --stat</code> mostrou
+            que esse commit toca só o fix de freeze da categorização — não os arquivos de batch/cascade.
+            Descartado por não ser relevante a essas duas obs.
+          </p>
+          <p>
+            <strong>Antes → depois:</strong> #1 e #9 <code class="inline">open</code> →
+            <code class="inline">resolved</code>. Overview mantido aberto (meta-doc de rastreio). Nenhum
+            código de produto tocado.
+          </p>
+        </div>
+      </section>
+
+        <div class="progress-entry good">
+          <div class="when">2026-06-19 · T1 · bug store stale · done</div>
+          <div class="what">Sincronização do <code class="inline">useDashboardStore</code> após mutação de conta</div>
+          <p>
+            <strong>Feito:</strong> bug confirmado no código antes do fix. Implementada a Opção 2
+            recomendada (thin store actions): novas actions
+            <code class="inline">createBankAccount/updateBankAccount/deleteBankAccount</code> no store
+            envolvem os serviços de API e aplicam a mudança ao estado em memória. Lógica pura extraída
+            em <code class="inline">src/helpers/bank-account/applyBankAccountUpsert.ts</code> e
+            <code class="inline">applyBankAccountRemoval.ts</code> (replace-by-id/append, patch do
+            <code class="inline">currentBankAccount</code>, fallback ao mais recente no delete).
+            Call sites migrados dos serviços crus para as actions:
+            <code class="inline">BankAccountForm.vue</code>, <code class="inline">contas-bancarias/index.vue</code>,
+            <code class="inline">contas-bancarias/[id].vue</code>, <code class="inline">useOnboarding.ts</code>.
+          </p>
+          <p>
+            <strong>Decisão descartada:</strong> testar o store Pinia direto — o env de teste não
+            bootstrapa os auto-imports do Nuxt e não há testes de store pra espelhar. Extraídos helpers
+            puros, cobertos sem mock.
+          </p>
+          <p>
+            <strong>Testes:</strong> TDD — <code class="inline">tests/unit/helpers/bank-account-state.test.ts</code>
+            (10 casos) vermelho → verde. <code class="inline">pnpm test:unit</code> = 299 passed (48 files).
+            <code class="inline">pnpm run ts-check</code> limpo.
+            <strong>Não verificado:</strong> reatividade Pinia / re-render do switcher ao vivo (lógica pura
+            coberta; actions são pass-through tipadas) — fecha com verificação manual/E2E.
+          </p>
+          <p>
+            <strong>Antes → depois:</strong> mutações só atingiam o Firestore; switcher/header/relatórios/onboarding
+            ficavam stale e conta deletada seguia selecionável. Agora o estado atualiza na hora.
+            Obs <span class="verdict good">resolved</span> (retention reference).
+          </p>
+        </div>
+
+        <div class="progress-entry">
+          <div class="when">2026-06-19 · T2 · feature página Objetivos · done (awaiting-validation)</div>
+          <div class="what">Página dedicada <code class="inline">/dashboard/objetivos</code> + entrada na sidebar</div>
+          <p>
+            <strong>Feito:</strong> rota <code class="inline">budgets</code> em
+            <code class="inline">routes.ts</code> (path <code class="inline">/dashboard/objetivos</code>,
+            label "Objetivos", <code class="inline">menu.group: management</code>, <code class="inline">TargetIcon</code>)
+            — a sidebar é auto-derivada, sem editar layout. Novo serviço
+            <code class="inline">listBudgets({ userId })</code> (padrão getCategories). Helper puro
+            <code class="inline">buildObjetivoRows</code> junta contas × budgets (uma linha por conta,
+            inclusive sem objetivo, flag <code class="inline">isConfigured</code>). Página
+            <code class="inline">objetivos/index.vue</code> (DashboardSection + Table) reusa
+            <code class="inline">BudgetSettingsDialog</code>, <code class="inline">getOrCreateBudget</code>/<code class="inline">updateBudget</code>/<code class="inline">deleteBudget</code>.
+            Copy nova já em "Objetivos".
+          </p>
+          <p>
+            <strong>Decisões:</strong> always-current-month (schema sem campo de mês); card de Relatórios
+            intocado (mantém atalho do dialog); serviço retorna só docs existentes e a página calcula as
+            linhas faltantes contra o store. <strong>Descartado:</strong> refatorar o dialog em sheet
+            (desnecessário) e criar serviço paginado (contagem é trivial, in-memory).
+          </p>
+          <p>
+            <strong>Schema/índice:</strong> nenhuma mudança de schema; sem índice novo
+            (<code class="inline">listBudgets</code> filtra só por <code class="inline">userId</code>;
+            <code class="inline">budgets</code> já registrado + rules). Nada deployado.
+            <strong>Testes:</strong> <code class="inline">pnpm test:unit</code> = 305 passed (49 files, +6 novos);
+            ts-check limpo. Render da página/sidebar é visual → não coberto por unit.
+          </p>
+          <p>
+            <strong>Antes → depois:</strong> objetivos só via botão "Configurar" em Relatórios →
+            agora também via página dedicada com create/edit/delete por conta.
+            Obs <span class="verdict warn">awaiting-validation</span> (5 checagens manuais listadas em Pending Validation).
+          </p>
+        </div>
+
+        <div class="progress-entry good">
+          <div class="when">2026-06-19 · T3 · rename Orçamento → Objetivos · done</div>
+          <div class="what">Rebrand de copy visível (UI-only, zero mudança funcional)</div>
+          <p>
+            <strong>Feito:</strong> grep autoritativo achou 10 ocorrências visíveis em 5 arquivos, todas
+            renomeadas. Toasts <code class="inline">itemName</code> em
+            <code class="inline">create/update/delete-budget.ts</code> → "Objetivo" (singular);
+            <code class="inline">BudgetSettingsDialog.vue</code> (título "Configurar Objetivo", "Objetivo
+            por Categoria", empty-state); <code class="inline">ReportsBudgetTracking.vue</code> (título do
+            card → "Objetivos", empty-state, botão); e um extra fora da obs:
+            <code class="inline">InsightsGrid.vue</code> "Dentro do orçamento" → "Dentro do objetivo".
+          </p>
+          <p>
+            <strong>Mantido interno (intocado):</strong> tipos <code class="inline">IBudget</code>,
+            coleção <code class="inline">budgets</code>, nomes de arquivo/serviço, helper
+            <code class="inline">calculate-budget-progress.ts</code>, doc paths. Sub-labels "Limite de
+            gastos mensal"/"Meta de receita mensal" deixados como estão (são rótulos de barra).
+          </p>
+          <p>
+            <strong>Verificação:</strong> <code class="inline">grep -rniE 'or[çc]amento' src/</code> = 0
+            matches; ts-check limpo; <code class="inline">pnpm test:unit</code> = 305 passed (nenhum teste
+            afirmava a copy antiga). Texto renderizado ainda pede olho manual.
+            Obs <span class="verdict good">resolved</span> (retention disposable).
+          </p>
+        </div>
+
+        <div class="callout good">
+          <h4>Run concluído</h4>
+          <p>
+            5 obs tratadas (T0 = 2 resolved, T1 resolved, T2 awaiting-validation, T3 resolved). Tudo
+            <strong>unstaged</strong> na branch <code class="inline">main</code> para revisão — nenhum
+            commit feito. Suíte final: <code class="inline">pnpm test:unit</code> 305 passed,
+            <code class="inline">ts-check</code> limpo. Pendente de validação visual: a página de
+            Objetivos (T2) e os rótulos renderizados (T2/T3).
+          </p>
+        </div>
+
+      <footer class="footer">
+        <span>Current Work · hy-manager-vue · sprint de melhorias</span>
+        <span>atualizado 2026-06-19 · branch main</span>
+      </footer>
+    </div>
+  </body>
+</html>

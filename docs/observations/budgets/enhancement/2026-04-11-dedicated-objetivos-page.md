@@ -1,13 +1,14 @@
 ---
-status: open
+status: awaiting-validation
 type: enhancement
 severity: medium
+retention: reference
 found-during: "discussing budget feature scope"
 found-in: "src/components/Reports/BudgetSettingsDialog.vue"
-working-branch: ""
+working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-11
-updated: 2026-04-11
+updated: 2026-06-19
 resolved-date:
 discard-reason:
 deferred:
@@ -91,3 +92,79 @@ management surface for per-account objetivos, not a global one.
 - Does the reports card keep the inline-edit dialog or always push to
   the page? My lean: keep the dialog as a shortcut, since going to
   another page mid-report breaks flow.
+
+## Progress
+
+### 2026-06-19 — Implemented dedicated Objetivos page (per-account model)
+
+Decisions taken (resolving the open questions with the pragmatic defaults):
+- **Always-current-month**: schema has no month field, so the page works
+  on the single active objetivo doc per account. No grouping.
+- **Reports card unchanged**: kept its inline `BudgetSettingsDialog`
+  shortcut (the lean above). The reports flow is untouched.
+
+Approach:
+- Route `budgets` added to `src/static/routes.ts` → path
+  `/dashboard/objetivos`, label `"Objetivos"`,
+  `menu: { icon: TargetIcon, group: 'management' }`. The dashboard layout
+  (`src/layouts/dashboard.vue`) auto-derives the sidebar from `ROUTE`
+  entries with a `menu`, so the entry appears under "Gerenciamento"
+  automatically.
+- New list service `listBudgets({ userId })`
+  (`src/services/api/budgets/list-budgets.ts`) — single-field `userId`
+  filter via `firebaseList`, returns existing budget docs only. **No
+  composite Firestore index required.** `budgets` collection was already
+  registered in `collections.ts` and already has read rules in
+  `firestore.rules` (`allow read: if isResourceOwner()`) — no schema or
+  rules change needed.
+- Pure join helper `buildObjetivoRows({ bankAccounts, budgets })`
+  (`src/helpers/budget/buildObjetivoRows.ts`) joins the dashboard store's
+  bank accounts with the budget docs (matched by `bankAccountId`, which
+  equals the doc id) to produce one row per account — including accounts
+  with no doc (`isConfigured: false` → "Criar objetivo" affordance). A
+  bare doc (all-null fields, created by `getOrCreateBudget`) also counts
+  as not-configured. Covered by 6 unit tests in
+  `tests/unit/helpers/build-objetivo-rows.test.ts` (all green).
+- Page `src/pages/dashboard/objetivos/index.vue` modelled on
+  `contas-bancarias/index.vue` (tanstack `Table`). Columns: conta
+  bancária, limite de gastos mensal, meta de receita mensal, nº de
+  categorias configuradas, ações. Reuses `BudgetSettingsDialog`
+  unchanged (it is account-agnostic). Edit/create both go through
+  `getOrCreateBudget` (to obtain a real doc) → `updateBudget` on save,
+  mirroring the reports `handleSaveBudget`. Delete reuses `deleteBudget`
+  via `useAlertDialog`. Bank accounts come from `useDashboardStore`
+  (loaded globally), categories from `useReferenceDataStore`.
+
+Verification:
+- `pnpm run ts-check` → clean.
+- `pnpm test:unit` → 49 files, 305 tests, all passing (includes the 6
+  new helper tests).
+- The `.vue` page rendering and sidebar wiring are visual/DOM and are
+  NOT verified by unit tests — see Pending Validation.
+
+New user-facing copy uses "Objetivos" (not "Orçamento") on the new page
+and sidebar, per the upcoming rename task. The existing reports
+card/dialog copy ("Orçamento") was intentionally left untouched.
+
+## Pending Validation
+
+What was done: see Progress. The following require manual eyeballing in a
+running dev server (`pnpm run dev`) because they are visual/DOM and
+Firestore-backed:
+
+1. **Sidebar entry** — "Objetivos" appears under "Gerenciamento" with a
+   target icon, navigates to `/dashboard/objetivos`.
+2. **List** — the page shows one row per bank account, including accounts
+   with no objetivo (showing "—" for the money columns, `0` categories,
+   and a "Criar objetivo" link instead of edit/delete).
+3. **Create/edit** — clicking "Criar objetivo" or the edit (pencil) icon
+   opens `BudgetSettingsDialog`; saving persists and the row updates
+   (money columns + category count reflect the new values; the row
+   switches to edit/delete actions).
+4. **Delete** — the trash icon prompts a confirm dialog and, on confirm,
+   removes the objetivo (row reverts to "Criar objetivo").
+5. **Reports unchanged** — `/dashboard/relatorios` still shows the
+   Orçamento card and its "Configurar" dialog still works for the
+   currently-selected account.
+
+Do not mark resolved until the user confirms the above.

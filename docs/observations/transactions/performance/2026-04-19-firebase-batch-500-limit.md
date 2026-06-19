@@ -1,16 +1,19 @@
 ---
-status: open
+status: resolved
 type: performance
 severity: critical
+retention: reference
 found-during: "Production testing with 2000+ transactions import"
 found-in: "src/services/firebase/firebaseCreateMany.ts"
 working-branch: "main"
 found-in-branch: "main"
 date: 2026-04-19
-updated: 2026-04-23
-resolved-date:
+updated: 2026-06-19
+resolved-date: 2026-06-19
 discard-reason:
 deferred:
+related-commits:
+  - bc58a55
 ---
 
 # firebaseCreateMany ignora limite de 500 operacoes por batch do Firestore
@@ -63,3 +66,17 @@ Quando um `batch` externo e passado via parametro, o caller assume a responsabil
   - [Cascade delete fetch-all](2026-04-23-cascade-delete-fetch-all.md) — `firebaseDeleteMany` em cascade ops sofre do mesmo limite
   - [Cascade update fetch-all](2026-04-23-cascade-update-fetch-all.md) — `firebaseUpdateMany` em cascade ops sofre do mesmo limite
 - **Mesmo fluxo (import)**: [Deduplicacao pesada no import](2026-04-19-import-deduplication-heavy-queries.md)
+
+## Resolution
+
+Resolvido na Onda A do plano de performance (commit `bc58a55`, "feat: performance plan A", merge 2026-06-19). Verificado contra o codigo atual.
+
+O que foi entregue:
+
+- Constante `BATCH_MAX = 500` em `src/services/firebase/@constants.ts`.
+- `firebaseCreateMany`, `firebaseUpdateMany` e `firebaseDeleteMany` agora chunkam os documentos via `chunk({ items, size: BATCH_MAX })` (`src/helpers/chunk.ts`) e commitam um `writeBatch` por chunk. Cada batch respeita nativamente o limite de 500 operacoes do Firestore.
+- Quando um `batch` externo e passado via parametro, as tres funcoes **nao** chunkam nem commitam — o caller assume o budget de 500 ops. Isso esta documentado por comentario em cada arquivo (`// External batch → caller owns the 500-op budget; do not chunk, do not commit.`).
+
+Antes: todos os docs num unico `writeBatch` → commit estourava acima de 500 ops. Depois: O(N/500) batches sequenciais, cada um dentro do limite.
+
+Cobertura: `tests/integration/firebase/firebase-many-chunking.integration.test.ts` (introduzido no mesmo commit) valida o chunking das tres operacoes.

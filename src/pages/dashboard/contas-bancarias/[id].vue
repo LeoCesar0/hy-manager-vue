@@ -2,7 +2,6 @@
 import { WalletIcon, ArrowLeftIcon } from "lucide-vue-next";
 import type { IBankAccount } from "~/@schemas/models/bank-account";
 import { getBankAccount } from "~/services/api/bank-accounts/get-bank-account";
-import { deleteBankAccount } from "~/services/api/bank-accounts/delete-bank-account";
 import { formatDate } from "~/helpers/formatDate";
 import { ROUTE } from "~/static/routes";
 import BankAccountForm from "~/components/BankAccounts/BankAccountForm.vue";
@@ -21,6 +20,8 @@ const bankAccountId = route.params.id as string;
 
 const userStore = useUserStore();
 const { currentUser } = storeToRefs(userStore);
+
+const dashboardStore = useDashboardStore();
 
 const isLoadingData = ref(false);
 const bankAccount = ref<IBankAccount | null>(null);
@@ -56,7 +57,7 @@ const handleDelete = async () => {
       label: "Deletar",
       action: async () => {
         if (!bankAccount.value?.id || !currentUser.value?.id) return;
-        const response = await deleteBankAccount({
+        const response = await dashboardStore.deleteBankAccount({
           id: bankAccount.value.id,
           userId: currentUser.value.id,
           options: {

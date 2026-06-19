@@ -21,7 +21,7 @@ export const updateBudget = async ({ bankAccountId, data, options }: IProps) => 
       });
     },
     {
-      toastOptions: getDefaultUpdateToastOptions({ itemName: "Orçamento" }),
+      toastOptions: getDefaultUpdateToastOptions({ itemName: "Objetivo" }),
       ...options,
     }
   );

@@ -9,8 +9,6 @@ import {
   zUpdateBankAccount,
   type IBankAccountCompany,
 } from "~/@schemas/models/bank-account";
-import { createBankAccount } from "~/services/api/bank-accounts/create-bank-account";
-import { updateBankAccount } from "~/services/api/bank-accounts/update-bank-account";
 
 type IProps = {
   initialValues: T;
@@ -25,6 +23,8 @@ const emit = defineEmits<{
 
 const userStore = useUserStore();
 const { currentUser } = storeToRefs(userStore);
+
+const dashboardStore = useDashboardStore();
 
 const isLoading = ref(false);
 
@@ -72,7 +72,7 @@ const onSubmit = handleSubmit(async (formValues) => {
   isLoading.value = true;
   try {
     if (props.isEditMode) {
-      const response = await updateBankAccount({
+      const response = await dashboardStore.updateBankAccount({
         id: props.initialValues.id || '',
         data: {
           name: formValues.name,
@@ -96,7 +96,7 @@ const onSubmit = handleSubmit(async (formValues) => {
         emit("success");
       }
     } else {
-      const response = await createBankAccount({
+      const response = await dashboardStore.createBankAccount({
         data: {
           name: formValues.name,
           userId: currentUser.value.id,

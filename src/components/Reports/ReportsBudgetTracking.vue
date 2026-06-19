@@ -36,7 +36,7 @@ const formatMonthLabel = (monthKey: string) => {
 <template>
   <UiCard class="p-6">
     <div class="flex items-center justify-between mb-4">
-      <h3 class="text-sm font-medium text-muted-foreground">Orçamento</h3>
+      <h3 class="text-sm font-medium text-muted-foreground">Objetivos</h3>
       <UiButton size="sm" variant="outline" @click="onOpenSettings">
         <SettingsIcon class="h-4 w-4 mr-1" />
         Configurar
@@ -45,10 +45,10 @@ const formatMonthLabel = (monthKey: string) => {
 
     <div v-if="!hasBudget" class="flex flex-col items-center justify-center py-8 gap-3">
       <p class="text-sm text-muted-foreground text-center">
-        Nenhum orçamento configurado. Defina limites de gastos e metas de receita.
+        Nenhum objetivo configurado. Defina limites de gastos e metas de receita.
       </p>
       <UiButton size="sm" variant="outline" @click="onOpenSettings">
-        Configurar Orçamento
+        Configurar Objetivo
       </UiButton>
     </div>
 

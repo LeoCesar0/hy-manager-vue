@@ -1,12 +1,12 @@
 import type { DefaultCategory } from "~/static/default-categories";
 import type { IBankAccountCompany } from "~/@schemas/models/bank-account";
-import { createBankAccount } from "~/services/api/bank-accounts/create-bank-account";
 import { setupDefaultCategories } from "~/services/api/categories/setup-default-categories";
 import { updateUser } from "~/services/api/users/update-user";
 
 export const useOnboarding = () => {
   const userStore = useUserStore();
   const { currentUser } = storeToRefs(userStore);
+  const dashboardStore = useDashboardStore();
   const router = useRouter();
 
   const currentStep = ref(1);
@@ -57,7 +57,7 @@ export const useOnboarding = () => {
       }
 
       // Step 2: Create bank account
-      const bankAccountRes = await createBankAccount({
+      const bankAccountRes = await dashboardStore.createBankAccount({
         data: {
           name: bankAccountName.value,
           userId,

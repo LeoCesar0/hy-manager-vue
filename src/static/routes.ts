@@ -4,6 +4,7 @@ import  {
   FolderIcon,
   UsersIcon,
   BarChart3Icon,
+  TargetIcon,
 } from "lucide-vue-next";
 
 type AppIcon =  typeof LayoutDashboardIcon
@@ -47,6 +48,7 @@ export const ROUTES = [
     'bankAccounts',
     'bankAccountId',
     'reports',
+    'budgets',
 ] as const
 export type Route =  typeof ROUTES[number]
 
@@ -149,6 +151,15 @@ export const ROUTE = {
         menu: {
             icon: BarChart3Icon,
             group: 'overview',
+        },
+    },
+    budgets: {
+        path: () => '/dashboard/objetivos',
+        name: 'budgets',
+        label: 'Objetivos',
+        menu: {
+            icon: TargetIcon,
+            group: 'management',
         },
     },
 } satisfies Record<Route, IRoute>

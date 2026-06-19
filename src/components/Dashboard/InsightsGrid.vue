@@ -95,7 +95,7 @@ const cards = computed(() => [
     subtitle: props.insights.expenseToIncomeRatio > 1
       ? "Gastando mais do que recebe"
       : props.insights.expenseToIncomeRatio > 0
-        ? "Dentro do orçamento"
+        ? "Dentro do objetivo"
         : undefined,
     icon: PercentIcon,
   },

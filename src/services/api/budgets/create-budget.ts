@@ -19,7 +19,7 @@ export const createBudget = async ({ data, options }: IProps) => {
       });
     },
     {
-      toastOptions: getDefaultCreateToastOptions({ itemName: "Orçamento" }),
+      toastOptions: getDefaultCreateToastOptions({ itemName: "Objetivo" }),
       ...options,
     }
   );

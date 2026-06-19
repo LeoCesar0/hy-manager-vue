@@ -1,0 +1,421 @@
+/* ============================================================================
+   report.css — shared stylesheet for hy-manager-vue HTML docs
+   ----------------------------------------------------------------------------
+   Reusable across any `.html` doc under docs/ (sprint boards, current-work,
+   reports, observation summaries). Link it relative to the doc's location:
+
+       <link rel="stylesheet" href="assets/report.css" />        (docs/*.html)
+       <link rel="stylesheet" href="../assets/report.css" />     (docs/x/*.html)
+
+   The design language mirrors the observation HTML template (serif headings,
+   muted paper background, monospace metadata, pill "verdict" badges) so docs
+   read as one coherent set. Two layers:
+
+     1. BASE     — tokens, typography, callouts, tables, code, badges, footer.
+                   Same primitives the observation template ships inline.
+     2. BOARD    — sprint/current-work extensions: lanes, observation cards,
+                   priority accents, dependency notes, legend.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   1. BASE
+   ------------------------------------------------------------------------- */
+
+:root {
+  --bg: #fafaf7;
+  --surface: #ffffff;
+  --surface-2: #f3f1ea;
+  --text: #1a1a1a;
+  --text-muted: #5a5a5a;
+  --text-soft: #7a7a7a;
+  --border: #e1ddd2;
+  --border-strong: #c9c4b5;
+  --accent: #0a4d8c;
+  --accent-soft: #e3edf7;
+  --good: #1f6f3c;
+  --good-bg: #e6f3ec;
+  --warn: #a85a00;
+  --warn-bg: #fbeed7;
+  --bad: #a32820;
+  --bad-bg: #fbe4e2;
+  --neutral: #5a5a5a;
+  --neutral-bg: #ececea;
+  --code-bg: #1f1f1f;
+  --code-text: #f1f1f1;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --serif: Georgia, "Times New Roman", "Liberation Serif", serif;
+  --sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container { max-width: 1180px; margin: 0 auto; padding: 48px 32px 96px; }
+
+header.title-block {
+  border-bottom: 2px solid var(--text);
+  padding-bottom: 20px;
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+h1 {
+  font-family: var(--serif);
+  font-size: 42px;
+  line-height: 1.15;
+  margin: 0 0 12px;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+h2 {
+  font-family: var(--serif);
+  font-size: 30px;
+  margin: 56px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-strong);
+}
+h3 { font-family: var(--serif); font-size: 22px; margin: 32px 0 12px; }
+h4 {
+  font-family: var(--sans);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 24px 0 8px;
+}
+
+p { margin: 0 0 14px; }
+
+.lead {
+  font-family: var(--serif);
+  font-size: 20px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+a { color: var(--accent); }
+a:hover { text-decoration: underline; }
+
+/* Frontmatter / metadata dl */
+dl.frontmatter {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 18px;
+  margin: 24px 0 32px;
+  padding: 18px 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  font-size: 13px;
+}
+dl.frontmatter dt {
+  font-family: var(--mono);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  padding-top: 4px;
+}
+dl.frontmatter dd { margin: 0; color: var(--text); }
+dl.frontmatter code,
+dl.frontmatter .path {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+/* Verdict badge (pill) — also used as a generic status chip on the board */
+.verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.verdict.good { background: var(--good-bg); color: var(--good); }
+.verdict.warn { background: var(--warn-bg); color: var(--warn); }
+.verdict.bad { background: var(--bad-bg); color: var(--bad); }
+.verdict.neutral { background: var(--neutral-bg); color: var(--neutral); }
+.verdict.accent { background: var(--accent-soft); color: var(--accent); }
+
+/* Callout */
+.callout {
+  background: var(--surface);
+  border-left: 4px solid var(--accent);
+  padding: 18px 22px;
+  margin: 24px 0;
+  box-shadow: var(--shadow);
+}
+.callout.bad { border-left-color: var(--bad); background: var(--bad-bg); }
+.callout.warn { border-left-color: var(--warn); background: var(--warn-bg); }
+.callout.good { border-left-color: var(--good); background: var(--good-bg); }
+.callout h4 { margin: 0 0 8px; color: var(--text); }
+.callout p:last-child { margin-bottom: 0; }
+
+/* Tables */
+.table-wrap {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  margin: 16px 0 28px;
+}
+table.eval {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+table.eval th, table.eval td {
+  text-align: left;
+  padding: 10px 12px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+table.eval thead th {
+  background: var(--surface-2);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+table.eval tbody tr:hover { background: rgba(0, 0, 0, 0.015); }
+table.eval td.num {
+  text-align: center;
+  font-family: var(--mono);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Code */
+pre.code {
+  background: var(--code-bg);
+  color: var(--code-text);
+  padding: 14px 18px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin: 12px 0;
+}
+code.inline {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+/* Lists */
+ul.bullets, ol.bullets { margin: 8px 0 18px; padding-left: 22px; }
+ul.bullets li, ol.bullets li { margin: 4px 0; }
+
+/* TOC */
+.toc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 18px 22px;
+  margin: 24px 0 32px;
+  box-shadow: var(--shadow);
+}
+.toc h4 { margin: 0 0 8px; }
+.toc ol { margin: 0; padding-left: 22px; columns: 2; column-gap: 32px; }
+.toc ol li { margin: 3px 0; font-size: 13px; break-inside: avoid; }
+.toc a { color: var(--accent); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+.quote {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--text-muted);
+  border-left: 3px solid var(--border-strong);
+  padding: 4px 16px;
+  margin: 12px 0;
+}
+
+.footer {
+  margin-top: 64px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-soft);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ---------------------------------------------------------------------------
+   2. BOARD — sprint / current-work extensions
+   ------------------------------------------------------------------------- */
+
+/* Legend strip — quick key for the badge vocabulary */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 16px 0 8px;
+}
+.legend .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+
+/* A lane groups observations by intent (Sprint / Deferred / Housekeeping) */
+.lane { margin: 40px 0 8px; }
+.lane > h2 { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.lane > h2 .count {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+  letter-spacing: 0.04em;
+}
+.lane-note { color: var(--text-muted); font-size: 14px; margin: 0 0 18px; }
+
+/* Card grid for observations */
+.obs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 18px;
+  margin: 18px 0 28px;
+}
+
+.obs-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 18px 20px 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+/* Priority accent rail (severity-driven) */
+.obs-card.sev-high { border-left-color: var(--bad); }
+.obs-card.sev-medium { border-left-color: var(--warn); }
+.obs-card.sev-low { border-left-color: var(--neutral); }
+.obs-card.sev-accent { border-left-color: var(--accent); }
+/* Dimmed treatment for deferred / out-of-scope cards */
+.obs-card.muted { background: var(--surface-2); opacity: 0.92; }
+
+.obs-card .obs-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin-bottom: 6px;
+}
+.obs-card h3 {
+  font-family: var(--serif);
+  font-size: 19px;
+  margin: 0 0 10px;
+  line-height: 1.25;
+}
+.obs-card .meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.obs-card p { font-size: 14px; color: var(--text); margin: 0 0 10px; }
+.obs-card .obs-where {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--text-soft);
+  word-break: break-all;
+}
+.obs-card .deps {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+}
+.obs-card .deps strong { color: var(--text); }
+
+/* Footer of a card: link to the source observation file + effort tag */
+.obs-card .obs-foot {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.obs-card .obs-foot a {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  text-decoration: none;
+}
+.obs-card .obs-foot a:hover { text-decoration: underline; }
+.obs-card .effort {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-soft);
+  letter-spacing: 0.04em;
+}
+
+/* Recommendation banner — highlights the suggested sprint pick */
+.rec-banner {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 18px 22px;
+  margin: 20px 0 28px;
+}
+.rec-banner h4 { margin: 0 0 6px; color: var(--accent); }
+.rec-banner p:last-child { margin-bottom: 0; }
+
+@media (max-width: 800px) {
+  .container { padding: 32px 18px 72px; }
+  h1 { font-size: 32px; }
+  .obs-grid { grid-template-columns: 1fr; }
+  dl.frontmatter { grid-template-columns: 1fr; gap: 4px 0; }
+  dl.frontmatter dt { padding-top: 10px; }
+  .toc ol { columns: 1; }
+}
