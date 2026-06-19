@@ -1,18 +1,20 @@
 ---
-status: open
+status: resolved
 type: performance
 severity: medium
 found-during: "Investigacao de fetches desnecessarios sem servidor"
 found-in: "src/services/api/sync/cascade-delete-category.ts"
-working-branch: "main"
+working-branch: "perf/performance-overview"
 found-in-branch: "main"
 date: 2026-04-23
-updated: 2026-06-16
-resolved-date:
+updated: 2026-06-19
+resolved-date: 2026-06-19
 discard-reason:
 deferred:
 deferred-reason:
 related-commits:
+  - bc58a55
+  - c820426
 related-observations:
   - docs/observations/transactions/performance/2026-04-19-firebase-batch-500-limit.md
   - docs/observations/transactions/performance/2026-04-23-cascade-delete-fetch-all.md
@@ -76,3 +78,16 @@ Para `cascade-update-counterparty-category-ids` adicionalmente:
 - **Depende de**: [Batch limit 500](2026-04-19-firebase-batch-500-limit.md)
 - **Mesmo padrao**: [Cascade delete fetch-all](2026-04-23-cascade-delete-fetch-all.md)
 - **Relacionado**: [Best-effort report sync fragility](../../reports/bug/2026-04-23-best-effort-report-sync-fragility.md) — `rebuildReport` faz parte do desenho atual de manutencao do Report
+
+## Resolution
+
+Resolvido entre a Onda A (commit `bc58a55`) e o fix do freeze em producao (commit `c820426`), validado pelo usuario. Os quatro pontos do problema estao cobertos no codigo:
+
+1. **Batch chunkado (limite 500)** — `firebaseUpdateMany` quebra os updates em chunks de `BATCH_MAX = 500` (`firebaseUpdateMany.ts`), eliminando o estouro silencioso do batch para categorias/counterparties muito usados.
+2. **Fetch paginado por cursor** — `cascade-update-counterparty-category-ids` busca as transacoes afetadas via `cascadePaginatedBatch` (`startAfter` + `limit(500)`) em vez de `firebaseList` sem limite.
+3. **Dedup de `rebuildReport` no save em lote** — `bulkUpdateCounterpartyCategories` coleta as contas afetadas por todos os identificadores num `Set` e reconstroi cada conta **uma unica vez, sequencialmente**, em vez de N rebuilds concorrentes. A tela `categorizar.vue` passou a usar esse service em vez de N `updateCounterparty` paralelos.
+4. **Cascade awaited (fim do fire-and-forget)** — `update-counterparty.ts` agora faz `await cascadeUpdateCounterpartyCategoryIds(...)`; a funcao so retorna apos o trabalho pesado, e os rebuilds rodam sequencialmente.
+
+As agravantes runtime do freeze em producao estao detalhadas e resolvidas na observation irma [categorizar-save-freeze](../../counterparties/performance/2026-06-16-categorizar-save-freeze.html) (ja resolvida).
+
+**Verificacao**: testes unit de `bulk-update-counterparty-categories`, `cascade-update-counterparty-category-ids` e `cascade-paginated-batch` verdes; `ts-check` limpo; suite verde. Comportamento de salvar na tela Categorizar sem freeze validado pelo usuario em producao.

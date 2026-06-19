@@ -1,5 +1,5 @@
 ---
-status: awaiting-validation
+status: resolved
 type: performance
 severity: high
 found-during: "Production testing with 2000+ transactions"
@@ -7,10 +7,12 @@ found-in: "src/services/api/transactions/paginate-transactions.ts"
 working-branch: "perf/performance-overview"
 found-in-branch: "main"
 date: 2026-04-19
-updated: 2026-06-02
-resolved-date:
+updated: 2026-06-19
+resolved-date: 2026-06-19
 discard-reason:
 deferred:
+related-commits:
+  - 318eec1
 ---
 
 # Search de transacoes busca toda a colecao para filtrar no client
@@ -62,17 +64,15 @@ Para counterparties, a observation [get-or-create-counterparty fetch-all](../../
 
 > **Status (Onda D, 2026-06-02)**: resolvido por **outra** estrategia que a originalmente proposta. Em vez de prefix search por `slugifiedName`, a busca de terceiros/categorias passou a filtrar o `useReferenceDataStore` **em memoria** (a Onda C ja carrega tudo uma vez) — zero leituras Firebase e mantem substring (`'mercado'` acha `'Supermercado'`), o que o prefix search nao faria. O `slugifiedName` indexado da Onda C permanece justificado por #8 (`getOrCreateCounterparty`).
 
-## Pending Validation
+## Resolution
 
-**Feito (Onda D, branch `perf/performance-overview`, 2026-06-02)**:
+Resolvido na Onda D (commit `318eec1`), validado pelo usuario:
 - **Busca de transacoes (#7 principal)**: quando ha `search` sem filtro de data, injeta janela padrao de **6 meses** (`getDefaultSearchWindow`) antes do fetch — limita o `firebaseList` a ~300-500 docs em vez de toda a base. Substring em `description` segue no client, mas sobre o subconjunto limitado. Filtro de data explicito do usuario e respeitado (sem injecao).
 - **Busca de terceiros**: `terceiros/index.vue` deixou de chamar `paginateCounterparties` (fetch-all+substring server) e passou a paginar/filtrar o store em memoria via novo helper `paginateInMemory` — zero leituras.
 - **Busca de categorias**: `categorias/index.vue` idem, sobre `categories` do store.
 - `paginate-counterparties.ts` / `paginate-categories.ts` ficaram **sem uso pela UI** (marcados; mantidos por causa dos integration tests de indice; remocao e follow-up opcional).
 
-**Verificado em sessao**: testes unit `get-default-search-window.test.ts`, `paginate-in-memory.test.ts` e `paginate-transactions.test.ts` (injecao de janela na busca sem data; respeito a data explicita). `ts-check` limpo; suite unit sem regressao.
-
-**Falta (usuario / manual)**: confirmar que a busca de transacoes sem data opera sobre os ultimos 6 meses (e que setar um intervalo amplia), e que terceiros/categorias buscam sem ida ao Firebase. Nao commitado.
+**Verificacao**: testes unit `get-default-search-window.test.ts`, `paginate-in-memory.test.ts` e `paginate-transactions.test.ts` (injecao de janela na busca sem data; respeito a data explicita). `ts-check` limpo; suite verde. Comportamento de busca validado pelo usuario.
 
 ## Observacoes relacionadas
 

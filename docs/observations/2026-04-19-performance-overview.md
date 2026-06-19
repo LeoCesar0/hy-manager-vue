@@ -3,8 +3,8 @@ status: open
 type: performance
 severity: critical
 date: 2026-04-19
-updated: 2026-04-23
-current-stage: "Waves A+B+C+D — code complete (awaiting-validation). Onda D (listagem #6/#7) fecha o conjunto antes do teste valendo. Onda C exige deploy de indice (pnpm deploy:indexes); Onda D NAO exige indice novo. Gate do teste valendo em prod: liberado apos validacao manual da Onda D, com #4 (dashboard) deferido como divida conhecida."
+updated: 2026-06-19
+current-stage: "Waves A+B+C+D — RESOLVIDAS e validadas pelo usuario (merge em main 2026-06-19). Cada onda tem sua observation marcada como resolved. Permanece OPEN apenas para rastrear a divida tecnica deferida: #4 (dashboard carrega todas as transacoes) e #12 (best-effort report sync fragility). Reabrir trabalho ativo quando o #4 sair do defer. Lembrete de deploy: a Onda C (#8) depende de `pnpm deploy:indexes` para o indice `creditors: userId + slugifiedName` em producao."
 ---
 
 # Performance: travamento com volume real de dados (2000+ transacoes)
@@ -26,11 +26,11 @@ current-stage: "Waves A+B+C+D — code complete (awaiting-validation). Onda D (l
 
 | Onda | Escopo | Status | Branch / commits | Notas |
 |------|--------|--------|-------------------|-------|
-| A | Batch foundation + cascade ops chunkado (#1, #9, #10) | ✅ done (code) · ⏳ smoke test DEV pendente | `perf/performance-overview` | Plano: `~/.claude/plans/graceful-wibbling-wilkes.md`. Pendente: smoke test com dados de **dev** (nao prod) antes de passar para B. Teste valendo em prod so apos Onda D — ver "Objetivo e gate do teste em prod". |
-| B | Import refactor (#2, #3) | ✅ done (code) · ⏳ smoke test pendente | `perf/performance-overview` | Bulk counterparties via `firebaseCreateMany` + dedup em 1 query por date-range. 7 testes unit verdes (`tests/unit/services/api/transactions/import-transactions.test.ts`); ts-check limpo. Nao commitado. |
-| C | Reference data + counterparty lookup (#5, #8, #11) | ✅ done (code) · ⏳ deploy de indice + smoke test pendentes | `perf/performance-overview` | Store `useReferenceDataStore` (load-once + refresh on mutation); `slugifiedName` indexado em counterparty + query direta no get-or-create; migracao one-shot awaited no login; `uncategorizedCount` derivado do store. **Mudanca de schema** (`creditors.slugifiedName` required, `user.migrations`). Requer `pnpm deploy:indexes`. 15 testes unit verdes. Prefix search de counterparties (#7) **adiado para D**. |
-| D | Listagem de transacoes (#6, #7) | ✅ done (code) · ⏳ smoke test/manual pendente | `perf/performance-overview` | Paginacao cursor (Next/Prev) em transacoes via novo `firebaseCursorList`; busca de transacoes limitada a 6 meses quando sem filtro de data; busca de terceiros/categorias movida para o `useReferenceDataStore` em memoria (zero leituras) via `paginateInMemory` — optou-se por isso em vez do prefix search por `slugifiedName` (melhor UX, mantem substring). **Nenhum indice novo** (NAO requer `pnpm deploy:indexes`). 16 testes unit verdes; ts-check limpo. Nao commitado. |
-| Defer | Dashboard Report + sync fragility (#4, #12) | ⏸ deferred | — | Revisitar apos D. |
+| A | Batch foundation + cascade ops chunkado (#1, #9, #10) | ✅ resolved (validado) | `bc58a55`, `c820426` (#10) | Chunked batches + cascade por cursor. #10 fechado junto com o fix de freeze em prod. |
+| B | Import refactor (#2, #3) | ✅ resolved (validado) | `5cccddf` | Bulk counterparties via `firebaseCreateMany` + dedup em 1 query por date-range. 7 testes unit verdes (`tests/unit/services/api/transactions/import-transactions.test.ts`). |
+| C | Reference data + counterparty lookup (#5, #8, #11) | ✅ resolved (validado) | `948524e` | Store `useReferenceDataStore` (load-once + refresh on mutation); `slugifiedName` indexado em counterparty + query direta no get-or-create; migracao one-shot awaited no login; `uncategorizedCount` derivado do store. **Mudanca de schema** (`creditors.slugifiedName` required, `user.migrations`). **Requer `pnpm deploy:indexes` no deploy de prod.** |
+| D | Listagem de transacoes (#6, #7) | ✅ resolved (validado) | `6570010`, `318eec1` | Paginacao cursor (Next/Prev) em transacoes via novo `firebaseCursorList`; busca de transacoes limitada a 6 meses quando sem filtro de data; busca de terceiros/categorias movida para o `useReferenceDataStore` em memoria (zero leituras) via `paginateInMemory`. **Nenhum indice novo.** |
+| Defer | Dashboard Report + sync fragility (#4, #12) | ⏸ deferred | — | Divida tecnica assumida. Unico motivo de esta overview seguir `open`. Revisitar quando #4 sair do defer. |
 
 Legenda: ⬜ pending · 🟡 in progress · ✅ done · ⏸ deferred
 

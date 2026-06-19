@@ -1,5 +1,5 @@
 ---
-status: awaiting-validation
+status: resolved
 type: performance
 severity: medium
 found-during: "Investigacao de fetches desnecessarios sem servidor"
@@ -7,12 +7,13 @@ found-in: "src/services/api/counterparties/get-or-create-counterparty.ts"
 working-branch: "perf/performance-overview"
 found-in-branch: "main"
 date: 2026-04-23
-updated: 2026-06-02
-resolved-date:
+updated: 2026-06-19
+resolved-date: 2026-06-19
 discard-reason:
 deferred:
 deferred-reason:
 related-commits:
+  - 948524e
 related-observations:
   - docs/observations/transactions/performance/2026-04-19-search-full-collection-fetch.md
 ---
@@ -72,16 +73,16 @@ const existing = existingList[0];
 - **Mesmo padrao (fetch-all)**: [Search full-fetch](../../transactions/performance/2026-04-19-search-full-collection-fetch.md) — habilita o fix da search de counterparties
 - **Mesmo padrao (referencias re-baixadas)**: [Reference data refetched](2026-04-23-reference-data-refetched-everywhere.md)
 
-## Pending Validation
+## Resolution
 
-**Feito (Onda C, branch `perf/performance-overview`, 2026-06-02)**:
+Resolvido na Onda C (commit `948524e`), validado pelo usuario:
 - `slugifiedName: z.string()` adicionado ao schema persistido `zCounterparty` (so no doc armazenado; tipos de input nao o carregam — services injetam). Populado em `create-counterparty`, `update-counterparty` (recomputa no rename) e no bulk do import.
 - `getOrCreateCounterparty` agora faz `firebaseList` com filtros `userId ==` + `slugifiedName ==` (1 doc), em vez de baixar tudo e `.find()`.
 - Indice composto `creditors: userId + slugifiedName` adicionado a `firestore.indexes.json`.
 - Migracao one-shot `migrate-counterparty-slugified-name.ts` awaited em `auth.global.ts` faz backfill dos docs existentes (idempotente, marca `user.migrations.counterpartySlug`).
 
-**Verificado em sessao**: testes unit `get-or-create-counterparty.test.ts` (filtro slugifiedName + 1 query; create no miss) e `migrate-counterparty-slugified-name.test.ts` (backfill so dos faltantes, idempotente, marca user, nunca throw). `ts-check` limpo.
+**Verificacao**: testes unit `get-or-create-counterparty.test.ts` (filtro slugifiedName + 1 query; create no miss) e `migrate-counterparty-slugified-name.test.ts` (backfill so dos faltantes, idempotente, marca user, nunca throw). `ts-check` limpo; suite verde.
 
-**Falta (usuario)**: **deploy do indice** (`pnpm deploy:indexes`) antes do teste valendo — sem ele a query falha com "index required". Depois, validar create/edit de transacao com counterparty em volume real (1 leitura vs N). Nao commitado.
+> **Deploy de indice necessario em producao**: esta mudanca depende do indice composto `creditors: userId + slugifiedName`. Rodar `pnpm deploy:indexes` antes/junto do deploy do codigo — sem o indice deployado, a query de `getOrCreateCounterparty` falha em prod com "index required". Passo de deployment, fora do escopo do merge.
 
-> **Prefix search de counterparties (#7) ADIADO para a Onda D.** O `slugifiedName` indexado entregue aqui e o groundwork; o refactor de `paginate-counterparties` (fetch-all+substring → range query prefix) acontece na D junto com a paginacao de transacoes.
+> **Nota historica**: o `slugifiedName` indexado entregue aqui foi o groundwork para a busca de counterparties; o refactor de busca de terceiros/categorias foi feito na Onda D por filtro em memoria (ver [search-full-collection-fetch](../../transactions/performance/2026-04-19-search-full-collection-fetch.md)), nao por prefix search.
