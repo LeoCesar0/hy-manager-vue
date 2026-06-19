@@ -12,6 +12,8 @@ updated: 2026-06-19
 resolved-date: 2026-06-19
 discard-reason:
 deferred:
+related-commits:
+  - e99c8a8
 ---
 
 # Dashboard store bank accounts stale after create/update/delete

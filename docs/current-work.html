@@ -454,6 +454,33 @@
           </p>
         </div>
 
+        <div class="progress-entry">
+          <div class="when">2026-06-19 · T2 (redesign) · página Objetivos · awaiting-validation</div>
+          <div class="what">Refeita após feedback: escopo na conta atual + form do dialog expandido</div>
+          <p>
+            <strong>Motivo:</strong> a tabela de todas as contas contrariava o padrão do app (toda
+            página opera sobre a <code class="inline">currentBankAccount</code>) e tabela não era a
+            superfície desejada.
+          </p>
+          <p>
+            <strong>Feito:</strong> corpo do form extraído em
+            <code class="inline">BudgetSettingsForm.vue</code> (compartilhado, expõe
+            <code class="inline">getPayload()</code> + tipo <code class="inline">IBudgetFormPayload</code>);
+            <code class="inline">BudgetSettingsDialog</code> agora envelopa o form (Relatórios inalterado);
+            página <code class="inline">objetivos/index.vue</code> reescrita — lê
+            <code class="inline">currentBankAccount</code>, carrega via
+            <code class="inline">getOrCreateBudget</code>, renderiza o form em página inteira (card max-w-3xl)
+            com "Salvar objetivo" e "Limpar objetivo", empty-state sem conta, e reload no switch de conta.
+            Código morto da tabela removido (<code class="inline">list-budgets.ts</code>,
+            <code class="inline">buildObjetivoRows.ts</code> + teste).
+          </p>
+          <p>
+            <strong>Verificação:</strong> ts-check limpo; <code class="inline">pnpm test:unit</code> = 299
+            passed (6 testes obsoletos do helper removidos). Render/sidebar/save são visuais →
+            <span class="verdict warn">awaiting-validation</span> (7 checagens na obs).
+          </p>
+        </div>
+
       <footer class="footer">
         <span>Current Work · hy-manager-vue · sprint de melhorias</span>
         <span>atualizado 2026-06-19 · branch main</span>

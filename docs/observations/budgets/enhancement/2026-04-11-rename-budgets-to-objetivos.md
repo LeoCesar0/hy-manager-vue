@@ -14,6 +14,8 @@ updated: 2026-06-19
 resolved-date: 2026-06-19
 discard-reason:
 deferred:
+related-commits:
+  - e99c8a8
 ---
 
 # Rename "Orçamento" to "Objetivos" in UI labels
