@@ -7,6 +7,7 @@ import { firebaseCreate } from "~/services/firebase/firebaseCreate";
 import { firebaseGet } from "~/services/firebase/firebaseGet";
 import { firebaseList } from "~/services/firebase/firebaseList";
 import { cascadeDeleteCategory } from "~/services/api/sync/cascade-delete-category";
+import { slugify } from "~/helpers/slugify";
 import type { ITransaction } from "~/@schemas/models/transaction";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { ICategory } from "~/@schemas/models/category";
@@ -46,6 +47,7 @@ describe("cascadeDeleteCategory (integration)", () => {
       data: {
         id: "int-cp-1",
         name: "Supermarket",
+        slugifiedName: slugify("Supermarket"),
         categoryIds: ["int-cat-1", "int-cat-2"],
         userId: TEST_USER_ID,
       },

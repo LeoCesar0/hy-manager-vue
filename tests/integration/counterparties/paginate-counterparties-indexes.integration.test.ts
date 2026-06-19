@@ -5,6 +5,7 @@ import {
 } from "../../helpers/firebase-integration";
 import { firebaseCreate } from "~/services/firebase/firebaseCreate";
 import { firebasePaginatedList } from "~/services/firebase/firebasePaginatedList";
+import { slugify } from "~/helpers/slugify";
 import type { ICounterparty } from "~/@schemas/models/counterparty";
 import type { IPaginationBody } from "~/@types/pagination";
 import { writeFileSync } from "node:fs";
@@ -30,18 +31,21 @@ const seedCounterparties = async () => {
     {
       id: "idx-cp-1",
       name: "Supermercado ABC",
+      slugifiedName: slugify("Supermercado ABC"),
       categoryIds: ["cat-1"],
       userId: TEST_USER_ID,
     },
     {
       id: "idx-cp-2",
       name: "Posto de Gasolina",
+      slugifiedName: slugify("Posto de Gasolina"),
       categoryIds: ["cat-2"],
       userId: TEST_USER_ID,
     },
     {
       id: "idx-cp-3",
       name: "Farmácia Central",
+      slugifiedName: slugify("Farmácia Central"),
       categoryIds: ["cat-1", "cat-3"],
       userId: TEST_USER_ID,
     },
