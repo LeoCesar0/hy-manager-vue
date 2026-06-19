@@ -11,6 +11,7 @@ import DetailField from "~/components/Dashboard/DetailField.vue";
 import ActionButtons from "~/components/Dashboard/ActionButtons.vue";
 import { getCategoryIcon } from "~/static/category-icons";
 import PositiveExpenseIndicator from "~/components/Categories/PositiveExpenseIndicator.vue";
+import CategoryTrendSection from "~/components/Categories/CategoryTrendSection.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -171,6 +172,10 @@ onMounted(() => {
         </div>
       </template>
     </DetailCard>
+
+    <UiCard v-if="category" class="p-6 mt-6">
+      <CategoryTrendSection :category-id="categoryId" />
+    </UiCard>
 
     <CategoriesEditSheet
       v-if="category"

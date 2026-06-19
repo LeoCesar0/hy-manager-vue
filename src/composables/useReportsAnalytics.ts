@@ -15,22 +15,11 @@ import { calculateSavingsRateTrend, type ISavingsRatePoint } from "~/services/an
 import { calculateCumulativeBalanceTrend, type ICumulativeBalancePoint } from "~/services/analytics/calculate-cumulative-balance-trend";
 import { calculateBalanceTrend, type IBalanceTrendPoint } from "~/services/analytics/calculate-balance-trend";
 import { calculateOverviewBars, type IOverviewBarPoint } from "~/services/analytics/calculate-overview-bars";
+import { getDefaultMonths } from "~/helpers/get-default-months";
 
 export type IMonthBudgetProgress = {
   monthKey: string;
   progress: IBudgetProgress;
-};
-
-const getDefaultMonths = (count: number): string[] => {
-  const months: string[] = [];
-  const now = new Date();
-  for (let i = count - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    months.push(`${year}-${month}`);
-  }
-  return months;
 };
 
 export const useReportsAnalytics = () => {
@@ -230,7 +219,7 @@ export const useReportsAnalytics = () => {
   });
 
   const handleSelectPreset = (months: number) => {
-    selectedMonths.value = getDefaultMonths(months);
+    selectedMonths.value = getDefaultMonths({ count: months });
   };
 
   const handleSelectYear = (year: number) => {

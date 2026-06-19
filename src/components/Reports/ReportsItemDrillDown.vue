@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ChevronRightIcon } from "lucide-vue-next";
-import LineChart from "~/components/Charts/LineChart.vue";
+import { ChevronRightIcon, ArrowLeftIcon } from "lucide-vue-next";
+import MonthlyTrendBarChart from "~/components/Charts/MonthlyTrendBarChart.vue";
 import PositiveExpenseIndicator from "~/components/Categories/PositiveExpenseIndicator.vue";
 import { formatCurrency } from "~/helpers/formatCurrency";
 import { CATEGORY_PRESET_COLORS } from "~/static/category-colors";
@@ -28,11 +28,6 @@ type IProps = {
 const props = withDefaults(defineProps<IProps>(), {
   loading: false,
 });
-
-const drillDownSeries = [
-  { key: "expenses", label: "Saídas", color: "var(--expense)" },
-  { key: "deposits", label: "Entradas", color: "var(--deposit)" },
-];
 
 const getItemColor = (item: IBreakdownListItem, index: number) => {
   return item.color || CATEGORY_PRESET_COLORS[index % CATEGORY_PRESET_COLORS.length]!;
@@ -66,9 +61,10 @@ const isMixed = (item: IBreakdownListItem) =>
         <UiButton
           v-if="selectedItemId"
           size="sm"
-          variant="ghost"
+          variant="outline"
           @click="onSelectItem(null)"
         >
+          <ArrowLeftIcon class="h-4 w-4 mr-1" />
           Voltar
         </UiButton>
       </div>
@@ -155,10 +151,8 @@ const isMixed = (item: IBreakdownListItem) =>
         </div>
       </div>
 
-      <LineChart
-        title="Tendência Mensal"
+      <MonthlyTrendBarChart
         :data="drillDownData.monthlyData"
-        :series="drillDownSeries"
         :loading="loading"
       />
     </div>
