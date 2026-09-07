@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { Timestamp } from "firebase/firestore";
 import { makeReport, makeCategory, makeMonthlyEntry } from "../../helpers";
 import { calculateReportInsights } from "~/services/analytics/calculate-report-insights";
@@ -460,5 +460,61 @@ describe("calculateReportInsights", () => {
     });
 
     expect(result.biggestIncrease!.name).toBe("Desconhecido");
+  });
+
+  describe("previous-year YTD (year-over-year)", () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("sums the same Jan→current-month window of the previous year", () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 2, 15)); // March 2026
+
+      const report = asReport(
+        makeReport({
+          monthlyBreakdown: {
+            "2026-01": makeMonthlyEntry({ income: 5000, expenses: 3000 }),
+            "2025-01": makeMonthlyEntry({ income: 4000, expenses: 2500 }),
+            "2025-02": makeMonthlyEntry({ income: 4200, expenses: 2600 }),
+            "2025-03": makeMonthlyEntry({ income: 4400, expenses: 2400 }),
+            // April is past the current month (March) → excluded from prev YTD.
+            "2025-04": makeMonthlyEntry({ income: 9999, expenses: 9999 }),
+          },
+        })
+      );
+
+      const result = calculateReportInsights({
+        report,
+        selectedMonths: ["2026-01"],
+        categories: [],
+      });
+
+      // Jan–Mar 2025 only: income 4000+4200+4400, expenses 2500+2600+2400.
+      expect(result.prevYtdIncome).toBe(12600);
+      expect(result.prevYtdExpenses).toBe(7500);
+    });
+
+    it("returns null when there is no previous-year data in the window", () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 5, 1)); // June 2026
+
+      const report = asReport(
+        makeReport({
+          monthlyBreakdown: {
+            "2026-01": makeMonthlyEntry({ income: 5000, expenses: 3000 }),
+          },
+        })
+      );
+
+      const result = calculateReportInsights({
+        report,
+        selectedMonths: ["2026-01"],
+        categories: [],
+      });
+
+      expect(result.prevYtdIncome).toBeNull();
+      expect(result.prevYtdExpenses).toBeNull();
+    });
   });
 });

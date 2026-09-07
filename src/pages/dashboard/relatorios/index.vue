@@ -40,6 +40,11 @@ const {
   periodBreakdowns,
   budgetProgressPerMonth,
   enhancedInsights,
+  twelveMonthInsights,
+  keyCategoryInsights,
+  categoryAnomaly,
+  ticketFrequency,
+  concentrationRecurrence,
   categoryList,
   counterpartyList,
   handleSelectPreset,
@@ -123,7 +128,15 @@ onMounted(() => {
     </template>
 
     <div class="space-y-6">
-      <ReportsInsightsKPIs :insights="enhancedInsights" :loading="isLoading" />
+      <ReportsInsightsKPIs
+        :insights="enhancedInsights"
+        :twelve-month-insights="twelveMonthInsights"
+        :key-category-insights="keyCategoryInsights"
+        :anomaly="categoryAnomaly"
+        :ticket-frequency="ticketFrequency"
+        :concentration-recurrence="concentrationRecurrence"
+        :loading="isLoading"
+      />
 
       <ReportsBudgetTracking
         :budget-progress-per-month="budgetProgressPerMonth"

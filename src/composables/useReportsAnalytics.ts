@@ -7,6 +7,11 @@ import { updateBudget } from "~/services/api/budgets/update-budget";
 import { compareMonths, type IMonthlyComparison } from "~/services/analytics/compare-months";
 import { calculateBudgetProgress, type IBudgetProgress } from "~/services/analytics/calculate-budget-progress";
 import { calculateReportInsights, type IReportInsights } from "~/services/analytics/calculate-report-insights";
+import { calculateTwelveMonthInsights, type ITwelveMonthInsightRow } from "~/services/analytics/calculate-twelve-month-insights";
+import { calculateKeyCategoryInsights, type IKeyCategoryInsight } from "~/services/analytics/calculate-key-category-insights";
+import { calculateCategoryAnomaly, type ICategoryAnomaly } from "~/services/analytics/calculate-category-anomaly";
+import { calculateTicketFrequency, type ITicketFrequencyItem } from "~/services/analytics/calculate-ticket-frequency";
+import { calculateConcentrationRecurrence, type IConcentrationRecurrence } from "~/services/analytics/calculate-concentration-recurrence";
 import { buildCategoryDrillDown } from "~/services/analytics/build-category-drill-down";
 import { buildCounterpartyDrillDown } from "~/services/analytics/build-counterparty-drill-down";
 import { buildBreakdownList } from "~/services/analytics/build-breakdown-list";
@@ -183,6 +188,59 @@ export const useReportsAnalytics = () => {
     });
   });
 
+  // 12-month monthly totals (despesas, receitas) — "Resumo mensal". Uses the
+  // default trailing-12-month window, independent of the page's month selector,
+  // and averages over months with movement only.
+  const twelveMonthInsights = computed<ITwelveMonthInsightRow[]>(() => {
+    if (!report.value) return [];
+    return calculateTwelveMonthInsights({
+      report: report.value,
+    });
+  });
+
+  // Per-category 12-month averages (entrada + saída) for the key default
+  // categories — "Médias por categoria".
+  const keyCategoryInsights = computed<IKeyCategoryInsight[]>(() => {
+    if (!report.value) return [];
+    return calculateKeyCategoryInsights({
+      report: report.value,
+      categories: categories.value,
+    });
+  });
+
+  // Category whose selected-period spend deviates most above its 12-month
+  // baseline.
+  const categoryAnomaly = computed<ICategoryAnomaly | null>(() => {
+    if (!report.value) return null;
+    return calculateCategoryAnomaly({
+      report: report.value,
+      selectedMonths: effectiveMonths.value,
+      categories: categories.value,
+    });
+  });
+
+  // Top categories' average ticket and frequency over the selected period.
+  const ticketFrequency = computed<ITicketFrequencyItem[]>(() => {
+    if (!report.value) return [];
+    return calculateTicketFrequency({
+      report: report.value,
+      selectedMonths: effectiveMonths.value,
+      categories: categories.value,
+    });
+  });
+
+  // Concentration (top-3 share of the period) + recurring counterparties over
+  // the 12-month window.
+  const concentrationRecurrence = computed<IConcentrationRecurrence | null>(() => {
+    if (!report.value) return null;
+    return calculateConcentrationRecurrence({
+      report: report.value,
+      selectedMonths: effectiveMonths.value,
+      categories: categories.value,
+      counterparties: counterparties.value,
+    });
+  });
+
   // Counterparties get a larger cap than categories because they tend to have
   // a longer tail (many merchants vs. a small set of curated categories).
   // Full data is still reachable via buildCategoryDrillDown/buildCounterpartyDrillDown
@@ -328,6 +386,11 @@ export const useReportsAnalytics = () => {
     cumulativeBalanceTrend,
     budgetProgressPerMonth,
     enhancedInsights,
+    twelveMonthInsights,
+    keyCategoryInsights,
+    categoryAnomaly,
+    ticketFrequency,
+    concentrationRecurrence,
     categoryList,
     counterpartyList,
     handleSelectPreset,

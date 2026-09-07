@@ -5,6 +5,7 @@ import { buildCategoryDrillDown } from "~/services/analytics/build-category-dril
 import { getDefaultMonths } from "~/helpers/get-default-months";
 import ReportsPeriodSelector from "~/components/Reports/ReportsPeriodSelector.vue";
 import MonthlyTrendBarChart from "~/components/Charts/MonthlyTrendBarChart.vue";
+import CategorySummary from "~/components/Categories/CategorySummary.vue";
 
 type IProps = {
   categoryId: string;
@@ -17,7 +18,7 @@ const { currentUser } = storeToRefs(userStore);
 const dashboardStore = useDashboardStore();
 const { currentBankAccount } = storeToRefs(dashboardStore);
 const referenceDataStore = useReferenceDataStore();
-const { categories } = storeToRefs(referenceDataStore);
+const { categories, counterparties } = storeToRefs(referenceDataStore);
 
 const report = ref<IReport | null>(null);
 const isLoading = ref(false);
@@ -99,7 +100,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="space-y-8">
+    <CategorySummary
+      v-if="report"
+      :report="report"
+      :categories="categories"
+      :counterparties="counterparties"
+      :category-id="categoryId"
+      :loading="isLoading"
+    />
+
+    <div class="space-y-4">
     <div>
       <h3 class="text-lg font-semibold">Evolução no tempo</h3>
       <p class="text-sm text-muted-foreground">
@@ -119,5 +130,6 @@ onMounted(() => {
       :data="drillDown?.monthlyData ?? []"
       :loading="isLoading"
     />
+    </div>
   </div>
 </template>

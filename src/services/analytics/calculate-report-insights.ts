@@ -35,6 +35,12 @@ export type IReportInsights = {
   averageMonthlySpending: number;
   averageMonthlyPositiveExpenses: number;
   averageMonthlyIncome: number;
+  // Same Jan→current-month window of the *previous* year, so the UI can render a
+  // year-over-year comparison against ytdIncome/ytdExpenses. Null when the
+  // report has no data in that window (less than a full prior year of history).
+  // prevYtdExpenses is "real" (split-adjusted) to match ytdExpenses.
+  prevYtdIncome: number | null;
+  prevYtdExpenses: number | null;
 };
 
 export const calculateReportInsights = ({
@@ -130,6 +136,28 @@ export const calculateReportInsights = ({
   );
   const ytdBalance = roundCurrency({ value: ytdIncome - ytdRawExpenses });
 
+  // Previous-year YTD over the same Jan→current-month window, for the
+  // year-over-year card. Restrict to months ≤ the current month so we compare
+  // like-for-like (Jan–Jun vs Jan–Jun), not a partial year against a full one.
+  const currentMonthNumber = new Date().getMonth() + 1;
+  const previousYear = (new Date().getFullYear() - 1).toString();
+  const prevYtdMonths = Object.entries(monthlyBreakdown).filter(([key]) => {
+    if (!key.startsWith(previousYear)) return false;
+    const monthNumber = Number(key.split("-")[1]);
+    return monthNumber <= currentMonthNumber;
+  });
+  const hasPrevYtd = prevYtdMonths.length > 0;
+  const prevYtdIncome = hasPrevYtd
+    ? roundCurrency({ value: prevYtdMonths.reduce((sum, [, m]) => sum + m.income, 0) })
+    : null;
+  const prevYtdExpenses = hasPrevYtd
+    ? roundCurrency({
+        value: prevYtdMonths.reduce((sum, [, entry]) => {
+          return sum + splitPositiveExpenses({ entry, categories }).realExpenses;
+        }, 0),
+      })
+    : null;
+
   const allMonthEntries = Object.values(monthlyBreakdown);
   const monthCount = allMonthEntries.length;
   // Average spending uses "real" expenses — investments are savings, not
@@ -169,5 +197,7 @@ export const calculateReportInsights = ({
     averageMonthlySpending,
     averageMonthlyPositiveExpenses,
     averageMonthlyIncome,
+    prevYtdIncome,
+    prevYtdExpenses,
   };
 };
