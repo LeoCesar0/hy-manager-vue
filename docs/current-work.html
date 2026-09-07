@@ -3,37 +3,40 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="cw-updated" content="2026-06-19" />
+    <meta name="cw-updated" content="2026-09-07" />
     <meta name="cw-branch" content="main" />
-    <title>Current Work — Sprint de melhorias · hy-manager-vue</title>
+    <title>Current Work — Próximas tasks · hy-manager-vue</title>
     <link rel="stylesheet" href="assets/report.css" />
   </head>
   <body>
     <div class="container">
       <header class="title-block">
         <div class="eyebrow">Current Work · hy-manager-vue · main</div>
-        <h1>Sprint de melhorias</h1>
+        <h1>Próximas tasks</h1>
         <p class="subtitle">
-          Observations abertas que dá pra tocar agora — features e correções de UX,
-          separadas do que está bloqueado/adiado e da faxina de status.
+          Foco atual: fechar a validação de <strong>Insights v1+v2</strong> e destravar os
+          <strong>5 pedidos novos de UX de consulta</strong> (2026-09-07). Abaixo, a trilha de dívida
+          técnica de performance e o registro da sprint concluída.
         </p>
       </header>
 
       <section id="resumo">
         <p class="lead">
-          Das 9 observations com <code class="inline">status: open</code>, só
-          <strong>3 são trabalho real de sprint</strong>. Duas estão adiadas por decisão
-          do usuário, uma é meta-doc de rastreio, e duas já foram <em>resolvidas no código</em>
-          (Onda A de performance, merge em 2026-06-19) mas ficaram com o arquivo desatualizado.
+          O trabalho de <strong>Insights v1+v2</strong> está implementado e verde (333 unit tests ·
+          ts-check limpo), porém <strong>não commitado</strong> e aguardando validação visual. Somam-se
+          agora <strong>5 pedidos novos</strong> do usuário, três deles de escopo fechado e prontos pra
+          pegar. A trilha de performance segue atrás, começando por decisão de arquitetura.
         </p>
 
-        <div class="callout">
+        <div class="callout accent">
           <p>
-            <span class="verdict accent">foco</span>
-            Esta sprint entrega a <strong>feature de Objetivos</strong> (página dedicada +
-            renomeação na UI) e corrige o <strong>bug de store stale</strong> das contas
-            bancárias. Performance pesada de dashboard fica fora — está adiada e bloqueada
-            por uma fragilidade de sync também adiada.
+            <span class="verdict accent">virada</span>
+            O <strong>#12 (fragilidade do report sync)</strong> foi adiado com a razão explícita
+            <em>"reavaliar depois das melhorias de performance"</em>. Essas melhorias — Ondas A–D —
+            <strong>já foram concluídas e validadas</strong> (merge em 2026-06-19). A condição de
+            adiamento expirou. Como o #12 destrava o <strong>#4 (dashboard carrega todas as
+            transações, severity critical)</strong>, essa é a próxima trilha recomendada — mas
+            começa com <strong>decisão</strong>, não com código (envolve Cloud Functions / infra).
           </p>
         </div>
 
@@ -41,162 +44,398 @@
           <span class="legend-item"><span class="verdict accent">enhancement</span> feature nova</span>
           <span class="legend-item"><span class="verdict bad">bug</span> comportamento errado</span>
           <span class="legend-item"><span class="verdict warn">performance</span> lento/custoso</span>
-          <span class="legend-item"><span class="verdict bad">high</span> / <span class="verdict warn">medium</span> / <span class="verdict neutral">low</span> severidade</span>
-          <span class="legend-item"><span class="verdict warn">open</span> ativa · <span class="verdict neutral">deferred</span> adiada · <span class="verdict good">resolved-no-código</span></span>
+          <span class="legend-item"><span class="verdict bad">critical/high</span> / <span class="verdict warn">medium</span> / <span class="verdict neutral">low</span> severidade</span>
+          <span class="legend-item"><span class="verdict warn">open</span> ativa · <span class="verdict neutral">deferred</span> adiada · <span class="verdict good">resolved</span></span>
         </div>
       </section>
 
       <!-- ============================================================= -->
-      <!-- LANE 1 · SPRINT                                               -->
+      <!-- LANE 0 · BACKLOG DE FEATURES · INSIGHTS & RELATÓRIOS (FOCO)   -->
       <!-- ============================================================= -->
-      <div class="lane" id="sprint">
-        <h2>Na sprint <span class="count">· 3 itens acionáveis</span></h2>
+      <div class="lane" id="insights-backlog">
+        <h2>Backlog de features — Insights &amp; Relatórios <span class="count">· 4 observations · foco atual</span></h2>
         <p class="lane-note">
-          Não bloqueadas, escopo fechado, validáveis com testes unit/integração + verificação
-          manual local. Recomendação de ordem abaixo.
+          Saídas do brainstorm de 2026-06-23. A <strong>v1</strong> (revamp + resumo de categoria) já está
+          implementada e <span class="verdict warn">awaiting-validation</span>. A <strong>v2</strong>
+          (em pauta) refina pós-revisão do usuário. <strong>Decisão revista:</strong> a janela de 12 meses
+          passou de "mês sem movimento = R$0" para considerar <strong>só meses com movimento</strong>. Dados
+          já existem no <code class="inline">Report</code> — sem nova query, schema ou índice.
+        </p>
+
+        <div class="rec-banner">
+          <h4>Em pauta agora · v2</h4>
+          <p>
+            <strong>Insights v2</strong>: condensar a seção com "ver tudo", separar <em>Resumo mensal</em>
+            (totais) de <em>Médias por categoria</em> (Despesas, Investimentos, Salário, Cartão de Crédito),
+            card de categoria com <strong>entrada+saída</strong> (dominante destacado) + ícone/cor reais, e a
+            janela de <strong>meses ativos</strong>. Implementado (testes + ts-check OK); falta validação visual. O
+            <strong>widget customizável</strong> segue fora (decisão de persistência em aberto) — vai
+            customizar exatamente o bloco "Médias por categoria".
+          </p>
+        </div>
+
+        <div class="obs-grid">
+          <!-- 1. Revamp Insights -->
+          <article class="obs-card sev-medium">
+            <div class="obs-eyebrow">reports · enhancement</div>
+            <h3>Revamp da seção Insights de Relatórios</h3>
+            <div class="meta-row">
+              <span class="verdict accent">enhancement</span>
+              <span class="verdict warn">medium</span>
+              <span class="verdict warn">awaiting-validation</span>
+            </div>
+            <p>
+              <strong>v1 implementada.</strong> Separou os cards por escopo (Período / Ano / Histórico) com
+              tooltip por campo, e adicionou médias/medianas de 12m, anomalia &amp; comparação ano-vs-ano,
+              ticket médio &amp; frequência, e concentração &amp; recorrência. O bloco de 12m é
+              <strong>refinado pela v2</strong> (ver card ao lado).
+            </p>
+            <p class="deps"><strong>Introduziu:</strong> <code class="inline">calculateMedian</code> + agregador de 12m (reusados pela obs de categoria). 327 unit tests verdes · ts-check limpo.</p>
+            <div class="obs-foot">
+              <a href="observations/reports/enhancement/2026-06-23-insights-revamp-scope-tooltips-12mo.html">obs ↗</a>
+              <span class="effort">falta: validação visual no navegador</span>
+            </div>
+          </article>
+
+          <!-- 2. Resumo categoria -->
+          <article class="obs-card sev-medium">
+            <div class="obs-eyebrow">categories · enhancement</div>
+            <h3>Resumo de 12 meses na página de categoria</h3>
+            <div class="meta-row">
+              <span class="verdict accent">enhancement</span>
+              <span class="verdict warn">medium</span>
+              <span class="verdict warn">awaiting-validation</span>
+            </div>
+            <p>
+              <strong>Implementada.</strong> Bloco na página da categoria: média/mediana de entrada e saída,
+              mês de pico/menor, tendência (3m vs 3m), participação no total e top identificadores. As
+              médias/medianas herdam a <strong>janela de meses ativos</strong> da v2.
+            </p>
+            <p class="deps"><strong>Reusou:</strong> agregador de 12m + <code class="inline">calculateMedian</code>. Montado dentro de <code class="inline">CategoryTrendSection</code> (sem busca extra).</p>
+            <div class="obs-foot">
+              <a href="observations/categories/enhancement/2026-06-23-category-12mo-summary-insights.html">obs ↗</a>
+              <span class="effort">falta: validação visual + ajuste de janela (v2)</span>
+            </div>
+          </article>
+
+          <!-- 3. Insights v2 (foco atual) -->
+          <article class="obs-card sev-medium">
+            <div class="obs-eyebrow">reports · enhancement</div>
+            <h3>Insights v2: condensar + médias por categoria (dual-flow)</h3>
+            <div class="meta-row">
+              <span class="verdict accent">enhancement</span>
+              <span class="verdict warn">medium</span>
+              <span class="verdict warn">awaiting-validation</span>
+            </div>
+            <p>
+              Refino pós-revisão: (A) condensar com "ver tudo"; (B) separar <em>Resumo mensal</em> (totais)
+              de <em>Médias por categoria</em> (Despesas, Investimentos, Salário, Cartão de Crédito); (C)
+              janela de <strong>meses ativos</strong> (reverte "zeros = R$0"); (D) card de categoria com
+              entrada+saída (dominante destacado) + ícone/cor reais.
+            </p>
+            <p class="deps"><strong>Implementado — 333 unit tests + ts-check OK; falta validação visual.</strong> Reverte decisão de janela da v1 + obs de categoria. Sem schema/query novos.</p>
+            <div class="obs-foot">
+              <a href="observations/reports/enhancement/2026-06-23-insights-v2-condense-per-category-active-window.html">obs ↗</a>
+              <span class="effort">esforço: M · sobre a v1 já no working tree</span>
+            </div>
+          </article>
+
+          <!-- 4. Widget customizável -->
+          <article class="obs-card muted sev-low">
+            <div class="obs-eyebrow">reports · enhancement</div>
+            <h3>Widget de 12 meses customizável</h3>
+            <div class="meta-row">
+              <span class="verdict accent">enhancement</span>
+              <span class="verdict neutral">low</span>
+              <span class="verdict accent">needs-input</span>
+            </div>
+            <p>
+              Deixar o usuário fixar categorias extras (ex.: Energia) no widget de médias de 12 meses.
+              Cálculo é trivial; a decisão aberta é a <strong>persistência</strong> (localStorage vs doc do
+              usuário no Firestore — esta última é mudança de schema). Item 2 (customização) do brainstorm.
+            </p>
+            <p class="deps"><strong>Fora do plan run.</strong> Depende da revamp + decisão de persistência (Open Questions na obs).</p>
+            <div class="obs-foot">
+              <a href="observations/reports/enhancement/2026-06-23-customizable-12mo-insights-widget.html">obs ↗</a>
+              <span class="effort">esforço: S–M · conforme persistência escolhida</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="callout">
+          <p>
+            <span class="verdict accent">ordem</span>
+            <strong>v1 + v2 implementadas</strong> (revamp + resumo de categoria + condensar/split/meses-ativos/dual-flow)
+            — testes e ts-check OK; falta <strong>validar as duas juntas no navegador</strong>. Depois, decidir a
+            persistência do <strong>widget customizável</strong> (customiza o bloco "Médias por categoria").
+          </p>
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- LANE 1 · PEDIDOS DO USUÁRIO · 2026-09-07                      -->
+      <!-- ============================================================= -->
+      <div class="lane" id="pedidos-2026-09">
+        <h2>Pedidos do usuário — UX de consulta <span class="count">· 5 tasks · 2026-09-07</span></h2>
+        <p class="lane-note">
+          Cinco pedidos novos, todos sobre <strong>facilitar a consulta</strong> dos próprios dados
+          (achar o que é relevante, filtrar por período, ver o que é gasto fixo). Ordenados por
+          <strong>custo crescente e dependência de decisão</strong>: T1–T3 não têm nenhuma decisão
+          pendente, T4 tem uma, T5 tem duas. Nenhuma tem observation ainda — a obs de cada uma se
+          escreve ao pegar a task.
+        </p>
+
+        <div class="callout warn">
+          <p>
+            <span class="verdict warn">atenção</span>
+            T3 e T5 tocam a página de Relatórios, que hoje tem <strong>~2.600 linhas não
+            commitadas</strong> (Insights v1+v2, lane acima). Fechar aquela validação antes evita
+            trabalhar sobre um working tree misturado.
+          </p>
+        </div>
+
+        <div class="obs-grid">
+          <!-- T1 -->
+          <article class="obs-card sev-low">
+            <div class="obs-eyebrow">T1 · transações · enhancement</div>
+            <h3>Presets de data em Transações (meses, não dias)</h3>
+            <div class="meta-row">
+              <span class="verdict accent">enhancement</span>
+              <span class="verdict neutral">low</span>
+              <span class="verdict neutral">⬜ aberto</span>
+            </div>
+            <p>
+              Trocar os presets de intervalo do filtro de Transações para a régua mensal pedida:
+              este mês, mês passado, últimos 2/3/6 meses, este ano — mantendo data início/fim manuais.
+            </p>
+            <p class="deps">
+              <strong>Já existe 80% disso:</strong> <code class="inline">src/helpers/dateRangePresets.ts</code>
+              já entrega "Este mês", "Mês passado", "Este ano" e "Personalizado" + os DatePickers manuais.
+              O delta real é trocar <em>Últimos 7/30/90 dias</em> por <em>2/3/6 meses</em>.
+            </p>
+            <div class="obs-foot">
+              <span>obs: a criar</span>
+              <span class="effort">esforço: XS · 1 helper</span>
+            </div>
+          </article>
+
+          <!-- T2 -->
+          <article class="obs-card sev-low">
+            <div class="obs-eyebrow">T2 · categorias · enhancement</div>
+            <h3>Listar transações na página da categoria</h3>
+            <div class="meta-row">
+              <span class="verdict accent">enhancement</span>
+              <span class="verdict neutral">low</span>
+              <span class="verdict neutral">⬜ aberto</span>
+            </div>
+            <p>
+              Mesma lista de transações que a página de Identificador já tem, agora filtrada pela
+              categoria aberta.
+            </p>
+            <p class="deps">
+              <strong>Reusar:</strong> <code class="inline">TransactionListSection</code>, que já expõe
+              <code class="inline">fixedCounterpartyId</code> e já carrega
+              <code class="inline">filters.categoryIds</code> — falta o irmão
+              <code class="inline">fixedCategoryId</code>. Verificar se a query por
+              <code class="inline">categoryIds</code> (array-contains) exige índice composto novo → seria deploy de prod.
+            </p>
+            <div class="obs-foot">
+              <span>obs: a criar</span>
+              <span class="effort">esforço: S · componente já existe</span>
+            </div>
+          </article>
+
+          <!-- T3 -->
+          <article class="obs-card sev-medium">
+            <div class="obs-eyebrow">T3 · relatórios · enhancement</div>
+            <h3>Detalhamento do Período em 2 seções + ver mais</h3>
+            <div class="meta-row">
+              <span class="verdict accent">enhancement</span>
+              <span class="verdict warn">medium</span>
+              <span class="verdict neutral">⬜ aberto</span>
+            </div>
+            <p>
+              Acabar com as abas: Categorias e Identificadores viram duas seções visíveis ao mesmo
+              tempo. Dobrar o teto de identificadores, exibindo os 10 primeiros e revelando o resto
+              num "ver mais".
+            </p>
+            <p class="deps">
+              <strong>Corrigir a premissa:</strong> o teto de identificadores hoje é <strong>15</strong>,
+              não 10 (<code class="inline">COUNTERPARTY_LIST_TOP_N</code>); o de categorias é 10.
+              Definir se "dobrar" é 20 (número pedido) ou 30 (dobro real).
+              Vive em <code class="inline">ReportsBreakdownDetail.vue</code> +
+              <code class="inline">useReportsAnalytics.ts</code>.
+            </p>
+            <div class="obs-foot">
+              <span>obs: a criar</span>
+              <span class="effort">esforço: S–M · sem query nova</span>
+            </div>
+          </article>
+
+          <!-- T4 -->
+          <article class="obs-card sev-medium">
+            <div class="obs-eyebrow">T4 · categorias + identificadores · enhancement</div>
+            <h3>Ordenar por gasto/ganho nas listagens</h3>
+            <div class="meta-row">
+              <span class="verdict accent">enhancement</span>
+              <span class="verdict warn">medium</span>
+              <span class="verdict bad">🔒 bloqueada</span>
+            </div>
+            <p>
+              Ordenar as páginas de Categorias e Identificadores pelo quanto cada item movimenta, para
+              achar os mais relevantes sem abrir um a um. Hoje só há A–Z.
+            </p>
+            <p class="deps">
+              <strong>Decisão antes de codar:</strong> qual janela (tudo / 12m / ano) e qual métrica
+              (gasto, ganho ou bruto). <strong>Impacto:</strong> as duas páginas rodam in-memory sobre o
+              <code class="inline">referenceDataStore</code> e ordenam por campo do item via
+              <code class="inline">paginateInMemory</code> — totais não são campo do item, então
+              precisam carregar o <code class="inline">Report</code> (1 leitura) e decorar os itens antes de ordenar.
+              <code class="inline">buildBreakdownList</code> já modela grossTotal/netTotal e serve de base.
+            </p>
+            <div class="obs-foot">
+              <span>obs: a criar</span>
+              <span class="effort">esforço: M · 2 páginas + helper de ordenação</span>
+            </div>
+          </article>
+
+          <!-- T5 -->
+          <article class="obs-card sev-high">
+            <div class="obs-eyebrow">T5 · relatórios · enhancement</div>
+            <h3>Gastos fixos: gráfico, card de média e conjunto configurável</h3>
+            <div class="meta-row">
+              <span class="verdict accent">enhancement</span>
+              <span class="verdict bad">high</span>
+              <span class="verdict bad">🔒 bloqueada</span>
+            </div>
+            <p>
+              Seção de gastos fixos em Relatórios: gráfico no período + card de média mensal (irmão do
+              "gasto médio mensal"). Gasto fixo = união de categorias, default Despesas + Cartão de
+              Crédito + Supermercado + Alimentação + Água + Energia, editável pelo usuário.
+            </p>
+            <p class="deps">
+              <strong>Duas decisões travando:</strong> (1) a deduplicação pedida <em>não é calculável
+              com o Report atual</em> — ele soma o valor cheio em cada categoria da transação
+              (<code class="inline">apply-transaction-to-report.ts</code>, loop sobre
+              <code class="inline">categoryIds</code>), então a união das 6 categorias vem inflada;
+              (2) onde persistir o conjunto do usuário — <strong>mesma pergunta em aberto</strong> da obs
+              do widget customizável de 12m.
+            </p>
+            <div class="obs-foot">
+              <a href="observations/reports/enhancement/2026-06-23-customizable-12mo-insights-widget.html">obs relacionada ↗</a>
+              <span class="effort">esforço: L · decidir antes de codar</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="rec-banner">
+          <h4>Ordem recomendada</h4>
+          <p>
+            <strong>T1 → T2 → T3</strong> são escopo fechado e não pedem nada de você: dá pra entregar
+            as três em sequência. <strong>T4</strong> abre com uma pergunta de produto (janela + métrica).
+            <strong>T5</strong> é a maior e a única que esbarra em limitação de dados — vale decidir a
+            persistência dela junto com a do widget customizável, já que é a mesma pergunta.
+          </p>
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- LANE 2 · PRÓXIMAS TASKS — CANDIDATOS (PERFORMANCE)            -->
+      <!-- ============================================================= -->
+      <div class="lane" id="proximas">
+        <h2>Próximas tasks — trilha de performance <span class="count">· 4 itens</span></h2>
+        <p class="lane-note">
+          Nenhum é "pegar e codar" como na sprint anterior — todos pedem uma decisão antes. Ordenados
+          por valor/desbloqueio. Recomendação no fim.
         </p>
 
         <div class="rec-banner">
           <h4>Pacote recomendado</h4>
           <p>
-            Tratar a <strong>página de Objetivos</strong> e a <strong>renomeação para "Objetivos"</strong>
-            como um único entregável coeso (a página já assume o rótulo "Objetivos"), e levar o
-            <strong>bug de store stale</strong> junto como quick-win — ele toca a mesma área de contas
-            bancárias que o seletor da nova página vai consumir.
+            Abrir a trilha de performance do dashboard como <strong>uma discussão de arquitetura</strong>:
+            reavaliar o <strong>#12 (report sync)</strong> agora que seu bloqueio expirou e decidir o
+            caminho (Cloud Functions vs. mitigação client-only parcial). Essa decisão é o que destrava o
+            <strong>#4</strong>, a maior dívida técnica restante. Antes disso, confirmar o pendente de
+            <strong>deploy de índices</strong> da Onda C — é barato e pode estar faltando em produção.
           </p>
         </div>
 
         <div class="obs-grid">
-          <!-- 1. Objetivos page -->
-          <article class="obs-card sev-medium">
-            <div class="obs-eyebrow">budgets · enhancement</div>
-            <h3>Página dedicada "Objetivos" com entrada na sidebar</h3>
-            <div class="meta-row">
-              <span class="verdict accent">enhancement</span>
-              <span class="verdict warn">medium</span>
-              <span class="verdict warn">open</span>
-            </div>
-            <p>
-              Hoje objetivos/orçamentos só são acessíveis por um botão "Configurar" dentro de
-              Relatórios, presos à conta selecionada. Criar <code class="inline">/dashboard/objetivos</code>
-              com rota na sidebar e uma lista de objetivos por conta — paridade com Categorias,
-              Identificadores e Contas. Reaproveita o <code class="inline">BudgetSettingsDialog</code>
-              para edição; precisa de um novo serviço <code class="inline">listBudgets({ userId })</code>.
-            </p>
-            <p class="deps">
-              <strong>Independente de:</strong> objetivos globais (adiado). Trabalha no modelo
-              atual, 1 objetivo por conta bancária.
-            </p>
-            <div class="obs-foot">
-              <a href="observations/budgets/enhancement/2026-04-11-dedicated-objetivos-page.md">obs ↗</a>
-              <span class="effort">esforço: M · novo page + serviço de lista</span>
-            </div>
-          </article>
-
-          <!-- 2. Rename -->
+          <!-- 1. Deploy índices (pendência de prod) -->
           <article class="obs-card sev-low">
-            <div class="obs-eyebrow">budgets · enhancement</div>
-            <h3>Renomear "Orçamento" → "Objetivos" na UI</h3>
+            <div class="obs-eyebrow">infra · pendência de deploy</div>
+            <h3>Confirmar <code class="inline">pnpm deploy:indexes</code> (índice da Onda C)</h3>
             <div class="meta-row">
-              <span class="verdict accent">enhancement</span>
+              <span class="verdict warn">performance</span>
               <span class="verdict neutral">low</span>
-              <span class="verdict warn">open</span>
+              <span class="verdict warn">pendente</span>
             </div>
             <p>
-              Troca só de texto visível ao usuário (títulos, copy do dialog, toasts), mantendo
-              schema, coleção, serviços e tipos (<code class="inline">budget</code>,
-              <code class="inline">IBudget</code>, <code class="inline">budgets/*</code>) intactos.
-              Casa com a página acima, que já usa o rótulo "Objetivos".
+              A Onda C (#8, já resolvida no código) adicionou query direta por
+              <code class="inline">slugifiedName</code> no get-or-create de counterparty, que exige o
+              índice composto <code class="inline">creditors: userId + slugifiedName</code> em produção.
+              O overview de performance registra isso como lembrete de deploy. Se o índice não estiver
+              publicado, a query falha/degrada em prod.
             </p>
             <p class="deps">
-              <strong>Pareia com:</strong> página de Objetivos — fazer no mesmo PR evita label
-              inconsistente.
+              <strong>Ação:</strong> verificar com o usuário se o índice já foi deployado; se não,
+              ele roda <code class="inline">pnpm deploy:indexes</code> (operação de produção — não
+              executar autonomamente).
             </p>
             <div class="obs-foot">
-              <a href="observations/budgets/enhancement/2026-04-11-rename-budgets-to-objetivos.md">obs ↗</a>
-              <span class="effort">esforço: S · grep + replace de copy</span>
+              <a href="observations/2026-04-19-performance-overview.md">overview ↗</a>
+              <span class="effort">esforço: XS · 1 comando, mas é prod (gate do usuário)</span>
             </div>
           </article>
 
-          <!-- 3. Store stale bug -->
+          <!-- 2. #12 report sync — destravar -->
           <article class="obs-card sev-medium">
-            <div class="obs-eyebrow">bank-accounts · bug</div>
-            <h3>Store do dashboard fica stale após criar/editar/deletar conta</h3>
+            <div class="obs-eyebrow">reports · bug · #12</div>
+            <h3>Reavaliar o sync best-effort do Report (bloqueio expirou)</h3>
             <div class="meta-row">
               <span class="verdict bad">bug</span>
               <span class="verdict warn">medium</span>
-              <span class="verdict warn">open</span>
+              <span class="verdict accent">destravável</span>
             </div>
             <p>
-              Mutações de conta bancária não atualizam o <code class="inline">useDashboardStore</code>:
-              seletor de conta, header, filtros de relatório e onboarding seguem mostrando o snapshot
-              antigo até um reload. Conta recém-criada não aparece no seletor; conta deletada continua
-              selecionável (apontando query para id inexistente).
+              Catch silencioso, escritas não atômicas e race condition no padrão "ler Report → delta →
+              regravar". Foi adiado <em>até depois das melhorias de performance</em> — que já saíram.
+              Solução completa pede Cloud Functions (transação server-side); mitigação client-only é
+              possível mas parcial. É pré-requisito de confiabilidade para o #4.
             </p>
             <p class="deps">
-              <strong>Abordagem:</strong> actions <code class="inline">upsertBankAccount</code> /
-              <code class="inline">removeBankAccount</code> no store, chamadas pelos serviços (mantém
-              a regra "UI nunca toca Firebase direto").
+              <strong>Decisão antes de codar:</strong> Cloud Functions (robusto, mas infra nova +
+              decisão do usuário) vs. mitigação client-only (parcial). <strong>Bloqueia:</strong> #4.
             </p>
             <div class="obs-foot">
-              <a href="observations/bank-accounts/bug/2026-04-11-dashboard-store-stale-after-mutation.md">obs ↗</a>
-              <span class="effort">esforço: S–M · sync de estado no store</span>
+              <a href="observations/reports/bug/2026-04-23-best-effort-report-sync-fragility.md">obs ↗</a>
+              <span class="effort">esforço: M–L · depende do caminho escolhido</span>
             </div>
           </article>
-        </div>
-      </div>
 
-      <!-- ============================================================= -->
-      <!-- LANE 2 · ADIADAS / BLOQUEADAS                                 -->
-      <!-- ============================================================= -->
-      <div class="lane" id="adiadas">
-        <h2>Fora da sprint — adiadas / bloqueadas <span class="count">· 3 itens</span></h2>
-        <p class="lane-note">
-          Abertas, mas não dá pra tocar agora sem antes destravar uma dependência ou reverter uma
-          decisão de adiamento do usuário. Mantidas no radar.
-        </p>
-
-        <div class="obs-grid">
-          <article class="obs-card muted sev-high">
+          <!-- 3. #4 dashboard perf -->
+          <article class="obs-card sev-high">
             <div class="obs-eyebrow">dashboard · performance · #4</div>
             <h3>Dashboard carrega todas as transações brutas</h3>
             <div class="meta-row">
               <span class="verdict warn">performance</span>
               <span class="verdict bad">critical</span>
-              <span class="verdict neutral">deferred</span>
+              <span class="verdict warn">open</span>
             </div>
             <p>
-              Maior gargalo de performance: a home reprocessa centenas de transações em 6+ computeds.
-              A migração para consumir o <code class="inline">Report</code> pré-agregado depende da
-              robustez do sync do Report (#12, também adiado). Dívida técnica assumida.
+              Maior gargalo restante: a home reprocessa centenas de transações em 6+ computeds. A migração
+              para consumir o <code class="inline">Report</code> pré-agregado (1 leitura em vez de N) já tem
+              o modelo pronto (<code class="inline">src/@schemas/models/report.ts</code>) — falta confiar no
+              sync, daí a dependência do #12.
             </p>
-            <p class="deps"><strong>Bloqueado por:</strong> #12 (best-effort report sync).</p>
+            <p class="deps"><strong>Bloqueado por:</strong> #12 (confiabilidade do report sync).</p>
             <div class="obs-foot">
               <a href="observations/dashboard/performance/2026-04-19-dashboard-loads-all-transactions.md">obs ↗</a>
-              <span class="effort">revisitar quando #4 sair do defer</span>
+              <span class="effort">esforço: L · migrar computeds do dashboard para o Report</span>
             </div>
           </article>
 
-          <article class="obs-card muted sev-medium">
-            <div class="obs-eyebrow">reports · bug · #12</div>
-            <h3>Sync best-effort do Report pode dessincronizar em silêncio</h3>
-            <div class="meta-row">
-              <span class="verdict bad">bug</span>
-              <span class="verdict warn">medium</span>
-              <span class="verdict neutral">deferred</span>
-            </div>
-            <p>
-              Catch silencioso, escritas não atômicas e race condition no padrão "ler Report → delta →
-              regravar". É pré-requisito de confiabilidade para o #4. Solução completa pede Cloud
-              Functions; mitigação client-only é possível mas parcial.
-            </p>
-            <p class="deps"><strong>Bloqueia:</strong> #4 (dashboard via Report).</p>
-            <div class="obs-foot">
-              <a href="observations/reports/bug/2026-04-23-best-effort-report-sync-fragility.md">obs ↗</a>
-              <span class="effort">adiado por decisão do usuário</span>
-            </div>
-          </article>
-
+          <!-- 4. Objetivos globais -->
           <article class="obs-card muted sev-low">
             <div class="obs-eyebrow">budgets · enhancement</div>
             <h3>Objetivos globais (cross-conta)</h3>
@@ -207,8 +446,8 @@
             </div>
             <p>
               Objetivo único aplicado a todas as contas. Só faz sentido quando existir uma visão de
-              relatórios agregada cross-conta — sem essa tela, um limite "global" não tem onde ser
-              medido no modelo mental do usuário.
+              relatórios agregada cross-conta — sem essa tela, um limite "global" não tem onde ser medido.
+              Mantido adiado por decisão do usuário.
             </p>
             <p class="deps"><strong>Bloqueado por:</strong> feature de relatórios globais (inexistente).</p>
             <div class="obs-foot">
@@ -220,270 +459,105 @@
       </div>
 
       <!-- ============================================================= -->
-      <!-- LANE 3 · FAXINA DE STATUS                                     -->
-      <!-- ============================================================= -->
-      <div class="lane" id="faxina">
-        <h2>Faxina de status <span class="count">· 3 arquivos desatualizados</span></h2>
-        <p class="lane-note">
-          Não é trabalho de código — é alinhar os arquivos com a realidade. Estas observations
-          aparecem como <code class="inline">open</code> mas a Onda A de performance já foi resolvida,
-          validada e mergeada em <strong>2026-06-19</strong>. Verifiquei no código:
-          <code class="inline">firebaseDeleteMany</code> já faz chunking por
-          <code class="inline">BATCH_MAX</code> e <code class="inline">cascadeDeleteBankAccount</code>
-          já usa <code class="inline">cascadePaginatedBatch</code> (cursor).
-        </p>
-
-        <div class="table-wrap">
-          <table class="eval">
-            <thead>
-              <tr>
-                <th>Observation</th>
-                <th>Diz</th>
-                <th>Realidade no código</th>
-                <th>Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <a href="observations/transactions/performance/2026-04-19-firebase-batch-500-limit.md">
-                    firebase-batch-500-limit (#1)
-                  </a>
-                </td>
-                <td><span class="verdict warn">open</span></td>
-                <td>Chunking por 500 implementado em <code class="inline">firebase{Create,Update,Delete}Many</code></td>
-                <td>Marcar <span class="verdict good">resolved</span> (Onda A, <code class="inline">bc58a55</code>)</td>
-              </tr>
-              <tr>
-                <td>
-                  <a href="observations/transactions/performance/2026-04-23-cascade-delete-fetch-all.md">
-                    cascade-delete-fetch-all (#9)
-                  </a>
-                </td>
-                <td><span class="verdict warn">open</span></td>
-                <td>Cascade por cursor via <code class="inline">cascadePaginatedBatch</code></td>
-                <td>Marcar <span class="verdict good">resolved</span> (Onda A, <code class="inline">c820426</code>)</td>
-              </tr>
-              <tr>
-                <td>
-                  <a href="observations/2026-04-19-performance-overview.md">
-                    performance-overview
-                  </a>
-                </td>
-                <td><span class="verdict warn">open</span></td>
-                <td>Ondas A–D resolvidas; segue aberta só pra rastrear o defer (#4, #12)</td>
-                <td>Manter aberta — é meta-doc de rastreio proposital</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="callout warn">
-          <p>
-            <strong>Antes de fechar #1 e #9:</strong> seguir o ritual de resolve das observations
-            (validar contra o diff da Onda A, confirmar com o usuário, registrar os SHAs em
-            <code class="inline">related-commits</code>). São arquivos <code class="inline">.md</code> —
-            editar in-place, não recriar em HTML.
-          </p>
-        </div>
-      </div>
-
-      <!-- ============================================================= -->
       <!-- ORDEM SUGERIDA                                                -->
       <!-- ============================================================= -->
       <section id="ordem">
         <h2>Ordem sugerida</h2>
         <ol class="bullets">
           <li>
-            <strong>Quick-win primeiro</strong> — fechar a faxina de status (#1, #9) com o ritual de
-            resolve. Tira ruído do board e não envolve código.
+            <strong>Pendência de prod primeiro</strong> — confirmar/rodar <code class="inline">pnpm
+            deploy:indexes</code> da Onda C. Barato, e é a única coisa do board que pode estar quebrada
+            em produção agora.
           </li>
           <li>
-            <strong>Bug de store stale</strong> — corrigir o <code class="inline">useDashboardStore</code>
-            antes da página de Objetivos, já que a nova página vai consumir o seletor de contas e se
-            beneficia do estado sincronizado.
+            <strong>Decidir o caminho do #12</strong> — sessão de discussão (Cloud Functions vs.
+            mitigação client-only) antes de qualquer código. Recomendo usar a skill de decisão
+            (<code class="inline">ahead:decision</code>) por ser fork de arquitetura com trade-off real.
           </li>
           <li>
-            <strong>Feature de Objetivos</strong> — página dedicada + renomeação no mesmo PR. Maior
-            entrega de valor da sprint.
+            <strong>Executar #12 → #4</strong> — só depois da decisão. Robustecer o sync do Report e,
+            com ele confiável, migrar os computeds do dashboard para leitura única do Report. Maior
+            ganho de performance percebido.
           </li>
         </ol>
+        <div class="callout warn">
+          <p>
+            <strong>Honestidade de escopo:</strong> diferente da sprint anterior, não há aqui nenhum item
+            de escopo fechado pronto pra autopilot. A trilha #12 → #4 começa com decisão do usuário
+            (infra/Cloud Functions) e a #4 é grande (severity critical). Se a intenção for outra entrega
+            rápida, vale levantar features novas fora do board atual (ex.: relatórios globais, que também
+            destravaria os objetivos globais).
+          </p>
+        </div>
       </section>
 
       <!-- ============================================================= -->
-      <!-- LOG DE EXECUÇÃO · autopilot (never-commit, branch main)        -->
+      <!-- REGISTRO · SPRINT ANTERIOR (CONCLUÍDA E COMMITADA)            -->
       <!-- ============================================================= -->
-      <section id="execucao">
-        <h2>Log de execução — autopilot</h2>
+      <div class="lane" id="concluido">
+        <h2>Sprint anterior — concluída <span class="count">· 5 obs entregues</span></h2>
         <p class="lane-note">
-          Run autônomo iniciado 2026-06-19. Modo never-commit: tudo unstaged na branch
-          <code class="inline">main</code> para revisão. Um subagent fresco por tarefa.
+          Registro do que foi feito no run autônomo de 2026-06-19 e já <strong>commitado em main</strong>
+          (corrige a versão antiga deste arquivo, que ainda dizia "unstaged, nenhum commit feito").
         </p>
 
-        <div class="progress-entry good">
-          <div class="when">2026-06-19 · T0 · faxina de status · done</div>
-          <div class="what">Resolvidas as obs já corrigidas no código (Onda A de performance)</div>
-          <p>
-            <strong>Feito:</strong> confirmado no código que o chunking por
-            <code class="inline">BATCH_MAX</code> (500) está em
-            <code class="inline">firebase{Create,Update,Delete}Many.ts</code> e que o cascade usa
-            <code class="inline">cascadePaginatedBatch</code> (cursor + batch por página). Os dois
-            arquivos <code class="inline">firebase-batch-500-limit.md</code> (#1) e
-            <code class="inline">cascade-delete-fetch-all.md</code> (#9) viraram
-            <span class="verdict good">resolved</span> (resolved-date 2026-06-19, retention reference,
-            seção Resolution adicionada).
-          </p>
-          <p>
-            <strong>Decisão:</strong> registrado só <code class="inline">bc58a55</code> em
-            <code class="inline">related-commits</code>. O overview citava também
-            <code class="inline">c820426</code>, mas <code class="inline">git show --stat</code> mostrou
-            que esse commit toca só o fix de freeze da categorização — não os arquivos de batch/cascade.
-            Descartado por não ser relevante a essas duas obs.
-          </p>
-          <p>
-            <strong>Antes → depois:</strong> #1 e #9 <code class="inline">open</code> →
-            <code class="inline">resolved</code>. Overview mantido aberto (meta-doc de rastreio). Nenhum
-            código de produto tocado.
-          </p>
-        </div>
-      </section>
-
-        <div class="progress-entry good">
-          <div class="when">2026-06-19 · T1 · bug store stale · done</div>
-          <div class="what">Sincronização do <code class="inline">useDashboardStore</code> após mutação de conta</div>
-          <p>
-            <strong>Feito:</strong> bug confirmado no código antes do fix. Implementada a Opção 2
-            recomendada (thin store actions): novas actions
-            <code class="inline">createBankAccount/updateBankAccount/deleteBankAccount</code> no store
-            envolvem os serviços de API e aplicam a mudança ao estado em memória. Lógica pura extraída
-            em <code class="inline">src/helpers/bank-account/applyBankAccountUpsert.ts</code> e
-            <code class="inline">applyBankAccountRemoval.ts</code> (replace-by-id/append, patch do
-            <code class="inline">currentBankAccount</code>, fallback ao mais recente no delete).
-            Call sites migrados dos serviços crus para as actions:
-            <code class="inline">BankAccountForm.vue</code>, <code class="inline">contas-bancarias/index.vue</code>,
-            <code class="inline">contas-bancarias/[id].vue</code>, <code class="inline">useOnboarding.ts</code>.
-          </p>
-          <p>
-            <strong>Decisão descartada:</strong> testar o store Pinia direto — o env de teste não
-            bootstrapa os auto-imports do Nuxt e não há testes de store pra espelhar. Extraídos helpers
-            puros, cobertos sem mock.
-          </p>
-          <p>
-            <strong>Testes:</strong> TDD — <code class="inline">tests/unit/helpers/bank-account-state.test.ts</code>
-            (10 casos) vermelho → verde. <code class="inline">pnpm test:unit</code> = 299 passed (48 files).
-            <code class="inline">pnpm run ts-check</code> limpo.
-            <strong>Não verificado:</strong> reatividade Pinia / re-render do switcher ao vivo (lógica pura
-            coberta; actions são pass-through tipadas) — fecha com verificação manual/E2E.
-          </p>
-          <p>
-            <strong>Antes → depois:</strong> mutações só atingiam o Firestore; switcher/header/relatórios/onboarding
-            ficavam stale e conta deletada seguia selecionável. Agora o estado atualiza na hora.
-            Obs <span class="verdict good">resolved</span> (retention reference).
-          </p>
-        </div>
-
-        <div class="progress-entry">
-          <div class="when">2026-06-19 · T2 · feature página Objetivos · done (awaiting-validation)</div>
-          <div class="what">Página dedicada <code class="inline">/dashboard/objetivos</code> + entrada na sidebar</div>
-          <p>
-            <strong>Feito:</strong> rota <code class="inline">budgets</code> em
-            <code class="inline">routes.ts</code> (path <code class="inline">/dashboard/objetivos</code>,
-            label "Objetivos", <code class="inline">menu.group: management</code>, <code class="inline">TargetIcon</code>)
-            — a sidebar é auto-derivada, sem editar layout. Novo serviço
-            <code class="inline">listBudgets({ userId })</code> (padrão getCategories). Helper puro
-            <code class="inline">buildObjetivoRows</code> junta contas × budgets (uma linha por conta,
-            inclusive sem objetivo, flag <code class="inline">isConfigured</code>). Página
-            <code class="inline">objetivos/index.vue</code> (DashboardSection + Table) reusa
-            <code class="inline">BudgetSettingsDialog</code>, <code class="inline">getOrCreateBudget</code>/<code class="inline">updateBudget</code>/<code class="inline">deleteBudget</code>.
-            Copy nova já em "Objetivos".
-          </p>
-          <p>
-            <strong>Decisões:</strong> always-current-month (schema sem campo de mês); card de Relatórios
-            intocado (mantém atalho do dialog); serviço retorna só docs existentes e a página calcula as
-            linhas faltantes contra o store. <strong>Descartado:</strong> refatorar o dialog em sheet
-            (desnecessário) e criar serviço paginado (contagem é trivial, in-memory).
-          </p>
-          <p>
-            <strong>Schema/índice:</strong> nenhuma mudança de schema; sem índice novo
-            (<code class="inline">listBudgets</code> filtra só por <code class="inline">userId</code>;
-            <code class="inline">budgets</code> já registrado + rules). Nada deployado.
-            <strong>Testes:</strong> <code class="inline">pnpm test:unit</code> = 305 passed (49 files, +6 novos);
-            ts-check limpo. Render da página/sidebar é visual → não coberto por unit.
-          </p>
-          <p>
-            <strong>Antes → depois:</strong> objetivos só via botão "Configurar" em Relatórios →
-            agora também via página dedicada com create/edit/delete por conta.
-            Obs <span class="verdict warn">awaiting-validation</span> (5 checagens manuais listadas em Pending Validation).
-          </p>
-        </div>
-
-        <div class="progress-entry good">
-          <div class="when">2026-06-19 · T3 · rename Orçamento → Objetivos · done</div>
-          <div class="what">Rebrand de copy visível (UI-only, zero mudança funcional)</div>
-          <p>
-            <strong>Feito:</strong> grep autoritativo achou 10 ocorrências visíveis em 5 arquivos, todas
-            renomeadas. Toasts <code class="inline">itemName</code> em
-            <code class="inline">create/update/delete-budget.ts</code> → "Objetivo" (singular);
-            <code class="inline">BudgetSettingsDialog.vue</code> (título "Configurar Objetivo", "Objetivo
-            por Categoria", empty-state); <code class="inline">ReportsBudgetTracking.vue</code> (título do
-            card → "Objetivos", empty-state, botão); e um extra fora da obs:
-            <code class="inline">InsightsGrid.vue</code> "Dentro do orçamento" → "Dentro do objetivo".
-          </p>
-          <p>
-            <strong>Mantido interno (intocado):</strong> tipos <code class="inline">IBudget</code>,
-            coleção <code class="inline">budgets</code>, nomes de arquivo/serviço, helper
-            <code class="inline">calculate-budget-progress.ts</code>, doc paths. Sub-labels "Limite de
-            gastos mensal"/"Meta de receita mensal" deixados como estão (são rótulos de barra).
-          </p>
-          <p>
-            <strong>Verificação:</strong> <code class="inline">grep -rniE 'or[çc]amento' src/</code> = 0
-            matches; ts-check limpo; <code class="inline">pnpm test:unit</code> = 305 passed (nenhum teste
-            afirmava a copy antiga). Texto renderizado ainda pede olho manual.
-            Obs <span class="verdict good">resolved</span> (retention disposable).
-          </p>
+        <div class="table-wrap">
+          <table class="eval">
+            <thead>
+              <tr>
+                <th>Entrega</th>
+                <th>Obs</th>
+                <th>Estado</th>
+                <th>Commit(s)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Faxina de performance (#1 batch-500, #9 cascade-delete)</td>
+                <td>
+                  <a href="observations/transactions/performance/2026-04-19-firebase-batch-500-limit.md">#1</a>,
+                  <a href="observations/transactions/performance/2026-04-23-cascade-delete-fetch-all.md">#9</a>
+                </td>
+                <td><span class="verdict good">resolved</span></td>
+                <td><code class="inline">9bae6eb</code></td>
+              </tr>
+              <tr>
+                <td>Bug de store stale após mutação de conta bancária</td>
+                <td><a href="observations/bank-accounts/bug/2026-04-11-dashboard-store-stale-after-mutation.md">store-stale</a></td>
+                <td><span class="verdict good">resolved</span></td>
+                <td><code class="inline">e99c8a8</code></td>
+              </tr>
+              <tr>
+                <td>Página dedicada "Objetivos" (redesenhada: escopo na conta atual + form compartilhado)</td>
+                <td><a href="observations/budgets/enhancement/2026-04-11-dedicated-objetivos-page.md">objetivos-page</a></td>
+                <td><span class="verdict good">resolved</span></td>
+                <td><code class="inline">e99c8a8</code>, <code class="inline">54f40aa</code></td>
+              </tr>
+              <tr>
+                <td>Rename "Orçamento" → "Objetivos" na UI (copy-only)</td>
+                <td><a href="observations/budgets/enhancement/2026-04-11-rename-budgets-to-objetivos.md">rename</a></td>
+                <td><span class="verdict good">resolved</span></td>
+                <td><code class="inline">e99c8a8</code></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <div class="callout good">
-          <h4>Run concluído</h4>
           <p>
-            5 obs tratadas (T0 = 2 resolved, T1 resolved, T2 awaiting-validation, T3 resolved). Tudo
-            <strong>unstaged</strong> na branch <code class="inline">main</code> para revisão — nenhum
-            commit feito. Suíte final: <code class="inline">pnpm test:unit</code> 305 passed,
-            <code class="inline">ts-check</code> limpo. Pendente de validação visual: a página de
-            Objetivos (T2) e os rótulos renderizados (T2/T3).
+            Backfill de <code class="inline">related-commits</code> e do board feito em
+            <code class="inline">c8388ea</code>; bump de versão para 1.2.0-beta em
+            <code class="inline">45d4227</code>. A obs de freeze da categorização
+            (<code class="inline">2026-06-16-categorizar-save-freeze.html</code>) também está
+            <span class="verdict good">resolved</span>. Suíte na época do merge:
+            <code class="inline">pnpm test:unit</code> verde, <code class="inline">ts-check</code> limpo.
           </p>
         </div>
-
-        <div class="progress-entry">
-          <div class="when">2026-06-19 · T2 (redesign) · página Objetivos · awaiting-validation</div>
-          <div class="what">Refeita após feedback: escopo na conta atual + form do dialog expandido</div>
-          <p>
-            <strong>Motivo:</strong> a tabela de todas as contas contrariava o padrão do app (toda
-            página opera sobre a <code class="inline">currentBankAccount</code>) e tabela não era a
-            superfície desejada.
-          </p>
-          <p>
-            <strong>Feito:</strong> corpo do form extraído em
-            <code class="inline">BudgetSettingsForm.vue</code> (compartilhado, expõe
-            <code class="inline">getPayload()</code> + tipo <code class="inline">IBudgetFormPayload</code>);
-            <code class="inline">BudgetSettingsDialog</code> agora envelopa o form (Relatórios inalterado);
-            página <code class="inline">objetivos/index.vue</code> reescrita — lê
-            <code class="inline">currentBankAccount</code>, carrega via
-            <code class="inline">getOrCreateBudget</code>, renderiza o form em página inteira (card max-w-3xl)
-            com "Salvar objetivo" e "Limpar objetivo", empty-state sem conta, e reload no switch de conta.
-            Código morto da tabela removido (<code class="inline">list-budgets.ts</code>,
-            <code class="inline">buildObjetivoRows.ts</code> + teste).
-          </p>
-          <p>
-            <strong>Verificação:</strong> ts-check limpo; <code class="inline">pnpm test:unit</code> = 299
-            passed (6 testes obsoletos do helper removidos). Render/sidebar/save são visuais →
-            <span class="verdict warn">awaiting-validation</span> (7 checagens na obs).
-          </p>
-        </div>
+      </div>
 
       <footer class="footer">
-        <span>Current Work · hy-manager-vue · sprint de melhorias</span>
-        <span>atualizado 2026-06-19 · branch main</span>
+        <span>Current Work · hy-manager-vue · próximas tasks</span>
+        <span>atualizado 2026-09-07 · branch main</span>
       </footer>
     </div>
   </body>

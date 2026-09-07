@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Quick-scan metadata · MUST stay in sync with the <dl class="frontmatter"> in <body> -->
+    <meta name="obs-status" content="open" />
+    <meta name="obs-type" content="enhancement" />
+    <meta name="obs-severity" content="low" />
+    <meta name="obs-understanding" content="confident" />
+    <meta name="obs-execution" content="needs-input" />
+    <meta name="obs-retention" content="reference" />
+    <meta name="obs-date" content="2026-06-23" />
+    <meta name="obs-updated" content="2026-06-23" />
+    <meta name="obs-found-in" content="src/components/Reports/ReportsInsightsKPIs.vue" />
+    <title>Widget de insights de 12 meses customizável — Observation</title>
+    <link rel="stylesheet" href="../../../assets/report.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="title-block">
+        <div class="eyebrow">Observation · reports · enhancement</div>
+        <h1>Widget de insights de 12 meses customizável</h1>
+        <p class="subtitle">Deixar o usuário fixar categorias extras (ex.: Energia) no bloco de médias/medianas de 12 meses.</p>
+      </header>
+
+      <dl class="frontmatter">
+        <dt>status</dt><dd><span class="verdict warn">open</span></dd>
+        <dt>type</dt><dd><span class="verdict accent">enhancement</span></dd>
+        <dt>severity</dt><dd><span class="verdict neutral">low</span></dd>
+        <dt>understanding</dt><dd><span class="verdict good">confident</span></dd>
+        <dt>execution</dt><dd><span class="verdict accent">needs-input</span></dd>
+        <dt>retention</dt><dd><span class="verdict accent">reference</span></dd>
+        <dt>found-during</dt><dd>Brainstorm de melhorias de insights e relatórios</dd>
+        <dt>found-in</dt><dd><span class="path">src/components/Reports/ReportsInsightsKPIs.vue</span></dd>
+        <dt>working-branch</dt><dd><span class="path">main</span></dd>
+        <dt>found-in-branch</dt><dd><span class="path">main</span></dd>
+        <dt>date</dt><dd>2026-06-23</dd>
+        <dt>updated</dt><dd>2026-06-23</dd>
+        <dt>related-observations</dt><dd><code>docs/observations/reports/enhancement/2026-06-23-insights-revamp-scope-tooltips-12mo.html</code>, <code>docs/observations/reports/enhancement/2026-06-23-insights-v2-condense-per-category-active-window.html</code></dd>
+      </dl>
+
+      <section id="summary">
+        <h2>Summary</h2>
+        <p class="lead">
+          Extensão configurável do bloco de médias/medianas de 12 meses: além do conjunto semântico fixo
+          (despesas, receitas, investimentos, salário), permitir que o usuário fixe categorias extras de
+          interesse — ex.: "Energia" — para aparecerem sempre nesse widget. Separada do plano principal
+          porque depende da sub-feature de médias de 12m e de uma decisão de persistência ainda aberta.
+        </p>
+        <div class="callout">
+          <p>
+            <span class="verdict accent">type · enhancement</span>
+            <span class="verdict neutral">severity · low</span>
+            <span class="verdict warn">status · open</span>
+            Depende da obs de revamp (bloco de médias 12m); a decisão de <strong>onde persistir a preferência</strong> está em aberto (ver Open Questions).
+          </p>
+        </div>
+      </section>
+
+      <section id="context">
+        <h2>Context</h2>
+        <p>
+          A obs <em>Revamp da seção Insights de Relatórios</em> entrega um bloco de médias e medianas de 12
+          meses com um conjunto <strong>fixo</strong> de linhas, derivado semanticamente. Este enhancement
+          adiciona <strong>customização</strong> por cima desse bloco: o usuário escolhe categorias
+          adicionais (por nome) que passam a aparecer sempre, com a mesma média/mediana de 12 meses.
+        </p>
+        <p>
+          A complexidade real não está em calcular (o agregador de janela já existirá e funciona pra
+          qualquer categoria), mas em <strong>onde guardar a preferência</strong> do usuário. As opções têm
+          trade-offs distintos de sincronização e de impacto no schema — por isso esta obs entra como
+          <code class="inline">execution: needs-input</code>: precisa da sua decisão antes de virar plano.
+        </p>
+
+        <h3>Examples</h3>
+        <ul class="bullets">
+          <li>Usuário adiciona "Energia" e "Internet" → ambas passam a aparecer no widget de 12m com média/mediana, ao lado das 4 linhas fixas.</li>
+          <li>Remover uma categoria customizada volta o widget ao conjunto semântico padrão para aquela linha.</li>
+        </ul>
+
+        <h3>User report</h3>
+        <p>
+          O usuário pediu, no brainstorm, a possibilidade de customizar o widget de médias de 12 meses,
+          adicionando categorias específicas (deu "Energia" como exemplo) para aparecerem sempre no
+          relatório — e sinalizou que o escopo dessa customização depende da complexidade.
+        </p>
+      </section>
+
+      <section id="where">
+        <h2>Where</h2>
+        <ul class="bullets">
+          <li><code class="inline">src/components/Reports/</code> — UI do picker (seleção de categorias) e render das linhas extras.</li>
+          <li>Bloco de médias de 12m introduzido pela obs de revamp — ponto de extensão.</li>
+          <li>Persistência: <code class="inline">localStorage</code> <em>ou</em> doc do usuário em Firestore (<code class="inline">src/@schemas/models/user.ts</code> + serviço de update) — a definir.</li>
+        </ul>
+      </section>
+
+      <section id="why">
+        <h2>Why it matters</h2>
+        <p>
+          O conjunto semântico fixo cobre o essencial, mas cada usuário tem categorias-chave próprias
+          (energia, aluguel, educação) que gostaria de monitorar sempre. A customização transforma o widget
+          de "resumo padrão" em "painel pessoal" — porém é a parte de maior custo/decisão, daí o isolamento
+          numa obs própria, fora do primeiro plan run.
+        </p>
+      </section>
+
+      <section id="open-questions">
+        <h2>Open Questions</h2>
+        <ul class="bullets">
+          <li><strong>[execution]</strong> Onde persistir as categorias fixadas pelo usuário: <code class="inline">localStorage</code> (sem schema, mas não sincroniza entre dispositivos) ou doc do usuário no Firestore (sincroniza, mas é <strong>mudança de schema</strong> — requer aprovação por regra de Schema &amp; Contract)?</li>
+          <li><strong>[execution]</strong> A preferência é global do usuário ou por conta bancária? (As médias são por conta; a lista de categorias customizadas pode ou não fazer sentido variar por conta.)</li>
+          <li><strong>[understanding]</strong> Há limite de quantas categorias extras podem ser fixadas (para não estourar o layout do bloco)?</li>
+        </ul>
+      </section>
+
+      <section id="approach">
+        <h2>Suggested approach</h2>
+        <p>Decidir a persistência primeiro (Open Questions), depois implementar o picker. Opções de persistência:</p>
+        <div class="recs">
+          <div class="rec-card">
+            <div class="prio">recomendado p/ sync</div>
+            <h4>Firestore (doc do usuário)</h4>
+            <p>Campo novo no <code class="inline">user</code> (ex.: <code class="inline">reportPrefs.pinnedCategoryIds</code>). Sincroniza entre dispositivos.</p>
+            <p><strong>Custo:</strong> mudança de schema do usuário → requer aprovação explícita; +1 serviço de update.</p>
+            <div class="effort">esforço: M · schema + serviço + UI</div>
+          </div>
+          <div class="rec-card">
+            <div class="prio">mais simples</div>
+            <h4>localStorage</h4>
+            <p>Guardar ids no navegador. Zero schema, zero rede.</p>
+            <p><strong>Custo:</strong> não sincroniza entre dispositivos; perde no limpar-dados do browser.</p>
+            <div class="effort">esforço: S · só UI + storage</div>
+          </div>
+        </div>
+        <div class="callout warn">
+          <p><strong>Fora do primeiro plan run.</strong> Atacar só após a obs de revamp estar pronta e a persistência decidida.</p>
+        </div>
+      </section>
+
+      <section id="progress">
+        <h2>Progress</h2>
+        <div class="progress-entry">
+          <div class="when">2026-06-23 · criação</div>
+          <div class="what">Observation criada (split do widget customizável) — item 2 (customização) do brainstorm.</div>
+          <p>Decisão do usuário: separar do conjunto fixo e tratar à parte. Persistência deixada em aberto (Open Questions) por implicar possível mudança de schema.</p>
+        </div>
+        <div class="progress-entry">
+          <div class="when">2026-06-23 · conjunto default definido</div>
+          <div class="what">A obs <em>Insights v2</em> implementa o bloco concreto que este widget vai customizar.</div>
+          <p>
+            O bloco-alvo é <strong>"Médias por categoria (12m)"</strong>, com conjunto <strong>default fixo</strong>
+            de 4 categorias resolvidas por nome: <strong>Despesas, Investimentos, Salário, Cartão de Crédito</strong>.
+            Este widget passa a ser exatamente a camada que permite ao usuário <strong>trocar/expandir</strong>
+            esse conjunto. A decisão de persistência (localStorage vs. doc do usuário) continua em aberto e é
+            pré-requisito — idealmente guardar <strong>ids</strong> de categoria (não nomes) para resistir a
+            renomeações.
+          </p>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Observation · reports · enhancement · 2026-06-23</span>
+        <span>main</span>
+      </footer>
+    </div>
+  </body>
+</html>

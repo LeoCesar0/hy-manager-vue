@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Quick-scan metadata · MUST stay in sync with the <dl class="frontmatter"> in <body> -->
+    <meta name="obs-status" content="awaiting-validation" />
+    <meta name="obs-type" content="enhancement" />
+    <meta name="obs-severity" content="medium" />
+    <meta name="obs-understanding" content="confident" />
+    <meta name="obs-execution" content="confident" />
+    <meta name="obs-retention" content="reference" />
+    <meta name="obs-date" content="2026-06-23" />
+    <meta name="obs-updated" content="2026-06-23" />
+    <meta name="obs-found-in" content="src/components/Reports/ReportsInsightsKPIs.vue" />
+    <title>Insights v2: condensar, médias por categoria (dual-flow) e janela de meses ativos — Observation</title>
+    <link rel="stylesheet" href="../../../assets/report.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="title-block">
+        <div class="eyebrow">Observation · reports · enhancement</div>
+        <h1>Insights v2: condensar, médias por categoria (dual-flow) e janela de meses ativos</h1>
+        <p class="subtitle">Refinamento da seção Insights pós-revisão do usuário: estado condensado com expandir, separação total vs. categoria, card de categoria com entrada+saída, e mudança da janela de 12m para considerar só meses com movimento.</p>
+      </header>
+
+      <dl class="frontmatter">
+        <dt>status</dt><dd><span class="verdict warn">awaiting-validation</span></dd>
+        <dt>type</dt><dd><span class="verdict accent">enhancement</span></dd>
+        <dt>severity</dt><dd><span class="verdict warn">medium</span></dd>
+        <dt>understanding</dt><dd><span class="verdict good">confident</span></dd>
+        <dt>execution</dt><dd><span class="verdict good">confident</span></dd>
+        <dt>retention</dt><dd><span class="verdict accent">reference</span></dd>
+        <dt>found-during</dt><dd>Revisão do usuário sobre a primeira versão da revamp de Insights</dd>
+        <dt>found-in</dt><dd><span class="path">src/components/Reports/ReportsInsightsKPIs.vue</span></dd>
+        <dt>working-branch</dt><dd><span class="path">main</span></dd>
+        <dt>found-in-branch</dt><dd><span class="path">main</span></dd>
+        <dt>date</dt><dd>2026-06-23</dd>
+        <dt>updated</dt><dd>2026-06-23</dd>
+        <dt>related-observations</dt><dd><code>docs/observations/reports/enhancement/2026-06-23-insights-revamp-scope-tooltips-12mo.html</code>, <code>docs/observations/categories/enhancement/2026-06-23-category-12mo-summary-insights.html</code>, <code>docs/observations/reports/enhancement/2026-06-23-customizable-12mo-insights-widget.html</code></dd>
+      </dl>
+
+      <div class="toc">
+        <h4>Sub-features nesta observation</h4>
+        <ol>
+          <li><a href="#a">A · Condensar + expandir</a></li>
+          <li><a href="#b">B · Resumo mensal vs. Médias por categoria (split)</a></li>
+          <li><a href="#c">C · Janela de meses ativos (reversão da decisão)</a></li>
+          <li><a href="#d">D · Card de categoria dual-flow + ícone/cor reais</a></li>
+        </ol>
+      </div>
+
+      <section id="summary">
+        <h2>Summary</h2>
+        <p class="lead">
+          A primeira versão da revamp (ver obs <em>Revamp da seção Insights de Relatórios</em>, hoje
+          <code class="inline">awaiting-validation</code>) entregou 5 blocos de cards abertos de uma vez e um
+          bloco "Médias de 12 meses" que misturava <strong>totais agregados</strong> (Despesas/Receitas
+          totais) com <strong>categorias</strong> (Investimentos, Salário). Após revisão, o usuário pediu
+          quatro ajustes: (A) condensar a seção com um "ver tudo"; (B) separar totais de categorias; (C)
+          mudar a semântica da janela de 12 meses para considerar <strong>só meses com movimento</strong>
+          (não mais zeros); e (D) o card de categoria mostrar <strong>entrada e saída no mesmo card</strong>,
+          com o fluxo dominante destacado, usando ícone e cor reais da categoria.
+        </p>
+        <div class="callout">
+          <p>
+            <span class="verdict accent">type · enhancement</span>
+            <span class="verdict warn">severity · medium</span>
+            <span class="verdict warn">status · awaiting-validation</span>
+            Revisa <code class="inline">ReportsInsightsKPIs.vue</code> + <code class="inline">aggregate-monthly-window.ts</code>; sem nova query nem schema. <strong>Reverte</strong> a decisão de "mês sem movimento = R$0" registrada na obs v1 e na obs de categoria.
+          </p>
+        </div>
+      </section>
+
+      <section id="context">
+        <h2>Context</h2>
+        <p>
+          Esta observation é a <strong>segunda rodada</strong> sobre a seção "Insights" da página de
+          Relatórios. A v1 (obs relacionada) já está implementada no working tree e aguardando validação;
+          esta v2 a refina com base no feedback do usuário, <strong>antes</strong> de a v1 ser validada/commitada.
+          Os números continuam saindo do <code class="inline">Report</code> já carregado no cliente
+          (<code class="inline">monthlyBreakdown</code>) — nenhuma busca, índice ou schema novo.
+        </p>
+
+        <h3 id="a">A · Condensar + expandir</h3>
+        <p>
+          A seção ficou longa (5–6 blocos). O estado inicial passa a ser <strong>condensado</strong>, com um
+          botão <strong>"Ver tudo / Ver menos"</strong> que revela o restante. Cards
+          <strong>sempre visíveis</strong> (decisão do usuário):
+        </p>
+        <ul class="bullets">
+          <li><strong>Taxa de poupança</strong> (período selecionado).</li>
+          <li><strong>Despesas totais</strong> (média 12m) e <strong>Receitas totais</strong> (média 12m) — bloco "Resumo mensal".</li>
+          <li><strong>Toda</strong> a seção <strong>"Médias por categoria"</strong> (os 4 cards de categoria).</li>
+        </ul>
+        <p>Ficam atrás do "Ver tudo": resto de "Período" (maior aumento/redução, anomalia), "Ano corrente" (YTD + comparativo ano anterior), "Hábitos de consumo" e "Histórico".</p>
+
+        <h3 id="b">B · Resumo mensal vs. Médias por categoria (split)</h3>
+        <p>
+          O bloco "Médias de 12 meses" da v1 se <strong>quebra em dois</strong>, para não misturar agregado
+          com categoria:
+        </p>
+        <ul class="bullets">
+          <li><strong>Resumo mensal (12m)</strong> — só os 2 totais: <em>Despesas totais</em> (<code class="inline">entry.expenses</code>) e <em>Receitas totais</em> (<code class="inline">entry.income</code>), média + mediana por mês.</li>
+          <li><strong>Médias por categoria (12m)</strong> — conjunto <strong>default fixo</strong> de 4 categorias, resolvidas <strong>por nome</strong> contra as categorias do usuário (batem com <code class="inline">src/static/default-categories.ts</code>): <strong>Despesas, Investimentos, Salário, Cartão de Crédito</strong>. No futuro o usuário troca esse conjunto via a obs do <em>widget customizável</em>.</li>
+        </ul>
+        <p>
+          Categoria não encontrada (renomeada/excluída pelo usuário) → o card simplesmente <strong>não
+          aparece</strong>. Limitação consciente: enquanto o casamento é por nome, quem renomeou "Salário"
+          não vê esse card até o widget permitir seleção por id.
+        </p>
+
+        <h3 id="c">C · Janela de meses ativos (reversão da decisão)</h3>
+        <p>
+          <strong>Mudança de semântica.</strong> A v1 (e a obs de categoria) fixou "janela de 12 meses,
+          mês sem movimento = R$0, média = soma ÷ 12". O usuário reverteu: agora considera-se
+          <strong>apenas os meses com movimento</strong> dentro dos 12 meses.
+        </p>
+        <div class="table-wrap">
+          <table class="eval">
+            <thead><tr><th></th><th>Antes (v1)</th><th>Agora (v2)</th></tr></thead>
+            <tbody>
+              <tr><td>Média</td><td>soma ÷ 12 (janela fixa)</td><td>soma ÷ <strong>meses ativos</strong></td></tr>
+              <tr><td>Mediana</td><td>sobre 12 valores (com zeros)</td><td>sobre os <strong>valores ativos</strong> apenas</td></tr>
+              <tr><td>Sub-rótulo</td><td>"ativo em 8/12 meses"</td><td>"<strong>8 meses com movimento</strong>"</td></tr>
+              <tr><td>Sem movimento</td><td>—</td><td>0 meses ativos → R$0</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>Trade-off:</strong> a leitura passa de "carga mensal média ao longo do ano" para "valor
+          típico <em>quando há movimento</em>". Categoria ativa em 3 de 12 meses deixa de ser diluída por 9
+          zeros. Aplica-se a <strong>todos</strong> os pontos que mostram média/mediana de 12m: Resumo mensal,
+          Médias por categoria e o <strong>resumo da página de categoria</strong> (obs relacionada).
+        </p>
+        <p>
+          Não muda: pico/menor mês, participação no total e tendência 3m-vs-3m da página de categoria — esses
+          não dividem pela quantidade de meses, então independem desta semântica.
+        </p>
+
+        <h3 id="d">D · Card de categoria dual-flow + ícone/cor reais</h3>
+        <p>
+          Cada card de "Médias por categoria" mostra <strong>os dois fluxos no mesmo card</strong>: a
+          <em>saída</em> (média + mediana) e a <em>entrada</em> (média + mediana). O <strong>fluxo
+          dominante</strong> (maior total na janela) fica <strong>destacado visualmente</strong>; o outro fica
+          discreto (e some quando não há movimento naquele fluxo). O card exibe o <strong>ícone real</strong>
+          da categoria (emoji via <code class="inline">getCategoryIcon</code>) e usa a <strong>cor</strong> da
+          categoria (<code class="inline">category.color</code>) como destaque.
+        </p>
+        <p>
+          Isso resolve o "ponto 2" (representação visual) onde ela faz sentido: cards que apontam para uma
+          categoria concreta ganham identidade visual; cards <strong>agregados</strong> (Despesas/Receitas
+          totais, Taxa de poupança, Saldo) seguem com ícone semântico fixo (lucide), sem fingir ser categoria.
+        </p>
+
+        <h3>Examples</h3>
+        <ul class="bullets">
+          <li><strong>Janela ativa:</strong> categoria com saída em 8 dos 12 meses, somando R$2.400 → média R$300 (=2400/8), mediana sobre os 8 valores; rótulo "8 meses com movimento". (Na v1 seria R$200 = 2400/12.)</li>
+          <li><strong>Dual-flow:</strong> "Cartão de Crédito" → saída destacada (R$1.200 média · mediana R$1.150), entrada oculta (sem movimento). "Salário" → entrada destacada, saída oculta.</li>
+          <li><strong>Ícone:</strong> Despesas 🧾 (<code class="inline">bills</code>), Investimentos 💰, Salário 💼 (<code class="inline">work</code>), Cartão de Crédito 💳 — cada um com a cor da categoria.</li>
+        </ul>
+
+        <h3>User report</h3>
+        <p>
+          O usuário sentiu a seção longa demais e notou a incoerência de "Médias de 12 meses" misturar totais
+          com categorias; esperava médias <strong>por categoria</strong> (Despesas, Investimentos, Salário,
+          Cartão de Crédito). Pediu condensar com expandir, mostrar entrada e saída no mesmo card de categoria
+          com o dominante destacado, e mudar a janela para contar só meses com movimento.
+        </p>
+      </section>
+
+      <section id="where">
+        <h2>Where</h2>
+        <ul class="bullets">
+          <li><code class="inline">src/services/analytics/aggregate-monthly-window.ts</code> — média/mediana passam para base de <strong>meses ativos</strong> (muda <code class="inline">average</code> e o conjunto da mediana; <code class="inline">activeMonths</code> já existe).</li>
+          <li><code class="inline">src/services/analytics/calculate-twelve-month-insights.ts</code> — reduzir aos 2 totais (ou renomear para <code class="inline">...-totals</code>).</li>
+          <li><strong>Novo</strong> <code class="inline">src/services/analytics/calculate-key-category-insights.ts</code> — 4 categorias nomeadas → entrada/saída (média+mediana), dominante, nome/ícone/cor.</li>
+          <li><code class="inline">src/services/analytics/calculate-category-window-summary.ts</code> — herda a janela de meses ativos nas médias/medianas.</li>
+          <li><code class="inline">src/components/Reports/ReportsInsightsKPIs.vue</code> — novo agrupamento (6 blocos) + estado condensar/expandir.</li>
+          <li><strong>Novo</strong> <code class="inline">src/components/Reports/CategoryAverageCard.vue</code> — card dual-flow com ícone/cor da categoria.</li>
+          <li><code class="inline">src/components/Dashboard/InsightCard.vue</code> — cor de destaque opcional (para cards de categoria não-dual, ex.: anomalia/ticket).</li>
+          <li><code class="inline">src/static/category-icons.ts</code> (<code class="inline">getCategoryIcon</code>) e <code class="inline">src/static/default-categories.ts</code> (nomes default) — fontes para ícone e conjunto.</li>
+        </ul>
+      </section>
+
+      <section id="why">
+        <h2>Why it matters</h2>
+        <p>
+          A v1 resolveu a confusão de escopos, mas criou duas novas fricções: comprimento da seção e a mistura
+          total-vs-categoria sob um rótulo só. A v2 entrega o que o usuário realmente esperava — médias por
+          categoria, com entrada e saída lado a lado e identidade visual — e torna a média mais honesta para
+          categorias sazonais (meses ativos, sem diluição por zeros). Condensar reduz a sobrecarga inicial sem
+          esconder o que importa.
+        </p>
+      </section>
+
+      <section id="approach">
+        <h2>Suggested approach</h2>
+        <ul class="bullets">
+          <li><strong>C primeiro</strong> (janela de meses ativos): ajustar <code class="inline">aggregateMonthlyWindow</code> e atualizar os testes dele + de <code class="inline">twelve-month</code> e <code class="inline">category-window-summary</code> — é a base de tudo.</li>
+          <li><strong>B</strong>: trim do twelve-month para totais; novo <code class="inline">calculate-key-category-insights</code> resolvendo as 4 categorias por nome e detectando fluxo dominante (reusar <code class="inline">aggregateMonthlyWindow</code> por fluxo).</li>
+          <li><strong>D</strong>: <code class="inline">CategoryAverageCard.vue</code> renderiza emoji + cor + 2 linhas de fluxo (dominante destacado); prop de cor no <code class="inline">InsightCard</code> para os demais cards de categoria.</li>
+          <li><strong>A</strong>: <code class="inline">ref</code> de <code class="inline">expanded</code> + botão; condensado mostra Taxa de poupança, Resumo mensal e Médias por categoria; expandido mostra todos os blocos.</li>
+        </ul>
+        <h4>Testes sugeridos</h4>
+        <ul class="bullets">
+          <li><code class="inline">aggregateMonthlyWindow</code>: média = soma/ativos; mediana só sobre ativos; 0 ativos → 0.</li>
+          <li><code class="inline">calculate-key-category-insights</code>: resolução por nome; categoria ausente omitida; fluxo dominante correto; entrada e saída quando ambos existem.</li>
+          <li>Render (condensar/expandir, dual-flow, ícone/cor) é visual → verificação manual.</li>
+        </ul>
+        <div class="callout warn">
+          <p><strong>Documentação primeiro.</strong> Esta obs foi criada antes de qualquer código, a pedido do usuário. Implementação só após a revisão da documentação.</p>
+        </div>
+      </section>
+
+      <section id="progress">
+        <h2>Progress</h2>
+        <div class="progress-entry">
+          <div class="when">2026-06-23 · criação</div>
+          <div class="what">Observation criada a partir da revisão do usuário sobre a v1 — pontos A–D consolidados.</div>
+          <p>Decisões fechadas: sempre-visíveis = Taxa de poupança + Resumo mensal (totais) + Médias por categoria; conjunto default = Despesas, Investimentos, Salário, Cartão de Crédito (por nome); janela = só meses com movimento (reverte v1); card de categoria dual-flow com dominante destacado + ícone/cor reais. Confirmado que ícones de categoria são emojis via <code class="inline">getCategoryIcon</code>.</p>
+        </div>
+        <div class="progress-entry">
+          <div class="when">2026-06-23 · implementação (A–D)</div>
+          <div class="what">Implementadas as quatro sub-features. Lógica coberta por unit tests (333 passam) e <code class="inline">ts-check</code> limpo.</div>
+          <p>
+            <strong>C:</strong> <code class="inline">aggregate-monthly-window.ts</code> ganhou a opção
+            <code class="inline">averaging</code> com default <code class="inline">"active-months"</code>
+            (média = total ÷ meses ativos; mediana só sobre os valores &gt; 0; 0 ativos → R$0).
+            <code class="inline">calculate-category-anomaly.ts</code> passou a chamar com
+            <code class="inline">"fixed-window"</code> para manter sua comparação período-vs-baseline
+            consistente (ambos dividem pela janela cheia). <code class="inline">calculate-category-window-summary.ts</code>
+            herda meses-ativos sem mudança de código (usa o default).
+            <strong>B:</strong> <code class="inline">calculate-twelve-month-insights.ts</code> reduzido aos 2 totais
+            (Despesas/Receitas) — dropou <code class="inline">categories</code> e as linhas de investimento/salário;
+            novo <code class="inline">calculate-key-category-insights.ts</code> resolve as 4 categorias por nome
+            (<code class="inline">KEY_CATEGORY_NAMES</code>), agrega entrada e saída por categoria, detecta o fluxo
+            dominante e carrega <code class="inline">icon</code>/<code class="inline">color</code>; categoria ausente
+            ou sem movimento é omitida.
+            <strong>D:</strong> novo <code class="inline">CategoryAverageCard.vue</code> (emoji + cor + linha dominante
+            destacada, linha secundária oculta quando o fluxo é R$0, rótulo "N meses com movimento");
+            <code class="inline">InsightCard.vue</code> ganhou <code class="inline">accentColor?</code> opcional.
+            <strong>A:</strong> <code class="inline">ReportsInsightsKPIs.vue</code> reorganizado — Taxa de poupança +
+            "Resumo mensal (12m)" + "Médias por categoria (12m)" sempre visíveis; "Período selecionado" (resto),
+            "Ano corrente", "Hábitos" e "Histórico" atrás do botão "Ver tudo / Ver menos" (<code class="inline">expanded</code> ref).
+            Wiring: <code class="inline">useReportsAnalytics.ts</code> expõe <code class="inline">keyCategoryInsights</code>
+            e o <code class="inline">twelveMonthInsights</code> enxuto; prop repassada na página de Relatórios.
+            Tooltips do resumo de categoria atualizados (removido o texto "meses sem movimento contam como R$0").
+          </p>
+        </div>
+      </section>
+
+      <section id="pending-validation">
+        <h2>Pending Validation</h2>
+        <p>
+          Lógica coberta por unit tests; falta a verificação <strong>visual</strong> no navegador (render,
+          layout condensado/expandido, dual-flow, ícone/cor — não testável em unit).
+        </p>
+        <ul class="bullets">
+          <li>Rodar <code class="inline">pnpm run dev</code> e abrir <code class="inline">/dashboard/relatorios</code> com uma conta com histórico.</li>
+          <li>Estado condensado: só Taxa de poupança + "Resumo mensal (12m)" (2 totais) + "Médias por categoria (12m)" (cards dual-flow com emoji + cor).</li>
+          <li>"Ver tudo" revela Período (resto)/Ano corrente/Hábitos/Histórico, <strong>sem</strong> duplicar Taxa de poupança.</li>
+          <li>Card de categoria: fluxo dominante destacado, fluxo vazio oculto, sub-rótulo "N meses com movimento".</li>
+          <li><code class="inline">/dashboard/categorias/:id</code>: médias/medianas do resumo de 12m agora refletem só meses com movimento; pico/menor/participação/tendência inalterados.</li>
+        </ul>
+      </section>
+
+      <footer class="footer">
+        <span>Observation · reports · enhancement · 2026-06-23</span>
+        <span>main</span>
+      </footer>
+    </div>
+  </body>
+</html>

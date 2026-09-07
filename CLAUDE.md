@@ -105,6 +105,12 @@ If you have any concern or can view any problem on our plan or my suggestions, l
 - If an type or interface already exists are we should reference it, use it instead of duplicating code
 - When reusing already defined types, you can merge, extend or omit it.
 
+### HTML docs (current-work, boards, observations)
+
+- **IMPORTANT**: Every HTML doc under `docs/` links the shared stylesheet `docs/assets/report.css` — never inline a `<style>` block. Relative path by depth: `assets/report.css` for `docs/*.html`, `../../../assets/report.css` for `docs/observations/<area>/<type>/*.html`.
+- `report.css` is the single source of truth for the doc design language. Add or change shared classes there, not per-file; it already carries every primitive the observation HTML template uses.
+- This overrides the global observation-template guidance that inlines `<style>` for standalone rendering — in this repo, link the shared file instead.
+
 ## Validating Request
 
 Always validate the current request. If that makes sense and possible flaws. You can always suggest changes if applicable.

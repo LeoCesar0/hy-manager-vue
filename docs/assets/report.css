@@ -4,8 +4,9 @@
    Reusable across any `.html` doc under docs/ (sprint boards, current-work,
    reports, observation summaries). Link it relative to the doc's location:
 
-       <link rel="stylesheet" href="assets/report.css" />        (docs/*.html)
-       <link rel="stylesheet" href="../assets/report.css" />     (docs/x/*.html)
+       <link rel="stylesheet" href="assets/report.css" />            (docs/*.html)
+       <link rel="stylesheet" href="../assets/report.css" />         (docs/x/*.html)
+       <link rel="stylesheet" href="../../../assets/report.css" />   (docs/observations/<area>/<type>/*.html)
 
    The design language mirrors the observation HTML template (serif headings,
    muted paper background, monospace metadata, pill "verdict" badges) so docs
@@ -275,6 +276,95 @@ ul.bullets li, ol.bullets li { margin: 4px 0; }
   margin: 12px 0;
 }
 
+/* Recommendation grid — Suggested approach with ranked options (obs template) */
+.recs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.rec-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+.rec-card .prio {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.rec-card.p1 .prio { color: var(--bad); }
+.rec-card.p2 .prio { color: var(--warn); }
+.rec-card.p3 .prio { color: var(--neutral); }
+.rec-card h4 {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 17px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.rec-card p { font-size: 13px; color: var(--text-muted); margin: 0 0 6px; }
+.rec-card .effort {
+  margin-top: auto;
+  padding-top: 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-soft);
+  border-top: 1px dashed var(--border);
+}
+
+/* Findings split — calibrated must-address vs worth-noting (obs template) */
+.findings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+.finding-list {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 18px 22px;
+  box-shadow: var(--shadow);
+}
+.finding-list.must { border-top: 4px solid var(--bad); }
+.finding-list.note { border-top: 4px solid var(--warn); }
+.finding-list h3 { margin: 0 0 10px; }
+.finding-list ul { margin: 0; padding-left: 22px; }
+.finding-list li { margin: 6px 0; font-size: 14px; }
+
+/* Progress entries — per-run logging in observations (obs template) */
+.progress-entry {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 14px 18px;
+  margin: 12px 0;
+  box-shadow: var(--shadow);
+}
+.progress-entry.good { border-left-color: var(--good); }
+.progress-entry.warn { border-left-color: var(--warn); }
+.progress-entry.bad { border-left-color: var(--bad); }
+.progress-entry .when {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.progress-entry .what { font-weight: 600; margin-bottom: 6px; }
+.progress-entry p:last-child { margin-bottom: 0; }
+
 .footer {
   margin-top: 64px;
   padding-top: 20px;
@@ -415,6 +505,7 @@ ul.bullets li, ol.bullets li { margin: 4px 0; }
   .container { padding: 32px 18px 72px; }
   h1 { font-size: 32px; }
   .obs-grid { grid-template-columns: 1fr; }
+  .findings { grid-template-columns: 1fr; }
   dl.frontmatter { grid-template-columns: 1fr; gap: 4px 0; }
   dl.frontmatter dt { padding-top: 10px; }
   .toc ol { columns: 1; }

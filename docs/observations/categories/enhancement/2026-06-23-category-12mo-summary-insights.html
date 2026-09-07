@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Quick-scan metadata · MUST stay in sync with the <dl class="frontmatter"> in <body> -->
+    <meta name="obs-status" content="awaiting-validation" />
+    <meta name="obs-type" content="enhancement" />
+    <meta name="obs-severity" content="medium" />
+    <meta name="obs-understanding" content="confident" />
+    <meta name="obs-execution" content="confident" />
+    <meta name="obs-retention" content="reference" />
+    <meta name="obs-date" content="2026-06-23" />
+    <meta name="obs-updated" content="2026-06-23" />
+    <meta name="obs-found-in" content="src/pages/dashboard/categorias/[id].vue" />
+    <title>Resumo de 12 meses na página de categoria — Observation</title>
+    <link rel="stylesheet" href="../../../assets/report.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="title-block">
+        <div class="eyebrow">Observation · categories · enhancement</div>
+        <h1>Resumo de 12 meses na página de categoria</h1>
+        <p class="subtitle">Média/mediana de entrada e saída, pico/menor mês, tendência, participação no total e top identificadores — acima do gráfico de evolução.</p>
+      </header>
+
+      <dl class="frontmatter">
+        <dt>status</dt><dd><span class="verdict warn">awaiting-validation</span></dd>
+        <dt>type</dt><dd><span class="verdict accent">enhancement</span></dd>
+        <dt>severity</dt><dd><span class="verdict warn">medium</span></dd>
+        <dt>understanding</dt><dd><span class="verdict good">confident</span></dd>
+        <dt>execution</dt><dd><span class="verdict good">confident</span></dd>
+        <dt>retention</dt><dd><span class="verdict accent">reference</span></dd>
+        <dt>found-during</dt><dd>Brainstorm de melhorias de insights e relatórios</dd>
+        <dt>found-in</dt><dd><span class="path">src/pages/dashboard/categorias/[id].vue</span></dd>
+        <dt>working-branch</dt><dd><span class="path">main</span></dd>
+        <dt>found-in-branch</dt><dd><span class="path">main</span></dd>
+        <dt>date</dt><dd>2026-06-23</dd>
+        <dt>updated</dt><dd>2026-06-23</dd>
+        <dt>related-observations</dt><dd><code>docs/observations/reports/enhancement/2026-06-23-insights-revamp-scope-tooltips-12mo.html</code>, <code>docs/observations/reports/enhancement/2026-06-23-insights-v2-condense-per-category-active-window.html</code></dd>
+      </dl>
+
+      <section id="summary">
+        <h2>Summary</h2>
+        <p class="lead">
+          A página de detalhe de uma categoria mostra hoje só metadados (nome, cor, ícone) e um gráfico de
+          barras de evolução mês a mês. Falta um resumo numérico de comportamento: quanto essa categoria
+          movimenta tipicamente. Esta observation adiciona um bloco de resumo de 12 meses — média e mediana
+          de entrada/saída, mês de pico e de menor, tendência recente, participação no total e principais
+          identificadores — reusando os mesmos helpers da revamp de Insights de Relatórios.
+        </p>
+        <div class="callout">
+          <p>
+            <span class="verdict accent">type · enhancement</span>
+            <span class="verdict warn">severity · medium</span>
+            <span class="verdict warn">status · open</span>
+            Vive em <code class="inline">categorias/[id].vue</code> + um componente novo de resumo; consome o <code class="inline">Report</code> já carregado pelo <code class="inline">CategoryTrendSection</code> — sem nova query nem schema.
+          </p>
+        </div>
+      </section>
+
+      <section id="context">
+        <h2>Context</h2>
+        <p>
+          A página <code class="inline">/dashboard/categorias/:id</code> renderiza um
+          <code class="inline">DetailCard</code> com os campos da categoria e, abaixo, o componente
+          <code class="inline">CategoryTrendSection.vue</code>, que carrega o <code class="inline">Report</code>
+          da conta atual e desenha um <code class="inline">MonthlyTrendBarChart</code> da movimentação da
+          categoria mês a mês (via <code class="inline">buildCategoryDrillDown</code>). Ou seja: o Report e o
+          drill-down da categoria <strong>já estão carregados nessa tela</strong> — só não existe um resumo
+          numérico em cima desses dados.
+        </p>
+        <p>
+          Esta observation adiciona um <strong>bloco de resumo de 12 meses</strong> para a categoria
+          corrente, com os seguintes números (todos sobre a janela fixa de 12 meses-calendário, mês sem
+          movimento = R$0, igual à decisão tomada na obs de Relatórios):
+        </p>
+        <div class="table-wrap">
+          <table class="eval">
+            <thead><tr><th>Métrica</th><th>O que mostra</th></tr></thead>
+            <tbody>
+              <tr><td>Média e mediana de saída</td><td>Gasto mensal típico da categoria (média) vs. valor central (mediana — revela meses-pico).</td></tr>
+              <tr><td>Média e mediana de entrada</td><td>Idem para receitas, quando a categoria recebe entradas.</td></tr>
+              <tr><td>Mês de pico / mês de menor</td><td>Maior e menor mês da janela, com o valor e o rótulo MM/AAAA.</td></tr>
+              <tr><td>Tendência (3m vs 3m anteriores)</td><td>Soma dos últimos 3 meses vs. os 3 anteriores → subindo / estável / caindo, em %.</td></tr>
+              <tr><td>Participação no total</td><td>Que % do gasto (ou receita) total da conta, na janela, vem desta categoria.</td></tr>
+              <tr><td>Top identificadores</td><td>Os identificadores que mais aparecem nesta categoria, via o mapa 2D <code class="inline">expensesByCategoryAndCounterparty</code> do Report.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Examples</h3>
+        <ul class="bullets">
+          <li>Categoria "Mercado": saída média R$1.240/mês · mediana R$1.190 · pico R$2.050 (12/2025) · tendência +8% · 14% do gasto total · top ident: "Pão de Açúcar", "Carrefour".</li>
+          <li>Categoria de receita "Salário": entrada média e mediana iguais (recorrente, todo mês) — sinal de estabilidade.</li>
+        </ul>
+
+        <h3>How to observe or reproduce</h3>
+        <ol class="bullets">
+          <li>Abrir uma categoria em <code class="inline">/dashboard/categorias/:id</code>.</li>
+          <li>Hoje só há metadados + gráfico de evolução; nenhum resumo numérico de comportamento.</li>
+        </ol>
+      </section>
+
+      <section id="where">
+        <h2>Where</h2>
+        <ul class="bullets">
+          <li><code class="inline">src/pages/dashboard/categorias/[id].vue</code> — onde o bloco entra (acima ou ao lado do <code class="inline">CategoryTrendSection</code>).</li>
+          <li><code class="inline">src/components/Categories/CategoryTrendSection.vue</code> — já carrega o Report; pode hospedar ou irmanar o resumo.</li>
+          <li><code class="inline">src/services/analytics/build-category-drill-down.ts</code> — base do recorte por categoria; estender/derivar as métricas.</li>
+          <li>Helpers compartilhados da obs de Relatórios: <code class="inline">calculateMedian</code> + agregador de janela de 12 meses.</li>
+        </ul>
+      </section>
+
+      <section id="why">
+        <h2>Why it matters</h2>
+        <p>
+          O gráfico mostra a forma da série, mas não responde "isso é caro ou barato pra essa categoria?".
+          Média + mediana + pico + tendência + participação dão a leitura de comportamento que falta, e
+          reaproveitam dados e helpers que já existirão após a revamp de Relatórios — custo marginal baixo,
+          valor alto na tela onde o usuário investiga uma categoria específica.
+        </p>
+      </section>
+
+      <section id="approach">
+        <h2>Suggested approach</h2>
+        <ul class="bullets">
+          <li>Criar um componente <code class="inline">CategorySummary.vue</code> (ou seção dentro do trend) que recebe o <code class="inline">report</code> + <code class="inline">categoryId</code> e renderiza os números via <code class="inline">InsightCard</code> (com tooltip).</li>
+          <li>Reusar o <strong>agregador de janela de 12 meses</strong> e o <strong><code class="inline">calculateMedian</code></strong> introduzidos na obs de Relatórios — esta obs <strong>não</strong> recria esses helpers.</li>
+          <li>Top identificadores: ler <code class="inline">expensesByCategoryAndCounterparty[categoryId]</code> agregado na janela, ordenar desc, pegar top N; mapear ids → nomes via <code class="inline">useReferenceDataStore</code>.</li>
+          <li>Tendência: somar os 3 meses mais recentes da janela vs. os 3 anteriores; rotular com seta/%.</li>
+        </ul>
+        <div class="callout warn">
+          <p>
+            <strong>Plano único:</strong> atacar no <strong>mesmo plan-mode run</strong> da obs
+            <em>Revamp da seção Insights de Relatórios</em>, que introduz os helpers compartilhados. Esta obs
+            depende deles.
+          </p>
+        </div>
+        <h4>Testes sugeridos</h4>
+        <ul class="bullets">
+          <li>Unit do cálculo de métricas da categoria: pico/menor corretos; tendência com sinal certo; participação = share do total; top identificadores ordenados.</li>
+          <li>Render é visual → verificação manual.</li>
+        </ul>
+      </section>
+
+      <section id="progress">
+        <h2>Progress</h2>
+        <div class="progress-entry">
+          <div class="when">2026-06-23 · criação</div>
+          <div class="what">Observation criada a partir do brainstorm — item 3 + grupo "categoria" do item 4.</div>
+          <p>Confirmado que <code class="inline">CategoryTrendSection</code> já carrega o Report nessa tela e que o mapa 2D <code class="inline">expensesByCategoryAndCounterparty</code> existe no schema, viabilizando os top identificadores sem transações brutas.</p>
+        </div>
+        <div class="progress-entry">
+          <div class="when">2026-06-23 · implementação</div>
+          <div class="what">Implementado o resumo de 12 meses. Cálculo coberto por unit tests; <code class="inline">ts-check</code> limpo.</div>
+          <p>
+            Novo serviço <code class="inline">src/services/analytics/calculate-category-window-summary.ts</code>
+            (média/mediana de saída e entrada, mês de pico/menor, tendência 3m-vs-3m, participação no total da conta e top identificadores via mapa 2D), reusando o
+            <code class="inline">aggregateMonthlyWindow</code> e o <code class="inline">calculateMedian</code> da obs de Relatórios — fluxo dominante (saída vs. entrada) decide pico/tendência/identificadores.
+            Novo componente <code class="inline">src/components/Categories/CategorySummary.vue</code> renderiza o resumo via <code class="inline">InsightCard</code> (com tooltips), montado <strong>dentro</strong> de
+            <code class="inline">CategoryTrendSection.vue</code> acima do gráfico, reusando o <code class="inline">report</code> + <code class="inline">categories</code> + <code class="inline">counterparties</code> já carregados (sem nova busca).
+          </p>
+        </div>
+        <div class="progress-entry">
+          <div class="when">2026-06-23 · ajuste de janela (v2)</div>
+          <div class="what">A decisão de "mês sem movimento = R$0" foi <strong>revertida</strong> globalmente (ver obs <em>Insights v2</em>).</div>
+          <p>
+            As médias/medianas de saída e entrada deste resumo passam a considerar <strong>só meses com
+            movimento</strong> (média = soma ÷ meses ativos; mediana sobre os valores ativos). Pico/menor mês,
+            participação no total e tendência 3m-vs-3m <strong>não mudam</strong> (não dividem pela quantidade
+            de meses). Esse ajuste vem junto da implementação da obs v2 e re-valida este resumo.
+          </p>
+        </div>
+      </section>
+
+      <section id="pending-validation">
+        <h2>Pending Validation</h2>
+        <p>Falta a verificação <strong>visual</strong> no navegador (a lógica está coberta por unit tests).</p>
+        <ul class="bullets">
+          <li>Abrir <code class="inline">/dashboard/categorias/:id</code> de uma categoria com histórico.</li>
+          <li>Conferir o bloco "Resumo de 12 meses" acima do gráfico: médias/medianas, mês de pico/menor, tendência, participação e a lista de principais identificadores.</li>
+        </ul>
+      </section>
+
+      <footer class="footer">
+        <span>Observation · categories · enhancement · 2026-06-23</span>
+        <span>main</span>
+      </footer>
+    </div>
+  </body>
+</html>

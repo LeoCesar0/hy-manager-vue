@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Quick-scan metadata · MUST stay in sync with the <dl class="frontmatter"> in <body> -->
+    <meta name="obs-status" content="awaiting-validation" />
+    <meta name="obs-type" content="enhancement" />
+    <meta name="obs-severity" content="medium" />
+    <meta name="obs-understanding" content="confident" />
+    <meta name="obs-execution" content="confident" />
+    <meta name="obs-retention" content="reference" />
+    <meta name="obs-date" content="2026-06-23" />
+    <meta name="obs-updated" content="2026-06-23" />
+    <meta name="obs-found-in" content="src/components/Reports/ReportsInsightsKPIs.vue" />
+    <title>Revamp da seção Insights de Relatórios — Observation</title>
+    <link rel="stylesheet" href="../../../assets/report.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="title-block">
+        <div class="eyebrow">Observation · reports · enhancement</div>
+        <h1>Revamp da seção Insights de Relatórios</h1>
+        <p class="subtitle">Separar por escopo temporal, explicar cada campo com tooltip e adicionar médias/medianas de 12 meses, anomalias, ticket médio e concentração.</p>
+      </header>
+
+      <dl class="frontmatter">
+        <dt>status</dt><dd><span class="verdict warn">awaiting-validation</span></dd>
+        <dt>type</dt><dd><span class="verdict accent">enhancement</span></dd>
+        <dt>severity</dt><dd><span class="verdict warn">medium</span></dd>
+        <dt>understanding</dt><dd><span class="verdict good">confident</span></dd>
+        <dt>execution</dt><dd><span class="verdict good">confident</span></dd>
+        <dt>retention</dt><dd><span class="verdict accent">reference</span></dd>
+        <dt>found-during</dt><dd>Brainstorm de melhorias de insights e relatórios</dd>
+        <dt>found-in</dt><dd><span class="path">src/components/Reports/ReportsInsightsKPIs.vue</span></dd>
+        <dt>working-branch</dt><dd><span class="path">main</span></dd>
+        <dt>found-in-branch</dt><dd><span class="path">main</span></dd>
+        <dt>date</dt><dd>2026-06-23</dd>
+        <dt>updated</dt><dd>2026-06-23</dd>
+        <dt>related-observations</dt><dd><code>docs/observations/reports/enhancement/2026-06-23-insights-v2-condense-per-category-active-window.html</code>, <code>docs/observations/categories/enhancement/2026-06-23-category-12mo-summary-insights.html</code>, <code>docs/observations/reports/enhancement/2026-06-23-customizable-12mo-insights-widget.html</code></dd>
+      </dl>
+
+      <div class="toc">
+        <h4>Sub-features nesta observation</h4>
+        <ol>
+          <li><a href="#a">A · Separação por escopo + tooltips</a></li>
+          <li><a href="#b">B · Médias e medianas de 12 meses (conjunto semântico)</a></li>
+          <li><a href="#c">C · Anomalia &amp; comparação</a></li>
+          <li><a href="#d">D · Ticket médio &amp; frequência</a></li>
+          <li><a href="#e">E · Concentração &amp; recorrência</a></li>
+        </ol>
+      </div>
+
+      <section id="summary">
+        <h2>Summary</h2>
+        <p class="lead">
+          A seção "Insights" da página de Relatórios mistura, num mesmo grid plano, cards de três
+          escopos temporais diferentes (período selecionado, ano-calendário corrente e histórico
+          inteiro) sem nenhuma separação visual nem explicação — o usuário não consegue saber a que
+          recorte cada número se refere. Esta observation reorganiza a seção por escopo, adiciona uma
+          tooltip explicativa por card, e amplia o leque de insights com médias/medianas de 12 meses,
+          detecção de anomalias, ticket médio/frequência e concentração/recorrência.
+        </p>
+        <div class="callout">
+          <p>
+            <span class="verdict accent">type · enhancement</span>
+            <span class="verdict warn">severity · medium</span>
+            <span class="verdict warn">status · open</span>
+            Vive em <code class="inline">ReportsInsightsKPIs.vue</code> + <code class="inline">calculate-report-insights.ts</code>; consome apenas <code class="inline">report.monthlyBreakdown</code> (já carregado) — sem nova query, sem mudança de schema, sem índice.
+          </p>
+        </div>
+      </section>
+
+      <section id="context">
+        <h2>Context</h2>
+        <p>
+          A página de Relatórios (<code class="inline">/dashboard/relatorios</code>) abre com um bloco
+          chamado "Insights": um grid de cards-resumo (<code class="inline">InsightCard</code>) montados
+          em <code class="inline">ReportsInsightsKPIs.vue</code> a partir do objeto
+          <code class="inline">IReportInsights</code> calculado em
+          <code class="inline">calculate-report-insights.ts</code>. Os números saem todos do documento
+          <code class="inline">Report</code> da conta, que guarda <code class="inline">monthlyBreakdown</code>
+          (um mapa <code class="inline">"YYYY-MM" → { income, expenses, expensesByCategory,
+          depositsByCategory, ...Count, ... }</code>). Esse documento já vem inteiro carregado na tela, então
+          qualquer recorte temporal é calculável no cliente.
+        </p>
+        <p>
+          O problema central, hoje, é que os cards atuais têm <strong>três escopos temporais distintos
+          colados sem separação</strong>, e os subtítulos que tentam explicar isso são inconsistentes e
+          fáceis de não ler:
+        </p>
+        <div class="table-wrap">
+          <table class="eval">
+            <thead><tr><th>Card atual</th><th>Escopo real</th><th>Sinalização hoje</th></tr></thead>
+            <tbody>
+              <tr><td>Taxa de poupança · Maior aumento de gastos · Maior redução de gastos</td><td>Período selecionado (segue o seletor de meses)</td><td>Só "do período selecionado" na taxa; os outros nada</td></tr>
+              <tr><td>Entradas (ano) · Saídas (ano) · Saldo (ano)</td><td>Ano-calendário corrente (YTD) — ignora o seletor</td><td>Só o sufixo "(ano)" no título</td></tr>
+              <tr><td>Ganho médio mensal · Gasto médio mensal</td><td>Histórico inteiro (todos os meses já registrados)</td><td>Subtítulo "baseado em todo o histórico"</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="a">A · Separação por escopo + tooltips</h3>
+        <p>
+          Reorganizar o grid em <strong>três blocos visuais rotulados</strong> — "Período selecionado",
+          "Ano corrente" e "Histórico" — cada um com um cabeçalho curto, e dar a cada card uma
+          <strong>tooltip explicativa</strong> (ícone "i" no canto) dizendo, em uma frase, o que o número
+          significa e como é calculado. Exemplo: na Taxa de poupança, "Quanto das suas entradas sobrou
+          depois das despesas reais no período. Investimentos não contam como gasto." Hoje essa nuance
+          (a taxa exclui categorias <code class="inline">isPositiveExpense</code>) está só no comentário do
+          código, invisível ao usuário.
+        </p>
+
+        <h3 id="b">B · Médias e medianas de 12 meses (conjunto semântico)</h3>
+        <p>
+          Adicionar um bloco novo com média <em>e</em> mediana dos últimos 12 meses, calculadas sobre uma
+          <strong>janela fixa de 12 meses-calendário</strong> (mês sem movimento conta como R$0 — dá a
+          "carga mensal típica", consistente entre categorias). O conjunto default é
+          <strong>derivado semanticamente</strong>, sem configuração:
+        </p>
+        <ul class="bullets">
+          <li><strong>Despesas totais</strong> — soma de <code class="inline">expenses</code> por mês.</li>
+          <li><strong>Receitas totais</strong> — soma de <code class="inline">income</code> por mês.</li>
+          <li><strong>Investimentos</strong> — soma das categorias com flag <code class="inline">isPositiveExpense</code> (reusar <code class="inline">splitPositiveExpenses</code>).</li>
+          <li><strong>Salário</strong> — a maior categoria de entrada (<code class="inline">depositsByCategory</code> agregado na janela; pega a de maior total).</li>
+        </ul>
+        <p>
+          A diferença média vs. mediana é o valor didático: para o usuário, ver que a <em>média</em> de
+          despesas é R$4.200 mas a <em>mediana</em> é R$3.600 revela que há meses-pico puxando a média —
+          informação que nenhum card atual entrega.
+        </p>
+
+        <h3 id="c">C · Anomalia &amp; comparação</h3>
+        <p>
+          Cards que destacam o que fugiu do padrão: (1) gasto/receita do período vs. a média de 12 meses,
+          em % acima/abaixo ("Restaurantes: 23% acima da sua média"); (2) comparativo ano-vs-ano — totais
+          do ano corrente até hoje vs. o mesmo recorte do ano anterior (quando o Report tem ≥2 anos).
+        </p>
+
+        <h3 id="d">D · Ticket médio &amp; frequência</h3>
+        <p>
+          O Report já guarda contagens por dimensão (<code class="inline">expensesByCategoryCount</code>,
+          <code class="inline">expensesByCounterpartyCount</code>, etc.). Isso permite, sem tocar em
+          transações brutas: <strong>ticket médio</strong> (valor ÷ contagem) e <strong>frequência</strong>
+          (nº de ocorrências) por categoria e por identificador — ex.: "Mercado: R$87/ida · 23 idas no
+          período".
+        </p>
+
+        <h3 id="e">E · Concentração &amp; recorrência</h3>
+        <p>
+          (1) <strong>Concentração</strong>: que % do gasto total está nas top 3 categorias (e/ou no maior
+          identificador) — mede o quanto o orçamento depende de poucos vetores. (2) <strong>Recorrência</strong>:
+          identificadores presentes em quase todos os meses da janela (ex.: ≥ 80% dos meses) são candidatos
+          a assinaturas/contas fixas — "Gastos recorrentes detectados: Netflix, Energia, Internet".
+        </p>
+
+        <h3>Examples</h3>
+        <ul class="bullets">
+          <li>Janela fixa 12m, categoria ativa só em 8 meses: soma ÷ 12 (não ÷ 8). Mês ausente = R$0.</li>
+          <li>Mediana de [0,0,0,0,300,320,310,0,0,0,0,0] (12 valores) = 0 — esperado pela decisão de janela fixa; a tooltip do card deve deixar claro que zeros entram na conta.</li>
+          <li>Ticket médio Mercado = <code class="inline">expensesByCounterparty["mercado"] / expensesByCounterpartyCount["mercado"]</code>, agregados na janela.</li>
+        </ul>
+
+        <h3>How to observe or reproduce</h3>
+        <ol class="bullets">
+          <li>Abrir <code class="inline">/dashboard/relatorios</code> com uma conta que tenha histórico.</li>
+          <li>Observar o bloco "Insights": cards de período, de ano e de histórico aparecem juntos sem separação nem explicação do recorte.</li>
+          <li>Conferir <code class="inline">ReportsInsightsKPIs.vue</code> (grid plano) e <code class="inline">calculate-report-insights.ts</code> (averageMonthly* sobre histórico inteiro; ytd* sobre o ano; savingsRate sobre o período).</li>
+        </ol>
+      </section>
+
+      <section id="where">
+        <h2>Where</h2>
+        <ul class="bullets">
+          <li><code class="inline">src/components/Reports/ReportsInsightsKPIs.vue</code> — montagem dos cards (grid plano a reorganizar).</li>
+          <li><code class="inline">src/components/Dashboard/InsightCard.vue</code> — estender com tooltip opcional.</li>
+          <li><code class="inline">src/services/analytics/calculate-report-insights.ts</code> — fonte de <code class="inline">IReportInsights</code>; ampliar com os novos campos.</li>
+          <li><code class="inline">src/@schemas/models/report.ts</code> — referência dos dados disponíveis (<code class="inline">monthlyBreakdown</code>, *Count, 2D maps). Não muda.</li>
+          <li><code class="inline">src/components/ui/tooltip/*</code> — primitivo já existente (usado na sidebar).</li>
+          <li><code class="inline">src/helpers/</code> — destino dos helpers novos (median + agregador de janela).</li>
+        </ul>
+      </section>
+
+      <section id="why">
+        <h2>Why it matters</h2>
+        <p>
+          Os Insights são a primeira coisa que o usuário vê em Relatórios. Hoje eles são poderosos mas
+          confusos: misturar escopos sem rótulo faz o usuário comparar mentalmente números que não são
+          comparáveis (um do mês, um do ano, um do histórico). A separação + tooltip resolve a confusão; os
+          novos insights (12m, anomalia, ticket, concentração, recorrência) entregam leituras que hoje não
+          existem em lugar nenhum do app — tudo a custo zero de infraestrutura, porque os dados já estão no
+          Report carregado.
+        </p>
+      </section>
+
+      <section id="approach">
+        <h2>Suggested approach</h2>
+        <h4>Peças compartilhadas (introduzidas aqui, reusadas pela obs de categoria)</h4>
+        <ul class="bullets">
+          <li><strong><code class="inline">calculateMedian</code></strong> — helper puro em <code class="inline">src/helpers/</code> (padrão do projeto: 1 export por arquivo, param object). Não existe hoje.</li>
+          <li><strong>Agregador de janela de 12 meses</strong> — serviço em <code class="inline">src/services/analytics/</code> que recebe <code class="inline">report.monthlyBreakdown</code> e uma referência de "mês atual", monta a janela de 12 chaves <code class="inline">"YYYY-MM"</code> (preenchendo ausentes com 0) e devolve, por série (total/categoria), <code class="inline">{ average, median, activeMonths }</code>. <code class="inline">activeMonths</code> alimenta um sub-rótulo opcional ("ativo em 8 de 12 meses").</li>
+          <li><strong><code class="inline">InsightCard</code> + tooltip</strong> — prop opcional <code class="inline">info?: string</code>; quando presente, renderiza ícone "i" com <code class="inline">Tooltip/TooltipTrigger/TooltipContent</code>. Mantém os cards atuais intactos quando <code class="inline">info</code> não é passado.</li>
+        </ul>
+        <h4>Por sub-feature</h4>
+        <ul class="bullets">
+          <li><strong>A</strong> — agrupar o array de cards de <code class="inline">ReportsInsightsKPIs.vue</code> por escopo e renderizar 3 blocos com cabeçalho; preencher <code class="inline">info</code> de cada card existente.</li>
+          <li><strong>B</strong> — novo bloco "Médias de 12 meses" consumindo o agregador; 4 linhas semânticas (despesas/receitas/investimentos/salário) com média + mediana lado a lado.</li>
+          <li><strong>C</strong> — derivar, no <code class="inline">calculate-report-insights</code>, o desvio do período vs. média 12m por categoria (maior anomalia) e o par YTD-vs-YTD anterior.</li>
+          <li><strong>D</strong> — ticket médio/frequência a partir dos mapas <code class="inline">*Count</code> agregados na janela; top N categorias/identificadores.</li>
+          <li><strong>E</strong> — concentração (share das top 3) e recorrência (contar em quantos meses da janela cada identificador aparece; marcar ≥ limiar).</li>
+        </ul>
+        <div class="callout warn">
+          <p>
+            <strong>Plano único:</strong> esta obs e a de <em>resumo de 12 meses na página de categoria</em>
+            serão atacadas no <strong>mesmo plan-mode run</strong> — compartilham <code class="inline">calculateMedian</code> e
+            o agregador de janela. O <strong>widget customizável</strong> (obs separada) fica <strong>fora</strong>
+            deste run, pois depende da sub-feature B e de uma decisão de persistência ainda em aberto.
+          </p>
+        </div>
+        <h4>Testes sugeridos</h4>
+        <ul class="bullets">
+          <li>Unit do <code class="inline">calculateMedian</code> (par/ímpar, vazio, um elemento, com zeros).</li>
+          <li>Unit do agregador de janela: ausências viram 0; <code class="inline">activeMonths</code> correto; salário = maior categoria de entrada; investimentos = soma das <code class="inline">isPositiveExpense</code>.</li>
+          <li>Render dos blocos/tooltip é visual → verificação manual.</li>
+        </ul>
+      </section>
+
+      <section id="progress">
+        <h2>Progress</h2>
+        <div class="progress-entry">
+          <div class="when">2026-06-23 · criação</div>
+          <div class="what">Observation criada a partir do brainstorm — itens 1, 2 (MVP), 4 do pedido do usuário.</div>
+          <p>Decisões fechadas: janela fixa de 12m (zeros incluídos); conjunto default semântico automático; os 3 grupos de insights extras entram. Dados confirmados disponíveis no <code class="inline">Report</code>; tooltip primitivo confirmado em <code class="inline">components/ui/tooltip</code>; helper de mediana confirmado inexistente.</p>
+        </div>
+        <div class="progress-entry">
+          <div class="when">2026-06-23 · implementação (A–E)</div>
+          <div class="what">Implementadas todas as sub-features. Núcleo testado por unit tests (327 passam) e <code class="inline">ts-check</code> limpo.</div>
+          <p>
+            <strong>Fundação:</strong> <code class="inline">src/helpers/calculateMedian.ts</code> e
+            <code class="inline">src/services/analytics/aggregate-monthly-window.ts</code> (agregador genérico por seletor, janela fixa, mês ausente = 0);
+            <code class="inline">InsightCard</code> ganhou prop <code class="inline">info?</code> (ícone "i" + tooltip).
+            <strong>A:</strong> novo <code class="inline">InsightGroup.vue</code>; <code class="inline">ReportsInsightsKPIs.vue</code> reescrito em 5 blocos rotulados (Período / Ano corrente / Médias de 12 meses / Hábitos / Histórico) com tooltip por card.
+            <strong>B:</strong> <code class="inline">calculate-twelve-month-insights.ts</code> (despesas, receitas, investimentos, salário = maior categoria de entrada).
+            <strong>C:</strong> <code class="inline">calculate-category-anomaly.ts</code> + campos <code class="inline">prevYtdIncome/prevYtdExpenses</code> em <code class="inline">IReportInsights</code> (comparativo no card de Ano corrente).
+            <strong>D:</strong> <code class="inline">calculate-ticket-frequency.ts</code> (top 3, ticket = total/contagem).
+            <strong>E:</strong> <code class="inline">calculate-concentration-recurrence.ts</code> (top-3 share; recorrência ≥ 80% dos meses).
+            Wiring em <code class="inline">useReportsAnalytics.ts</code> + props na página de Relatórios.
+          </p>
+        </div>
+        <div class="progress-entry">
+          <div class="when">2026-06-23 · revisão do usuário → v2</div>
+          <div class="what">Após ver a v1, o usuário pediu mudanças. Parte desta obs será <strong>refinada</strong> pela nova obs <em>Insights v2</em> (ver related-observations) antes da validação.</div>
+          <p>
+            Impacto nesta obs: (1) a sub-feature <strong>B</strong> ("Médias de 12 meses") se quebra em
+            <em>Resumo mensal</em> (só totais) + <em>Médias por categoria</em> (Despesas, Investimentos,
+            Salário, Cartão de Crédito); (2) a decisão de janela <strong>"mês sem movimento = R$0" foi
+            revertida</strong> — passa a contar só meses com movimento; (3) a seção ganha estado
+            condensar/expandir e ícones reais de categoria. As sub-features A (separação por escopo + tooltips),
+            C (anomalia/YoY), D (ticket) e E (concentração/recorrência) permanecem como entregues.
+          </p>
+        </div>
+      </section>
+
+      <section id="pending-validation">
+        <h2>Pending Validation</h2>
+        <p>
+          Lógica coberta por unit tests; o que falta é a verificação <strong>visual</strong> no navegador
+          (render, layout dos grupos e comportamento das tooltips — não testável em unit).
+        </p>
+        <ul class="bullets">
+          <li>Rodar <code class="inline">pnpm run dev</code> e abrir <code class="inline">/dashboard/relatorios</code> com uma conta com histórico.</li>
+          <li>Conferir os 5 blocos rotulados e o ícone "i" com tooltip em cada card.</li>
+          <li>Verificar o bloco "Médias de 12 meses" (4 linhas), a "Maior anomalia", o comparativo "ano anterior" nos cards de Ano corrente, os cards de "Hábitos de consumo" (ticket médio, concentração, recorrentes).</li>
+        </ul>
+      </section>
+
+      <footer class="footer">
+        <span>Observation · reports · enhancement · 2026-06-23</span>
+        <span>main</span>
+      </footer>
+    </div>
+  </body>
+</html>
